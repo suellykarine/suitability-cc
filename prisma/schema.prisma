@@ -1,0 +1,349 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource CreditConnect {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model acesso_usuario {
+  id             Int         @id(map: "pk_acesso_usuario_id") @default(autoincrement())
+  id_usuario     Int
+  id_modulo      Int
+  id_tipo_acesso Int
+  modulo         modulo      @relation(fields: [id_modulo], references: [id], onUpdate: NoAction, map: "fk_acesso_usuario_id_modulo")
+  tipo_acesso    tipo_acesso @relation(fields: [id_tipo_acesso], references: [id], onUpdate: NoAction, map: "fk_acesso_usuario_id_tipo_acesso")
+  usuario        usuario     @relation(fields: [id_usuario], references: [id], onUpdate: NoAction, map: "fk_acesso_usuario_id_usuario")
+}
+
+model administrador_fundo {
+  id                 Int                  @id(map: "pk_administrador_fundo_id") @default(autoincrement())
+  nome               String?              @CreditConnect.NVarChar(255)
+  email              String?              @unique(map: "unique_administrador_fundo_email") @CreditConnect.NVarChar(255)
+  telefone           String?              @CreditConnect.NVarChar(255)
+  id_endereco        Int?
+  cpf_cnpj           String?              @CreditConnect.NVarChar(50)
+  endereco           endereco?            @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_administrador_fundo_id_endereco")
+  fundo_investimento fundo_investimento[]
+}
+
+model ativo_investido {
+  id                       Int                    @id(map: "pk_ativo_investido_id") @default(autoincrement())
+  id_carteira_investimento Int?
+  nome_ativo               String?                @CreditConnect.NVarChar(255)
+  valor_investimento       Decimal?               @CreditConnect.Decimal(18, 2)
+  taxa_retorno             Decimal?               @CreditConnect.Decimal(18, 2)
+  segmento                 String?                @CreditConnect.NVarChar(255)
+  categoria                String?                @CreditConnect.NVarChar(255)
+  cnpj                     String?                @CreditConnect.NVarChar(255)
+  nome_empresa             String?                @CreditConnect.NVarChar(255)
+  taxa_rendimento          Decimal?               @CreditConnect.Decimal(18, 2)
+  taxa_valorizacao         Decimal?               @CreditConnect.Decimal(18, 2)
+  numero_documento         String?                @CreditConnect.NVarChar(255)
+  valor_presente           Decimal?               @CreditConnect.Decimal(18, 2)
+  valor_futuro             Decimal?               @CreditConnect.Decimal(18, 2)
+  valor_investido          Decimal?               @CreditConnect.Decimal(18, 2)
+  data_vencimento          DateTime?              @CreditConnect.Date
+  status_ativo             String?                @CreditConnect.NVarChar(255)
+  score_interno            String?                @CreditConnect.NVarChar(255)
+  data_criacao             DateTime?              @CreditConnect.DateTime
+  carteira_investimento    carteira_investimento? @relation(fields: [id_carteira_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ativo_investido_id_carteira_investimento")
+}
+
+model carta_convite {
+  id                      Int                   @id(map: "pk_carta_convite_id") @default(autoincrement())
+  nome                    String?               @CreditConnect.NVarChar(255)
+  empresa                 String?               @CreditConnect.NVarChar(255)
+  email                   String?               @CreditConnect.NVarChar(255)
+  telefone                String?               @CreditConnect.NVarChar(50)
+  cpf                     String?               @CreditConnect.NVarChar(255)
+  cnpj                    String?               @CreditConnect.NVarChar(255)
+  mensagem                String?               @CreditConnect.NVarChar(Max)
+  id_status_carta_convite Int?
+  id_usuario              Int?
+  status_carta_convite    status_carta_convite? @relation(fields: [id_status_carta_convite], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carta_convite_id_status_carta_convite")
+  usuario                 usuario?              @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carta_convite_id_usuario")
+}
+
+model carteira_investimento {
+  id                              Int                           @id(map: "pk_carteira_investimento_id") @default(autoincrement())
+  id_fundo_investimento           Int?
+  id_transacao_carteira           Int?
+  nome_carteira                   String                        @CreditConnect.NVarChar(255)
+  valor_total                     Float?
+  id_status_carteira_investimento Int?
+  data_criacao                    DateTime?                     @CreditConnect.DateTime
+  ativo_investido                 ativo_investido[]
+  fundo_investimento              fundo_investimento?           @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carteira_investimento_id_fundo_investimento")
+  status_carteira_investimento    status_carteira_investimento? @relation(fields: [id_status_carteira_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carteira_investimento_id_status_carteira_investimento")
+  transacao_carteira              transacao_carteira?           @relation(fields: [id_transacao_carteira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carteira_investimento_id_transacao_carteira")
+}
+
+model codigo_verificacao {
+  id             Int      @id(map: "pk_codigo_verificacao_id") @default(autoincrement())
+  email          String   @CreditConnect.NVarChar(255)
+  codigo         String   @CreditConnect.NVarChar(255)
+  data_expiracao DateTime @CreditConnect.DateTime
+}
+
+model documento {
+  id                    Int                   @id(map: "pk_documento_id") @default(autoincrement())
+  data_referencia       DateTime?             @CreditConnect.DateTime
+  data_upload           DateTime?             @CreditConnect.DateTime
+  extensao              String?               @CreditConnect.NVarChar(255)
+  nome_arquivo          String?               @CreditConnect.NVarChar(255)
+  tipo_documento        String?               @CreditConnect.NVarChar(255)
+  url                   String?               @CreditConnect.NVarChar(255)
+  id_status_documento   Int?
+  id_usuario            Int?
+  id_gestor_fundo       Int?
+  id_fundo_investimento Int?
+  fundo_investimento    fundo_investimento?   @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_fundo_investimento")
+  gestor_fundo          gestor_fundo?         @relation(fields: [id_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_gestor_fundo")
+  status_documento      status_documento?     @relation(fields: [id_status_documento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_status_documento")
+  usuario               usuario?              @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_usuario")
+  feedback_backoffice   feedback_backoffice[]
+}
+
+model endereco {
+  id                  Int                   @id(map: "pk_endereco_id") @default(autoincrement())
+  cep                 String?               @CreditConnect.NVarChar(20)
+  logradouro          String?               @CreditConnect.NVarChar(255)
+  numero              String?               @CreditConnect.NVarChar(50)
+  complemento         String?               @CreditConnect.NVarChar(255)
+  bairro              String?               @CreditConnect.NVarChar(255)
+  cidade              String?               @CreditConnect.NVarChar(255)
+  estado              String?               @CreditConnect.NVarChar(50)
+  pais                String?               @CreditConnect.NVarChar(50)
+  administrador_fundo administrador_fundo[]
+  gestor_fundo        gestor_fundo[]
+  usuario             usuario[]
+}
+
+model fundo_backoffice {
+  id                 Int                  @id(map: "pk_fundo_backoffice_id") @default(autoincrement())
+  nome               String               @CreditConnect.NVarChar(255)
+  email              String               @unique(map: "unique_fundo_backoffice_email") @CreditConnect.NVarChar(255)
+  telefone           String?              @CreditConnect.NVarChar(255)
+  fundo_investimento fundo_investimento[]
+}
+
+model fundo_investimento {
+  id                              Int                               @id(map: "pk_fundo_investimento_id") @default(autoincrement())
+  nome                            String?                           @CreditConnect.NVarChar(255)
+  cnpj                            String?                           @unique(map: "unique_fundo_investimento_cnpj") @CreditConnect.NVarChar(50)
+  razao_social                    String?                           @CreditConnect.NVarChar(255)
+  nome_fantasia                   String?                           @CreditConnect.NVarChar(255)
+  codigo_anbima                   String?                           @CreditConnect.NVarChar(255)
+  classe_anbima                   String?                           @CreditConnect.NVarChar(255)
+  atividade_principal             String?                           @CreditConnect.NVarChar(255)
+  id_status_fundo_investimento    Int?
+  id_fundo_backoffice             Int?
+  id_administrador_fundo          Int?
+  detalhes                        String?                           @CreditConnect.NVarChar(Max)
+  data_criacao                    DateTime?                         @CreditConnect.DateTime
+  carteira_investimento           carteira_investimento[]
+  conta_repasse                   conta_repasse?
+  documento                       documento[]
+  administrador_fundo             administrador_fundo?              @relation(fields: [id_administrador_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__fundo_inv__id_ad__6A30C649")
+  fundo_backoffice                fundo_backoffice?                 @relation(fields: [id_fundo_backoffice], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__fundo_inv__id_fu__693CA210")
+  status_fundo_investimento       status_fundo_investimento?        @relation(fields: [id_status_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__fundo_inv__id_st__68487DD7")
+  fundo_investimento_gestor_fundo fundo_investimento_gestor_fundo[]
+}
+
+model fundo_investimento_gestor_fundo {
+  id                         Int                          @id(map: "pk_fundo_investimento_gestor_fundo_id") @default(autoincrement())
+  id_fundo_investimento      Int
+  id_gestor_fundo            Int
+  fundo_investimento         fundo_investimento           @relation(fields: [id_fundo_investimento], references: [id], onUpdate: NoAction, map: "fk_fundo_investimento_gestor_fundo_id_fundo_investimento")
+  gestor_fundo               gestor_fundo                 @relation(fields: [id_gestor_fundo], references: [id], onUpdate: NoAction, map: "fk_fundo_investimento_gestor_fundo_id_gestor_fundo")
+  usuario_fundo_investimento usuario_fundo_investimento[]
+}
+
+model gestor_fundo {
+  id                              Int                               @id(map: "pk_gestor_fundo_id") @default(autoincrement())
+  razao_social                    String?                           @CreditConnect.NVarChar(255)
+  nome_fantasia                   String?                           @CreditConnect.NVarChar(255)
+  cnpj                            String?                           @unique(map: "UQ__gestor_f__35BD3E48EEF4AF10") @CreditConnect.NVarChar(50)
+  inscricao_municipal             String?                           @CreditConnect.NVarChar(50)
+  inscricao_estadual              String?                           @CreditConnect.NVarChar(50)
+  atividade_principal             String?                           @CreditConnect.NVarChar(255)
+  id_endereco                     Int?
+  id_status_gestor_fundo          Int?
+  data_criacao                    DateTime?                         @CreditConnect.DateTime
+  documento                       documento[]
+  fundo_investimento_gestor_fundo fundo_investimento_gestor_fundo[]
+  endereco                        endereco?                         @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_gestor_fundo_id_endereco")
+  status_gestor_fundo             status_gestor_fundo?              @relation(fields: [id_status_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_gestor_fundo_id_status_gestor_fundo")
+  usuario                         usuario[]
+}
+
+model modalidade_investimento {
+  id                 Int                  @id(map: "pk_modalidade_investimento_id") @default(autoincrement())
+  chave              String               @unique(map: "unique_modalidade_investimento_chave") @CreditConnect.NVarChar(255)
+  nome               String               @unique(map: "unique_modalidade_investimento_nome") @CreditConnect.NVarChar(255)
+  descricao          String               @CreditConnect.NVarChar(255)
+  transacao_carteira transacao_carteira[]
+}
+
+model modulo {
+  id             Int              @id(map: "pk_modulo_id") @default(autoincrement())
+  nome           String           @unique(map: "unique_modulo_nome") @CreditConnect.NVarChar(255)
+  descricao      String           @CreditConnect.NVarChar(255)
+  acesso_usuario acesso_usuario[]
+}
+
+model procurador_administrador_fundo {
+  id          Int     @id(map: "pk_procurador_fundo_id") @default(autoincrement())
+  nome        String? @CreditConnect.NVarChar(255)
+  cpf         String? @unique(map: "unique_procurador_fundo_cpf_cnpj") @CreditConnect.NVarChar(50)
+  telefone    String? @unique(map: "unique_procurador_fundo_telefone") @CreditConnect.NVarChar(50)
+  email       String? @unique(map: "unique_procurador_fundo_email") @CreditConnect.NVarChar(255)
+  id_endereco Int?
+}
+
+model procurador_administrador_fundo_administrador_fundo {
+  id                                Int @id(map: "pk_procurador_fundo_administrador_fundo_id") @default(autoincrement())
+  id_administrador_fundo            Int
+  id_procurador_administrador_fundo Int
+}
+
+model status_carta_convite {
+  id            Int             @id(map: "pk_status_carta_convite_id") @default(autoincrement())
+  nome          String          @unique(map: "unique_status_carta_convite_nome") @CreditConnect.NVarChar(255)
+  descricao     String          @CreditConnect.NVarChar(255)
+  carta_convite carta_convite[]
+}
+
+model status_carteira_investimento {
+  id                    Int                     @id(map: "pk_status_carteira_investimento_id") @default(autoincrement())
+  nome                  String                  @unique(map: "unique_status_carteira_investimento_nome") @CreditConnect.NVarChar(255)
+  descricao             String                  @CreditConnect.NVarChar(255)
+  carteira_investimento carteira_investimento[]
+}
+
+model status_documento {
+  id        Int         @id(map: "pk_status_documento_id") @default(autoincrement())
+  nome      String      @unique(map: "unique_status_documento_nome") @CreditConnect.NVarChar(255)
+  descricao String      @CreditConnect.NVarChar(255)
+  documento documento[]
+}
+
+model status_fundo_investimento {
+  id                 Int                  @id(map: "pk_status_fundo_investimento_id") @default(autoincrement())
+  nome               String               @unique(map: "unique_status_fundo_investimento_nome") @CreditConnect.NVarChar(255)
+  descricao          String               @CreditConnect.NVarChar(255)
+  fundo_investimento fundo_investimento[]
+}
+
+model status_gestor_fundo {
+  id           Int            @id(map: "pk_status_gestor_fundos_id") @default(autoincrement())
+  nome         String         @unique(map: "unique_status_gestor_fundos_nome") @CreditConnect.NVarChar(255)
+  descricao    String         @CreditConnect.NVarChar(255)
+  gestor_fundo gestor_fundo[]
+}
+
+model status_transacao_carteira {
+  id                 Int                  @id(map: "pk_status_transacao_carteira_id") @default(autoincrement())
+  nome               String               @unique(map: "unique_status_transacao_carteira_nome") @CreditConnect.NVarChar(255)
+  descricao          String               @CreditConnect.NVarChar(255)
+  transacao_carteira transacao_carteira[]
+}
+
+model status_usuario {
+  id        Int       @id(map: "pk_status_usuario_id") @default(autoincrement())
+  nome      String    @unique(map: "unique_status_usuario_nome") @CreditConnect.NVarChar(255)
+  descricao String    @CreditConnect.NVarChar(200)
+  usuario   usuario[]
+}
+
+model tipo_acesso {
+  id             Int              @id(map: "pk_tipo_acesso_id") @default(autoincrement())
+  acesso         String           @unique(map: "unique_tipo_acesso_acesso") @CreditConnect.NVarChar(255)
+  descricao      String           @CreditConnect.NVarChar(255)
+  acesso_usuario acesso_usuario[]
+}
+
+model tipo_usuario {
+  id        Int       @id(map: "pk_tipo_usuario_id") @default(autoincrement())
+  tipo      String    @unique(map: "unique_tipo_usuario_tipo") @CreditConnect.NVarChar(255)
+  descricao String    @CreditConnect.NVarChar(200)
+  usuario   usuario[]
+}
+
+model token_usado {
+  id           Int       @id(map: "pk_token_usado_id") @default(autoincrement())
+  token        String    @unique(map: "unique_token_usado_token") @CreditConnect.NVarChar(255)
+  data_criacao DateTime? @CreditConnect.DateTime
+}
+
+model transacao_carteira {
+  id                           Int                        @id(map: "pk_transacao_carteira_id") @default(autoincrement())
+  data_transacao               DateTime                   @CreditConnect.DateTime
+  valor_total                  Decimal?                   @CreditConnect.Decimal(18, 2)
+  id_modalidade_investimento   Int
+  id_status_transacao_carteira Int?
+  id_usuario                   Int?
+  carteira_investimento        carteira_investimento[]
+  modalidade_investimento      modalidade_investimento    @relation(fields: [id_modalidade_investimento], references: [id], onUpdate: NoAction, map: "fk_transacao_carteira_id_modalidade_investimento")
+  status_transacao             status_transacao_carteira? @relation(fields: [id_status_transacao_carteira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transacao_carteira_id_status_transacao_carteira")
+  usuario                      usuario?                   @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transacao_carteira_id_usuario")
+}
+
+model usuario {
+  id                                 Int                          @id(map: "pk_usuario_id") @default(autoincrement())
+  nome                               String?                      @CreditConnect.NVarChar(255)
+  email                              String?                      @unique(map: "unique_usuario_email") @CreditConnect.NVarChar(255)
+  telefone                           String?                      @unique(map: "unique_usuario_telefone") @CreditConnect.NVarChar(50)
+  senha                              String?                      @CreditConnect.NVarChar(255)
+  cpf                                String?                      @unique(map: "unique_usuario_cpf") @CreditConnect.NVarChar(50)
+  data_nascimento                    DateTime?                    @CreditConnect.DateTime
+  id_tipo_usuario                    Int
+  id_endereco                        Int?
+  id_gestor_fundo                    Int?
+  id_status_usuario                  Int?
+  data_criacao                       DateTime?                    @CreditConnect.DateTime
+  acesso_usuario                     acesso_usuario[]
+  carta_convite                      carta_convite[]
+  documento                          documento[]
+  feedbacks_backoffice_as_backoffice feedback_backoffice[]        @relation("UsuarioBackofficeFeedback")
+  feedbacks_backoffice_as_investidor feedback_backoffice[]        @relation("UsuarioInvestidorFeedback")
+  transacao_carteira                 transacao_carteira[]
+  endereco                           endereco?                    @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_id_endereco")
+  gestor_fundo                       gestor_fundo?                @relation(fields: [id_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_id_gestor_fundo")
+  status_usuario                     status_usuario?              @relation(fields: [id_status_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_id_status_usuario")
+  tipo_usuario                       tipo_usuario                 @relation(fields: [id_tipo_usuario], references: [id], onUpdate: NoAction, map: "fk_usuario_id_tipo_usuario")
+  usuario_fundo_investimento         usuario_fundo_investimento[]
+}
+
+model usuario_fundo_investimento {
+  id                                 Int                              @id(map: "pk_usuario_fundo_investimento_id") @default(autoincrement())
+  id_usuario                         Int?
+  id_fundo_investimento_gestor_fundo Int?
+  acesso_permitido                   Boolean?
+  fundo_investimento_gestor_fundo    fundo_investimento_gestor_fundo? @relation(fields: [id_fundo_investimento_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_fundo_investimento_id_fundo_investimento_gestor_fundo")
+  usuario                            usuario?                         @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_fundo_investimento_id_usuario")
+
+  @@unique([id_usuario, id_fundo_investimento_gestor_fundo], map: "unique_usuario_fundo_investimento_id_usuario_id_fundo_investimento_gestor_fundo")
+}
+
+model feedback_backoffice {
+  id                    Int        @id(map: "pk_feedback_backoffice_id") @default(autoincrement())
+  id_usuario_backoffice Int?
+  id_usuario_investidor Int?
+  id_documento          Int?
+  mensagem              String?    @CreditConnect.NVarChar(Max)
+  documento             documento? @relation(fields: [id_documento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_documento")
+  usuario_backoffice    usuario?   @relation("UsuarioBackofficeFeedback", fields: [id_usuario_backoffice], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_usuario_backoffice")
+  usuario_investidor    usuario?   @relation("UsuarioInvestidorFeedback", fields: [id_usuario_investidor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_usuario_investidor")
+}
+
+model conta_repasse {
+  id                    Int                 @id(map: "pk_conta_repasse_id") @default(autoincrement())
+  codigo_banco          String?             @CreditConnect.NVarChar(255)
+  agencia               String?             @CreditConnect.NVarChar(255)
+  conta_bancaria        String?             @CreditConnect.NVarChar(255)
+  id_fundo_investimento Int?                @unique(map: "UQ__conta_re__66954A1B7097B9AE")
+  fundo_investimento    fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conta_repasse_id_fundo_investimento")
+}

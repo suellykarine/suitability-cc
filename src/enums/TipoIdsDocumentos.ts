@@ -1,0 +1,5 @@
+export enum TipoIdsDocumentos {
+  USUARIO = "USUARIO",
+  GESTOR_FUNDO = "GESTOR_FUNDO",
+  FUNDO_INVESTIMENTO = "FUNDO_INVESTIMENTO",
+}
