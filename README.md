@@ -32,20 +32,37 @@ Backend CreditConnect em [Nest](https://github.com/nestjs/nest)
 $ pnpm install
 ```
 
+## Build
+
+```bash
+# build padrão (Só faz a transpilação do código para javascript)
+$ pnpm run build
+
+# Build de homologação (roda o prisma db pull e prisma generate com o banco de homologação + nest build)
+$ pnpm run build:homolog
+
+# Build de produção (roda o prisma db pull e prisma generate com o banco de produção + nest build)
+$ pnpm run build:prod
+
+```
+
 ## Rodando a aplicação
 
 ```bash
-# development
+# desenvolvimento
 $ pnpm run start
 
 # watch mode
 $ pnpm run start:dev
 
-# homolog
+# homologação
 $ pnpm run start:homolog
 
-# production mode
+# produção
 $ pnpm run start:prod
+
+#debug
+$ pnpm run start:debug
 ```
 
 ## Testes
