@@ -60,6 +60,8 @@ export class InvitationLetterService {
       });
     }
 
+    await this.checkUniqueFields(createInvitationLetterDto);
+
     let status_invitation_letter =
       await this.prisma.status_carta_convite.findFirst({
         where: { nome: StatusCartaConvite.DESATIVADO },
@@ -292,6 +294,92 @@ export class InvitationLetterService {
       throw new NotFoundException({
         mensagem: 'Carta convite não encontrada',
       });
+    }
+  }
+
+  private async checkUniqueFields(
+    createInvitationLetterDto: CreateInvitationLetterDto,
+  ) {
+    const existingCartaConvite = await this.prisma.carta_convite.findFirst({
+      where: {
+        OR: [
+          { cpf: createInvitationLetterDto.cpf },
+          { cnpj: createInvitationLetterDto.cnpj },
+          { telefone: createInvitationLetterDto.telefone },
+        ],
+      },
+    });
+
+    const existingUsuario = await this.prisma.usuario.findFirst({
+      where: {
+        OR: [
+          { cpf: createInvitationLetterDto.cpf },
+          { telefone: createInvitationLetterDto.telefone },
+          { email: createInvitationLetterDto.email },
+        ],
+      },
+    });
+
+    const existingGestorFundo = await this.prisma.gestor_fundo.findFirst({
+      where: { cnpj: createInvitationLetterDto.cnpj },
+    });
+
+    const checkDuplicate = (condition: boolean | null, message: string) => {
+      if (condition) {
+        return message;
+      }
+    };
+
+    const duplicateChecks = [
+      {
+        condition:
+          existingCartaConvite &&
+          existingCartaConvite.cnpj === createInvitationLetterDto.cnpj,
+        message: 'CNPJ já registrado',
+      },
+      {
+        condition:
+          existingCartaConvite &&
+          existingCartaConvite.cpf === createInvitationLetterDto.cpf,
+        message: 'CPF já registrado',
+      },
+      {
+        condition:
+          existingCartaConvite &&
+          existingCartaConvite.telefone === createInvitationLetterDto.telefone,
+        message: 'Telefone já registrado',
+      },
+      {
+        condition:
+          existingUsuario &&
+          existingUsuario.telefone === createInvitationLetterDto.telefone,
+        message: 'Telefone já registrado',
+      },
+      {
+        condition:
+          existingUsuario &&
+          existingUsuario.cpf === createInvitationLetterDto.cpf,
+        message: 'CPF já registrado',
+      },
+      {
+        condition:
+          existingUsuario &&
+          existingUsuario.email === createInvitationLetterDto.email,
+        message: 'Email já registrado',
+      },
+      {
+        condition:
+          existingGestorFundo &&
+          existingGestorFundo.cnpj === createInvitationLetterDto.cnpj,
+        message: 'CNPJ já registrado',
+      },
+    ];
+
+    for (const { condition, message } of duplicateChecks) {
+      const response = checkDuplicate(condition, message);
+      if (response) {
+        throw new BadRequestException({ mensagem: response });
+      }
     }
   }
 }

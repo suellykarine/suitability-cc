@@ -38,8 +38,13 @@ export class InvitationLetterController {
       );
     }
 
-    const userId =
-      decoded.typeUser === TipoUsuario.BACKOFFICE ? decoded.idUser : undefined;
+    let userId: number | undefined;
+    if (decoded) {
+      userId =
+        decoded.typeUser === TipoUsuario.BACKOFFICE
+          ? decoded.idUser
+          : undefined;
+    }
 
     return this.invitationLetterService.create(
       createInvitationLetterDto,
