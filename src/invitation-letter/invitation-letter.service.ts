@@ -19,6 +19,8 @@ import {
 import { customAlphabet } from 'nanoid';
 import { serviceEmailSrm } from 'src/utils/service-email-srm/service';
 import { CartaConviteData, RequestBase } from './interfaces/interfaces';
+import { VerifyInvitationLetterDto } from './dto/verify-invitation-letter.dto';
+import { ResendCodeDto } from './dto/resend-code.dto';
 
 @Injectable()
 export class InvitationLetterService {
@@ -226,6 +228,18 @@ export class InvitationLetterService {
       });
     }
 
+    const onlyNumbersFields = ['telefone', 'cpf', 'cnpj'];
+
+    onlyNumbersFields.forEach((field) => {
+      if (updateInvitationLetterDto[field]) {
+        updateInvitationLetterDto[field] = onlyNumbers(
+          updateInvitationLetterDto[field],
+        );
+      }
+    });
+
+    await this.checkUniqueFields(updateInvitationLetterDto, invitationLetter);
+
     let statusInvitationLetter: status_carta_convite | undefined | null =
       undefined;
     if (updateInvitationLetterDto.status) {
@@ -241,16 +255,6 @@ export class InvitationLetterService {
         where: { id: updateInvitationLetterDto.idBackoffice! },
       });
     }
-
-    const onlyNumbersFields = ['telefone', 'cpf', 'cnpj'];
-
-    onlyNumbersFields.forEach((field) => {
-      if (updateInvitationLetterDto[field]) {
-        updateInvitationLetterDto[field] = onlyNumbers(
-          updateInvitationLetterDto[field],
-        );
-      }
-    });
 
     const { status, idBackoffice, ...data } = updateInvitationLetterDto;
 
@@ -297,8 +301,99 @@ export class InvitationLetterService {
     }
   }
 
+  async verifyCode(verifyInvitationLetterDto: VerifyInvitationLetterDto) {
+    const findVerificationCode = await this.prisma.codigo_verificacao.findFirst(
+      {
+        where: {
+          codigo: verifyInvitationLetterDto.codigo,
+          email: verifyInvitationLetterDto.email,
+        },
+      },
+    );
+
+    if (!findVerificationCode) {
+      throw new BadRequestException({ mensagem: 'Código não encontrado' });
+    }
+
+    const findInvitationLetter = await this.prisma.carta_convite.findFirst({
+      where: {
+        email: findVerificationCode.email,
+      },
+      include: { status_carta_convite: true },
+    });
+
+    if (
+      findInvitationLetter?.status_carta_convite!.nome ===
+      StatusCartaConvite.DESATIVADO
+    ) {
+      const findStatusApproved =
+        await this.prisma.status_carta_convite.findFirst({
+          where: {
+            nome: StatusCartaConvite.ATIVO,
+          },
+        });
+      const updateInvitationLetter = await this.prisma.carta_convite.update({
+        where: { id: findInvitationLetter.id },
+        data: { id_status_carta_convite: findStatusApproved?.id },
+      });
+
+      return { updateInvitationLetter };
+    }
+
+    throw new BadRequestException({
+      mensagem: 'Carta convite já verificada',
+    });
+  }
+
+  async resendCode(resendCodeDto: ResendCodeDto) {
+    const existingVerificationCode =
+      await this.prisma.codigo_verificacao.findFirst({
+        where: { email: resendCodeDto.email },
+      });
+
+    if (!existingVerificationCode) {
+      throw new NotFoundException({ mensagem: 'Usuário não encontrado.' });
+    }
+
+    const nanoid = customAlphabet(
+      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      6,
+    );
+    const newCode = nanoid();
+
+    await this.prisma.codigo_verificacao.update({
+      where: { id: existingVerificationCode.id },
+      data: { codigo: newCode },
+    });
+
+    const index = resendCodeDto.email.indexOf('@');
+    const nome = index !== -1 ? resendCodeDto.email.substring(0, index) : '';
+
+    const requestBase = {
+      contentParam: {
+        nome: nome,
+        codigo: newCode,
+      },
+      mail: {
+        addressesCcTo: [],
+        addressesTo: [resendCodeDto.email],
+        emailFrom: 'srmasset@srmasset.com.br',
+        subject: 'Código de verificação',
+      },
+      templateName:
+        'credit_connect_usuario_trial_codigo_de_verificacao_de_email.html',
+    };
+
+    await serviceEmailSrm(requestBase);
+
+    return { mensagem: 'Código de verificação reenviado com sucesso.' };
+  }
+
   private async checkUniqueFields(
-    createInvitationLetterDto: CreateInvitationLetterDto,
+    createInvitationLetterDto:
+      | CreateInvitationLetterDto
+      | UpdateInvitationLetterDto,
+    invitationLetter?: any,
   ) {
     const existingCartaConvite = await this.prisma.carta_convite.findFirst({
       where: {
@@ -320,33 +415,49 @@ export class InvitationLetterService {
       },
     });
 
-    const existingGestorFundo = await this.prisma.gestor_fundo.findFirst({
-      where: { cnpj: createInvitationLetterDto.cnpj },
-    });
-
     const checkDuplicate = (condition: boolean | null, message: string) => {
       if (condition) {
         return message;
       }
     };
 
-    const duplicateChecks = [
+    const createDuplicateChecks = (
+      existingCartaConvite: any,
+      existingUsuario: any,
+      createInvitationLetterDto: any,
+      invitationLetter?: any,
+    ) => [
       {
         condition:
           existingCartaConvite &&
-          existingCartaConvite.cnpj === createInvitationLetterDto.cnpj,
+          existingCartaConvite.email === createInvitationLetterDto.email &&
+          (!invitationLetter ||
+            invitationLetter.email !== createInvitationLetterDto.email),
+        message: 'Email já registrado',
+      },
+      {
+        condition:
+          existingCartaConvite &&
+          existingCartaConvite.cnpj === createInvitationLetterDto.cnpj &&
+          (!invitationLetter ||
+            invitationLetter.cnpj !== createInvitationLetterDto.cnpj),
         message: 'CNPJ já registrado',
       },
       {
         condition:
           existingCartaConvite &&
-          existingCartaConvite.cpf === createInvitationLetterDto.cpf,
+          existingCartaConvite.cpf === createInvitationLetterDto.cpf &&
+          (!invitationLetter ||
+            invitationLetter.cpf !== createInvitationLetterDto.cpf),
         message: 'CPF já registrado',
       },
       {
         condition:
           existingCartaConvite &&
-          existingCartaConvite.telefone === createInvitationLetterDto.telefone,
+          existingCartaConvite.telefone ===
+            createInvitationLetterDto.telefone &&
+          (!invitationLetter ||
+            invitationLetter.telefone !== createInvitationLetterDto.telefone),
         message: 'Telefone já registrado',
       },
       {
@@ -367,13 +478,14 @@ export class InvitationLetterService {
           existingUsuario.email === createInvitationLetterDto.email,
         message: 'Email já registrado',
       },
-      {
-        condition:
-          existingGestorFundo &&
-          existingGestorFundo.cnpj === createInvitationLetterDto.cnpj,
-        message: 'CNPJ já registrado',
-      },
     ];
+
+    const duplicateChecks = createDuplicateChecks(
+      existingCartaConvite,
+      existingUsuario,
+      createInvitationLetterDto,
+      invitationLetter,
+    );
 
     for (const { condition, message } of duplicateChecks) {
       const response = checkDuplicate(condition, message);

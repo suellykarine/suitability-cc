@@ -17,6 +17,8 @@ import { Headers } from '@nestjs/common';
 import { decodeToken } from 'src/utils/extractId';
 import { jwtConstants } from 'src/auth/constants';
 import { TipoUsuario } from 'src/enums/TipoUsuario';
+import { VerifyInvitationLetterDto } from './dto/verify-invitation-letter.dto';
+import { ResendCodeDto } from './dto/resend-code.dto';
 
 @ApiTags('invitation-letter')
 @Controller('api/invitation-letter')
@@ -52,6 +54,11 @@ export class InvitationLetterController {
     );
   }
 
+  @Post('resend-code')
+  resendCode(@Body() resendCodeDto: ResendCodeDto) {
+    return this.invitationLetterService.resendCode(resendCodeDto);
+  }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Get()
   findAll() {
@@ -62,6 +69,11 @@ export class InvitationLetterController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.invitationLetterService.findOne(+id);
+  }
+
+  @Patch('verify')
+  verify(@Body() verifyInvitationLetterDto: VerifyInvitationLetterDto) {
+    return this.invitationLetterService.verifyCode(verifyInvitationLetterDto);
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
