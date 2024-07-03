@@ -1,9 +1,9 @@
 import * as jwt from 'jsonwebtoken';
 
-export function decodeToken(token: string, secret: string): any {
+export function decodeToken(token: string): any {
   try {
-    const decoded = jwt.verify(token, secret) as { idUser: string };
-    return decoded;
+    const decoded = jwt.decode(token);
+    return decoded.idUser;
   } catch (error) {
     return null;
   }

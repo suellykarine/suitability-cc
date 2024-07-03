@@ -7,11 +7,12 @@ import {
   Param,
   Delete,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { InvitationLetterService } from './invitation-letter.service';
 import { CreateInvitationLetterDto } from './dto/create-invitation-letter.dto';
 import { UpdateInvitationLetterDto } from './dto/update-invitation-letter.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiNoContentResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 import { Headers } from '@nestjs/common';
 import { decodeToken } from 'src/utils/extractId';
@@ -34,10 +35,7 @@ export class InvitationLetterController {
   ) {
     let decoded;
     if (headers.authorization) {
-      decoded = decodeToken(
-        headers.authorization.split(' ')[1],
-        jwtConstants.secret,
-      );
+      decoded = decodeToken(headers.authorization.split(' ')[1]);
     }
 
     let userId: number | undefined;
@@ -87,6 +85,7 @@ export class InvitationLetterController {
 
   @UseGuards(JwtAuthGuardBackoffice)
   @Delete(':id')
+  @HttpCode(204)
   remove(@Param('id') id: string) {
     return this.invitationLetterService.remove(+id);
   }

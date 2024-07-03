@@ -291,9 +291,7 @@ export class InvitationLetterService {
         },
       });
 
-      return {
-        mensagem: 'Carta convite deletada com sucesso',
-      };
+      return;
     } catch {
       throw new NotFoundException({
         mensagem: 'Carta convite não encontrada',
