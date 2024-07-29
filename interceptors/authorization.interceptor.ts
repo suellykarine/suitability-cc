@@ -40,9 +40,7 @@ export class AuthorizationInterceptor implements NestInterceptor {
             response.setHeader('Authorization', `Bearer ${newToken}`);
           }
         }
-      } catch {
-        throw new UnauthorizedException({ mensagem: 'Token expirado' });
-      }
+      } catch {}
     }
 
     return next.handle();

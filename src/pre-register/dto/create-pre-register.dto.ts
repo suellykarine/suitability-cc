@@ -1,1 +1,3 @@
-export class CreatePreRegisterDto {}
+export class CreatePreRegisterDto {
+  senha: string;
+}

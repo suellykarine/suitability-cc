@@ -4,13 +4,16 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreatePreRegisterDto } from './dto/create-pre-register.dto';
 import { UpdatePreRegisterDto } from './dto/update-pre-register.dto';
-import { PrismaClient, usuario } from '@prisma/client';
+import { PrismaClient, usuario, Prisma } from '@prisma/client';
 import { formatCNPJ, formatCPF, formatPhone } from 'src/utils/format';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { TipoUsuario } from 'src/enums/TipoUsuario';
 import { decodeToken } from 'src/utils/extractId';
+import { StatusGestorFundo } from 'src/enums/StatusGestorFundo';
+import { CreatePreRegisterDto } from './dto/create-pre-register.dto';
+import * as bcrypt from 'bcrypt';
+import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
 
 @Injectable()
 export class PreRegisterService {
@@ -18,10 +21,6 @@ export class PreRegisterService {
 
   constructor() {
     this.prisma = new PrismaClient();
-  }
-
-  create(createPreRegisterDto: CreatePreRegisterDto) {
-    return 'This action adds a new preRegister';
   }
 
   async findAll() {
@@ -93,6 +92,14 @@ export class PreRegisterService {
       },
     });
 
+    if (!user) {
+      throw new NotFoundException({
+        success: false,
+        mensagem: 'Usuário não encontrado',
+        status: 404,
+      });
+    }
+
     const idFromToken = decodeToken(token);
 
     const userFromToken = await this.prisma.usuario.findUnique({
@@ -104,20 +111,14 @@ export class PreRegisterService {
       },
     });
 
-    const isOwnerOrAdmin = this.isOwnerOrAdmin(user, userFromToken);
-    if (isOwnerOrAdmin) {
-      throw new UnauthorizedException(isOwnerOrAdmin);
+    const isOwnerOrAdminOrBackoffice = this.isOwnerOrAdminOrBackoffice(
+      user,
+      userFromToken,
+    );
+    if (isOwnerOrAdminOrBackoffice) {
+      throw new UnauthorizedException(isOwnerOrAdminOrBackoffice);
     }
 
-    return;
-
-    if (!user) {
-      throw new NotFoundException({
-        success: false,
-        mensagem: 'Usuário não encontrado',
-        status: 404,
-      });
-    }
     const inactiveStatus = await this.prisma.status_usuario.findFirst({
       where: {
         nome: StatusUsuario.DESATIVADO,
@@ -144,8 +145,150 @@ export class PreRegisterService {
       data: { id_status_usuario: inactiveStatus.id },
     });
   }
+  async createUser(
+    createPreRegisterDto: CreatePreRegisterDto,
+    invitationLetter: any,
+    token: string,
+  ) {
+    return this.prisma.$transaction(
+      async (prisma: Prisma.TransactionClient) => {
+        const id = invitationLetter.id;
+        const findInvitationLetter = await prisma.carta_convite.findFirst({
+          where: {
+            id,
+            status_carta_convite: {
+              nome: StatusCartaConvite.APROVADO,
+            },
+          },
+          include: {
+            status_carta_convite: true,
+          },
+        });
 
-  private isOwnerOrAdmin(user: usuario, userToken: any) {
+        if (!findInvitationLetter) {
+          throw new NotFoundException({
+            mensagem: 'Carta convite não encontrada ou não aprovada',
+          });
+        }
+
+        const statusUser = await prisma.status_usuario.findFirst({
+          where: {
+            nome: StatusUsuario.PRIMEIRO_ACESSO,
+          },
+        });
+        const statusGestor = await prisma.status_gestor_fundo.findFirst({
+          where: {
+            nome: StatusGestorFundo.APROVADO,
+          },
+        });
+        const type_user = await prisma.tipo_usuario.findFirst({
+          where: {
+            tipo: TipoUsuario.INVESTIDOR_TRIAL,
+          },
+        });
+
+        if (!statusGestor || !type_user || !statusUser) {
+          throw new NotFoundException({
+            mensagem: 'Status não encontrado',
+          });
+        }
+
+        const hashedPassword = await bcrypt.hash(
+          createPreRegisterDto.senha,
+          10,
+        );
+        const isManagerExist = await prisma.gestor_fundo.findFirst({
+          where: { cnpj: findInvitationLetter.cnpj },
+        });
+        let savedManager;
+        if (isManagerExist) {
+          savedManager = isManagerExist;
+        } else {
+          savedManager = await prisma.gestor_fundo.create({
+            data: {
+              cnpj: findInvitationLetter.cnpj,
+              nome_fantasia: findInvitationLetter?.empresa,
+              status_gestor_fundo: {
+                connect: {
+                  id: statusGestor.id,
+                },
+              },
+            },
+          });
+        }
+
+        const savedUser = await prisma.usuario.create({
+          data: {
+            nome: findInvitationLetter.nome,
+            cpf: findInvitationLetter.cpf,
+            telefone: findInvitationLetter.telefone,
+            email: findInvitationLetter.email,
+            senha: hashedPassword!,
+            tipo_usuario: {
+              connect: {
+                id: type_user.id,
+              },
+            },
+            status_usuario: {
+              connect: {
+                id: statusUser.id,
+              },
+            },
+            gestor_fundo: {
+              connect: {
+                id: savedManager.id,
+              },
+            },
+          },
+          include: {
+            tipo_usuario: true,
+            gestor_fundo: true,
+            status_usuario: true,
+          },
+        });
+
+        await prisma.token_usado.create({
+          data: {
+            token: token,
+            data_criacao: new Date(
+              Number(invitationLetter.iat) * 1000,
+            ).toISOString(),
+          },
+        });
+
+        const { senha: _, ...userWithoutPassword } = savedUser;
+        return {
+          mensagem: 'Criado',
+          usuario: userWithoutPassword,
+        };
+      },
+    );
+  }
+
+  async findLetter(invitationLetter: any) {
+    const findInvitationLetter = await this.prisma.carta_convite.findFirst({
+      where: {
+        id: invitationLetter.id,
+      },
+    });
+
+    if (findInvitationLetter) {
+      return {
+        carta_convite: {
+          ...findInvitationLetter,
+          cpf: formatCPF(findInvitationLetter.cpf!),
+          cnpj: formatCNPJ(findInvitationLetter.cnpj!),
+          telefone: formatPhone(findInvitationLetter.telefone!),
+        },
+      };
+    }
+
+    throw new NotFoundException({
+      mensagem: 'Carta convite não encontrada',
+    });
+  }
+
+  private isOwnerOrAdminOrBackoffice(user: usuario, userToken: any) {
     if (
       user.id !== userToken.id &&
       userToken.tipo_usuario.tipo !== TipoUsuario.BACKOFFICE &&

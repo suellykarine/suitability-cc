@@ -10,29 +10,49 @@ import {
   Headers,
   UseGuards,
   HttpCode,
+  Request,
 } from '@nestjs/common';
 import { PreRegisterService } from './pre-register.service';
-import { CreatePreRegisterDto } from './dto/create-pre-register.dto';
 import { UpdatePreRegisterDto } from './dto/update-pre-register.dto';
 import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuardPreRegister } from 'src/auth/guards/pre-register-auth.guard';
+import { CreatePreRegisterDto } from './dto/create-pre-register.dto';
 
 @ApiTags('pre-register')
 @Controller('api/pre-register')
 export class PreRegisterController {
   constructor(private readonly preRegisterService: PreRegisterService) {}
 
-  @Post()
-  create(@Body() createPreRegisterDto: CreatePreRegisterDto) {
-    return this.preRegisterService.create(createPreRegisterDto);
-  }
-
   @UseGuards(JwtAuthGuardBackoffice)
   @Get()
-  findAll(@Headers() headers: any) {
-    console.log(headers.authorization);
+  findAll() {
     return this.preRegisterService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuardPreRegister)
+  @Get('password')
+  findLetter(@Request() req) {
+    const invitationLetter = req.invitationLetter;
+    return this.preRegisterService.findLetter(invitationLetter);
+  }
+
+  @UseGuards(JwtAuthGuardPreRegister)
+  @Post('password')
+  createUser(
+    @Body() createPreRegisterDto: CreatePreRegisterDto,
+    @Request() req: any,
+    @Headers() headers: any,
+  ) {
+    const invitationLetter = req.invitationLetter;
+    const token = headers.authorization.split(' ')[1];
+
+    return this.preRegisterService.createUser(
+      createPreRegisterDto,
+      invitationLetter,
+      token,
+    );
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
