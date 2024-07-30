@@ -18,9 +18,10 @@ import {
 } from 'src/utils/format';
 import { customAlphabet } from 'nanoid';
 import { serviceEmailSrm } from 'src/utils/service-email-srm/service';
-import { CartaConviteData, RequestBase } from './interfaces/interfaces';
+import { CartaConviteData } from './interfaces/interfaces';
 import { VerifyInvitationLetterDto } from './dto/verify-invitation-letter.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
+import { RequestBase } from 'src/utils/interfaces/requestBase.interface';
 
 @Injectable()
 export class InvitationLetterService {

@@ -15,7 +15,7 @@ import {
 import { PreRegisterService } from './pre-register.service';
 import { UpdatePreRegisterDto } from './dto/update-pre-register.dto';
 import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtAuthGuardPreRegister } from 'src/auth/guards/pre-register-auth.guard';
 import {
@@ -25,6 +25,7 @@ import {
 import { CustomRequest } from 'src/utils/interfaces/request.interface';
 
 @ApiTags('pre-register')
+@ApiBearerAuth('access-token')
 @Controller('api/pre-register')
 export class PreRegisterController {
   constructor(private readonly preRegisterService: PreRegisterService) {}

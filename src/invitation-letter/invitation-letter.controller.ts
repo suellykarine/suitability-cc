@@ -12,16 +12,16 @@ import {
 import { InvitationLetterService } from './invitation-letter.service';
 import { CreateInvitationLetterDto } from './dto/create-invitation-letter.dto';
 import { UpdateInvitationLetterDto } from './dto/update-invitation-letter.dto';
-import { ApiNoContentResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 import { Headers } from '@nestjs/common';
 import { decodeToken } from 'src/utils/extractId';
-import { jwtConstants } from 'src/auth/constants';
 import { TipoUsuario } from 'src/enums/TipoUsuario';
 import { VerifyInvitationLetterDto } from './dto/verify-invitation-letter.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 
 @ApiTags('invitation-letter')
+@ApiBearerAuth('access-token')
 @Controller('api/invitation-letter')
 export class InvitationLetterController {
   constructor(

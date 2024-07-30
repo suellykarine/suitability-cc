@@ -19,8 +19,8 @@ import {
 import * as bcrypt from 'bcrypt';
 import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
 import { customAlphabet } from 'nanoid';
-import { RequestBase } from 'src/invitation-letter/interfaces/interfaces';
 import { serviceEmailSrm } from 'src/utils/service-email-srm/service';
+import { RequestBase } from 'src/utils/interfaces/requestBase.interface';
 
 @Injectable()
 export class PreRegisterService {
