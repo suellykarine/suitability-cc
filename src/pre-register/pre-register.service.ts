@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UpdatePreRegisterDto } from './dto/update-pre-register.dto';
@@ -11,9 +12,15 @@ import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { TipoUsuario } from 'src/enums/TipoUsuario';
 import { decodeToken } from 'src/utils/extractId';
 import { StatusGestorFundo } from 'src/enums/StatusGestorFundo';
-import { CreatePreRegisterDto } from './dto/create-pre-register.dto';
+import {
+  CreatePreRegisterDto,
+  CreateVerificationCodeDto,
+} from './dto/create-pre-register.dto';
 import * as bcrypt from 'bcrypt';
 import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
+import { customAlphabet } from 'nanoid';
+import { RequestBase } from 'src/invitation-letter/interfaces/interfaces';
+import { serviceEmailSrm } from 'src/utils/service-email-srm/service';
 
 @Injectable()
 export class PreRegisterService {
@@ -42,18 +49,29 @@ export class PreRegisterService {
           ...user,
           cpf: formatCPF(user.cpf),
           telefone: formatPhone(user.telefone),
-          gestor_fundo: {
-            ...user.gestor_fundo,
-            cnpj: formatCNPJ(user.gestor_fundo.cnpj),
-          },
+          gestor_fundo: user.gestor_fundo
+            ? {
+                ...user.gestor_fundo,
+                cnpj: formatCNPJ(user.gestor_fundo.cnpj),
+              }
+            : undefined,
         };
       }),
     };
   }
 
-  async findOne(id: number) {
-    const prisma = new PrismaClient();
-    const user = await prisma.usuario.findUnique({
+  async findOne(id: number, requestUserId: number) {
+    const requestuser = await this.prisma.usuario.findUnique({
+      where: {
+        id: requestUserId,
+      },
+      include: {
+        tipo_usuario: true,
+        status_usuario: true,
+      },
+    });
+
+    const user = await this.prisma.usuario.findUnique({
       where: {
         id: id,
       },
@@ -63,10 +81,12 @@ export class PreRegisterService {
       },
     });
 
-    if (!user) {
-      throw new NotFoundException({
-        mensagem: 'Usuário não encontrado',
-      });
+    const isOwnerOrAdminOrBackoffice = this.isOwnerOrAdminOrBackoffice(
+      user,
+      requestuser,
+    );
+    if (isOwnerOrAdminOrBackoffice) {
+      throw new UnauthorizedException(isOwnerOrAdminOrBackoffice);
     }
 
     const { senha, ...userWithoutPassword } = user;
@@ -80,11 +100,7 @@ export class PreRegisterService {
     };
   }
 
-  update(id: number, updatePreRegisterDto: UpdatePreRegisterDto) {
-    return `This action updates a #${id} preRegister`;
-  }
-
-  async remove(id: number, token: string) {
+  async remove(id: number, token: string, requestUserId: number) {
     const user: usuario | null = await this.prisma.usuario.findUnique({
       where: { id: id },
       include: {
@@ -100,20 +116,19 @@ export class PreRegisterService {
       });
     }
 
-    const idFromToken = decodeToken(token);
-
-    const userFromToken = await this.prisma.usuario.findUnique({
+    const requestuser = await this.prisma.usuario.findUnique({
       where: {
-        id: idFromToken,
+        id: requestUserId,
       },
       include: {
         tipo_usuario: true,
+        status_usuario: true,
       },
     });
 
     const isOwnerOrAdminOrBackoffice = this.isOwnerOrAdminOrBackoffice(
       user,
-      userFromToken,
+      requestuser,
     );
     if (isOwnerOrAdminOrBackoffice) {
       throw new UnauthorizedException(isOwnerOrAdminOrBackoffice);
@@ -288,6 +303,72 @@ export class PreRegisterService {
     });
   }
 
+  async sendVerificationCode(
+    createVerificationCodeDto: CreateVerificationCodeDto,
+  ) {
+    if (!createVerificationCodeDto.email) {
+      throw new BadRequestException({
+        mensagem: 'O campo de e-mail é obrigatório.',
+      });
+    }
+    const nanoid = customAlphabet(
+      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      6,
+    );
+    const code = nanoid();
+
+    const requestBase: RequestBase = {
+      contentParam: {
+        nome: 'Investidor',
+        codigo: code,
+      },
+      mail: {
+        addressesCcTo: [],
+        addressesTo: <string[]>[createVerificationCodeDto.email],
+        emailFrom: 'srmasset@srmasset.com.br',
+        subject: 'Código de verificação',
+      },
+      templateName:
+        'credit_connect_usuario_trial_codigo_de_verificacao_de_email.html',
+    };
+    try {
+      await serviceEmailSrm(requestBase);
+    } catch (error) {
+      throw new ServiceUnavailableException({
+        mensagem: 'Serviço de e-mail indisponível.',
+      });
+    }
+
+    const existingVerificationCode =
+      await this.prisma.codigo_verificacao.findFirst({
+        where: {
+          email: createVerificationCodeDto.email,
+        },
+      });
+
+    if (existingVerificationCode) {
+      await this.prisma.codigo_verificacao.update({
+        where: {
+          id: existingVerificationCode.id,
+        },
+        data: {
+          codigo: code,
+        },
+      });
+    } else {
+      const expirationTime = new Date();
+      expirationTime.setMinutes(expirationTime.getMinutes() + 30);
+      await this.prisma.codigo_verificacao.create({
+        data: {
+          email: createVerificationCodeDto.email,
+          codigo: code,
+          data_expiracao: expirationTime,
+        },
+      });
+    }
+
+    return { mensagem: 'Código de verificação enviado com sucesso.' };
+  }
   private isOwnerOrAdminOrBackoffice(user: usuario, userToken: any) {
     if (
       user.id !== userToken.id &&
@@ -295,7 +376,7 @@ export class PreRegisterService {
       userToken.tipo_usuario.tipo !== TipoUsuario.ADMINISTRADOR_SISTEMAS
     ) {
       return {
-        mensagem: 'Você não possui autorização para remover esse usuário',
+        mensagem: 'Não autorizado',
       };
     }
   }

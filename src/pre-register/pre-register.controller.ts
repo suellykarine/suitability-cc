@@ -18,7 +18,11 @@ import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { JwtAuthGuardPreRegister } from 'src/auth/guards/pre-register-auth.guard';
-import { CreatePreRegisterDto } from './dto/create-pre-register.dto';
+import {
+  CreatePreRegisterDto,
+  CreateVerificationCodeDto,
+} from './dto/create-pre-register.dto';
+import { CustomRequest } from 'src/utils/interfaces/request.interface';
 
 @ApiTags('pre-register')
 @Controller('api/pre-register')
@@ -55,25 +59,32 @@ export class PreRegisterController {
     );
   }
 
-  @UseGuards(JwtAuthGuardBackoffice)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.preRegisterService.findOne(+id);
+  @Post('auth')
+  sendVerificationCode(
+    @Body() createVerificationCodeDto: CreateVerificationCodeDto,
+  ) {
+    return this.preRegisterService.sendVerificationCode(
+      createVerificationCodeDto,
+    );
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePreRegisterDto: UpdatePreRegisterDto,
-  ) {
-    return this.preRegisterService.update(+id, updatePreRegisterDto);
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string, @Request() req: CustomRequest) {
+    const requestUserId = req.user.userId;
+    return this.preRegisterService.findOne(+id, requestUserId);
   }
 
   @HttpCode(204)
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string, @Headers() headers: any) {
+  remove(
+    @Param('id') id: string,
+    @Headers() headers: any,
+    @Request() req: CustomRequest,
+  ) {
+    const requestUserId = req.user.userId;
     const token = headers.authorization.split(' ')[1];
-    return this.preRegisterService.remove(+id, token);
+    return this.preRegisterService.remove(+id, token, requestUserId);
   }
 }
