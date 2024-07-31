@@ -7,9 +7,10 @@ import { InvitationLetterModule } from './invitation-letter/invitation-letter.mo
 import { PreRegisterModule } from './pre-register/pre-register.module';
 import { AuthorizationInterceptor } from 'interceptors/authorization.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ActivesModule } from './actives/actives.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, InvitationLetterModule, PreRegisterModule],
+  imports: [AuthModule, UsersModule, InvitationLetterModule, PreRegisterModule, ActivesModule],
   controllers: [AppController],
   providers: [
     AppService,

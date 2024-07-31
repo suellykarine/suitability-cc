@@ -18,10 +18,10 @@ import {
 } from 'src/utils/format';
 import { customAlphabet } from 'nanoid';
 import { serviceEmailSrm } from 'src/utils/service-email-srm/service';
-import { CartaConviteData } from './interfaces/interfaces';
 import { VerifyInvitationLetterDto } from './dto/verify-invitation-letter.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { RequestBase } from 'src/utils/interfaces/requestBase.interface';
+import { InvitationLetter } from './entities/invitation-letter.entity';
 
 @Injectable()
 export class InvitationLetterService {
@@ -70,7 +70,7 @@ export class InvitationLetterService {
         where: { nome: StatusCartaConvite.DESATIVADO },
       });
 
-    const invitationLetterData: CartaConviteData = {
+    const invitationLetterData: InvitationLetter = {
       nome: createInvitationLetterDto.nome,
       empresa: createInvitationLetterDto.empresa,
       email: createInvitationLetterDto.email,
