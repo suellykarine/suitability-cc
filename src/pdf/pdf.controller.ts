@@ -12,6 +12,6 @@ export class PdfController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.pdfService.findOne(+id);
+    return this.pdfService.encontrarPdf(+id);
   }
 }

@@ -22,13 +22,13 @@ export class JwtStrategyPreRegister extends PassportStrategy(
     const prisma = new PrismaClient();
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
 
-    const findToken = await prisma.token_usado.findFirst({
+    const encontrarTokenUsado = await prisma.token_usado.findFirst({
       where: {
         token,
       },
     });
 
-    if (findToken) {
+    if (encontrarTokenUsado) {
       throw new UnauthorizedException({
         mensagem: 'Não autorizado',
       });

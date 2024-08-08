@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './auth/guards/local-auth.guard';
-import { AuthService } from './auth/auth.service';
+import { ServiçoDeAutenticacao } from './auth/auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -18,11 +18,11 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private authService: AuthService,
+    private serviçoDeAutenticacao: ServiçoDeAutenticacao,
   ) {}
 
   @ApiTags('health')
-  @ApiOperation({ summary: 'Check health of the application' })
+  @ApiOperation({ summary: 'Rota de health da aplicação' })
   @Get()
   getHealth(): string {
     return this.appService.getService();
@@ -30,10 +30,10 @@ export class AppController {
 
   @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'User login' })
+  @ApiOperation({ summary: 'Login do usuário' })
   @ApiTags('login')
   @Post('api/login')
   async login(@Request() req, @Body() loginDto: LoginDto) {
-    return this.authService.login(req.user);
+    return this.serviçoDeAutenticacao.login(req.user);
   }
 }

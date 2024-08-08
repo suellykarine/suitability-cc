@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { ServiçoDeAutenticacao } from './auth.service';
 import { LocalStrategy } from './strategies/local.strategy';
-import { UsersModule } from '../users/users.module';
+import { UsuariosModule } from '../usuarios/usuario.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
@@ -13,7 +13,7 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
 
 @Module({
   imports: [
-    UsersModule,
+    UsuariosModule,
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
@@ -21,7 +21,7 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
     }),
   ],
   providers: [
-    AuthService,
+    ServiçoDeAutenticacao,
     LocalStrategy,
     JwtStrategy,
     JwtStrategyBackoffice,
@@ -29,6 +29,6 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
     JwtStrategyPremium,
     JwtStrategyPreRegister,
   ],
-  exports: [AuthService],
+  exports: [ServiçoDeAutenticacao],
 })
 export class AuthModule {}

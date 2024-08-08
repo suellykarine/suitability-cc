@@ -3,12 +3,12 @@ import { sigmaHeaders } from 'src/auth/constants';
 
 @Injectable()
 export class PdfService {
-  async findOne(id: number) {
+  async encontrarPdf(id: number) {
     const options = {
       headers: sigmaHeaders,
     };
-    const urlSigmaToGetTotalItems = `${process.env.PDF_URL}${id}`;
-    const sigmaFetch = await fetch(urlSigmaToGetTotalItems, options);
+    const urlSigmaParaObterItens = `${process.env.PDF_URL}${id}`;
+    const sigmaFetch = await fetch(urlSigmaParaObterItens, options);
 
     if (sigmaFetch.ok) {
       const responseText = await sigmaFetch.text();

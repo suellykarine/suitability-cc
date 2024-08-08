@@ -6,7 +6,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuardPreRegister extends AuthGuard('pre-register') {
+export class JwtAuthGuardPreRegistro extends AuthGuard('pre-register') {
   canActivate(context: ExecutionContext) {
     return super.canActivate(context);
   }
@@ -17,7 +17,7 @@ export class JwtAuthGuardPreRegister extends AuthGuard('pre-register') {
     }
 
     const request = context.switchToHttp().getRequest();
-    request.invitationLetter = user;
+    request.cartaConvite = user;
 
     return user;
   }

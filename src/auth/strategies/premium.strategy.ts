@@ -19,7 +19,7 @@ export class JwtStrategyPremium extends PassportStrategy(Strategy, 'premium') {
     const prisma = new PrismaClient();
     const user = await prisma.usuario.findFirst({
       where: {
-        id: payload.idUser,
+        id: payload.idUsuario,
       },
       include: {
         tipo_usuario: true,
@@ -31,6 +31,6 @@ export class JwtStrategyPremium extends PassportStrategy(Strategy, 'premium') {
       });
     }
 
-    return { userId: payload.idUser, username: payload.email };
+    return { idUsuario: payload.idUser, email: payload.email };
   }
 }

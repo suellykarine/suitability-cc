@@ -1,43 +1,46 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { ServicoUsuario } from '../usuarios/usuario.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 
 @Injectable()
-export class AuthService {
+export class ServiçoDeAutenticacao {
   constructor(
-    private usersService: UsersService,
+    private servicoUsuario: ServicoUsuario,
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(email);
+  async validarUsuario(email: string, senha: string): Promise<any> {
+    const usuario = await this.servicoUsuario.encontrarUsuario(email);
 
-    if (!user) {
+    if (!usuario) {
       return null;
     }
-    if (user.status_usuario.nome === StatusUsuario.DESATIVADO) {
+    if (usuario.status_usuario.nome === StatusUsuario.DESATIVADO) {
       throw new UnauthorizedException({
         mensagem: 'Usuário Inativo',
       });
     }
 
-    const isMatch = await bcrypt.compare(pass, user.senha);
+    const comparacaoSenha = await bcrypt.compare(senha, usuario.senha);
 
-    const userMaster = await this.usersService.findUserMaster(
+    const usuarioMaster = await this.servicoUsuario.encontrarUsuarioMaster(
       process.env.EMAIL_DIRETORIA,
     );
 
-    let isMatchUserMasterPassword;
+    let comparacaoSenhaUsuarioMaster;
 
-    if (userMaster) {
-      isMatchUserMasterPassword = await bcrypt.compare(pass, userMaster.senha);
+    if (usuarioMaster) {
+      comparacaoSenhaUsuarioMaster = await bcrypt.compare(
+        senha,
+        usuarioMaster.senha,
+      );
     }
 
-    if (isMatch || isMatchUserMasterPassword) {
-      const { password, ...result } = user;
-      return result;
+    if (comparacaoSenha || comparacaoSenhaUsuarioMaster) {
+      const { sen, ...resultado } = usuario;
+      return resultado;
     }
     return null;
   }
@@ -45,8 +48,8 @@ export class AuthService {
   async login(user: any) {
     const payload = {
       email: user.email,
-      idUser: user.id,
-      typeUser: user.tipo_usuario.tipo,
+      idUsuario: user.id,
+      tipoUsuario: user.tipo_usuario.tipo,
     };
     const { senha, ...result } = user;
     return {

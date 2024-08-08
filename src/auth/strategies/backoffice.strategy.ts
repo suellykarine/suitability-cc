@@ -20,20 +20,20 @@ export class JwtStrategyBackoffice extends PassportStrategy(
 
   async validate(payload: any) {
     const prisma = new PrismaClient();
-    const user = await prisma.usuario.findFirst({
+    const usuario = await prisma.usuario.findFirst({
       where: {
-        id: payload.idUser,
+        id: payload.idUsuario,
       },
       include: {
         tipo_usuario: true,
       },
     });
-    if (user.tipo_usuario.tipo !== TipoUsuario.BACKOFFICE) {
+    if (usuario.tipo_usuario.tipo !== TipoUsuario.BACKOFFICE) {
       throw new UnauthorizedException({
         mensagem: 'Você não tem acesso a essa rota',
       });
     }
 
-    return { userId: payload.idUser, username: payload.email };
+    return { idUsuario: payload.idUser, email: payload.email };
   }
 }
