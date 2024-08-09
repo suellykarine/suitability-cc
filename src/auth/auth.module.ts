@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ServiçoDeAutenticacao } from './auth.service';
+import { AutenticacaoService } from './auth.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsuariosModule } from '../usuarios/usuario.module';
 import { PassportModule } from '@nestjs/passport';
@@ -21,7 +21,7 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
     }),
   ],
   providers: [
-    ServiçoDeAutenticacao,
+    AutenticacaoService,
     LocalStrategy,
     JwtStrategy,
     JwtStrategyBackoffice,
@@ -29,6 +29,6 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
     JwtStrategyPremium,
     JwtStrategyPreRegister,
   ],
-  exports: [ServiçoDeAutenticacao],
+  exports: [AutenticacaoService],
 })
 export class AuthModule {}

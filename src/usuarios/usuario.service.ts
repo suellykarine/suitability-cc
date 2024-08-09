@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 export type Usuario = any;
 
 @Injectable()
-export class ServicoUsuario {
+export class UsuarioService {
   async encontrarUsuario(email: string): Promise<Usuario | undefined> {
     const prisma = new PrismaClient();
     const usuario = await prisma.usuario.findUnique({

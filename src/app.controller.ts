@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './auth/guards/local-auth.guard';
-import { ServiçoDeAutenticacao } from './auth/auth.service';
+import { AutenticacaoService } from './auth/auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -18,7 +18,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private serviçoDeAutenticacao: ServiçoDeAutenticacao,
+    private autenticacaoService: AutenticacaoService,
   ) {}
 
   @ApiTags('health')
@@ -34,6 +34,6 @@ export class AppController {
   @ApiTags('login')
   @Post('api/login')
   async login(@Request() req, @Body() loginDto: LoginDto) {
-    return this.serviçoDeAutenticacao.login(req.user);
+    return this.autenticacaoService.login(req.user);
   }
 }
