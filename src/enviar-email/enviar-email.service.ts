@@ -1,12 +1,11 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { EnviarEmailDto } from './dto/create-enviar-email.dto';
-import { PrismaClient, usuario } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { jwtConstants } from 'src/auth/constants';
 import * as jwt from 'jsonwebtoken';
