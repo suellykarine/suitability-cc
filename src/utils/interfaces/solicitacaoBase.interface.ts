@@ -19,4 +19,6 @@ export interface SolicitacaoBase {
   contentParam: ContentParam;
   mail: Mail;
   templateName: string;
+  origin?: string;
+  sendType?: string;
 }

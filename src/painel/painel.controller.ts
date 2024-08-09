@@ -2,7 +2,10 @@ import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
 import { PainelService } from './painel.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('painel')
+@ApiBearerAuth('access-token')
 @Controller('api/painel')
 export class PainelController {
   constructor(private readonly painelService: PainelService) {}

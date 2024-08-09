@@ -10,6 +10,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { PdfModule } from './pdf/pdf.module';
 import { AtivosModule } from './ativos/ativos.module';
 import { PainelModule } from './painel/painel.module';
+import { EnviarEmailModule } from './enviar-email/enviar-email.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PainelModule } from './painel/painel.module';
     AtivosModule,
     PdfModule,
     PainelModule,
+    EnviarEmailModule,
   ],
   controllers: [AppController],
   providers: [
