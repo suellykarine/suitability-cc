@@ -11,6 +11,7 @@ import { PdfModule } from './pdf/pdf.module';
 import { AtivosModule } from './ativos/ativos.module';
 import { PainelModule } from './painel/painel.module';
 import { EnviarEmailModule } from './enviar-email/enviar-email.module';
+import { FundosModule } from './fundos/fundos.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { EnviarEmailModule } from './enviar-email/enviar-email.module';
     PdfModule,
     PainelModule,
     EnviarEmailModule,
+    FundosModule,
   ],
   controllers: [AppController],
   providers: [

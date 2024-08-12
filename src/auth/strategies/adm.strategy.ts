@@ -31,6 +31,6 @@ export class JwtStrategyAdm extends PassportStrategy(Strategy, 'adm') {
       });
     }
 
-    return { idUsuario: payload.idUser, email: payload.email };
+    return { idUsuario: payload.idUsuario, email: payload.email };
   }
 }

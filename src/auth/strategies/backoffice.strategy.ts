@@ -34,6 +34,6 @@ export class JwtStrategyBackoffice extends PassportStrategy(
       });
     }
 
-    return { idUsuario: payload.idUser, email: payload.email };
+    return { idUsuario: payload.idUsuario, email: payload.email };
   }
 }

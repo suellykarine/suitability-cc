@@ -31,6 +31,6 @@ export class JwtStrategyPremium extends PassportStrategy(Strategy, 'premium') {
       });
     }
 
-    return { idUsuario: payload.idUser, email: payload.email };
+    return { idUsuario: payload.idUsuario, email: payload.email };
   }
 }
