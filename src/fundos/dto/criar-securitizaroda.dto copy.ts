@@ -11,7 +11,7 @@ import {
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateFundoDto {
+export class CriarSecuritizadoraDto {
   @IsString()
   @IsNotEmpty()
   nome: string;
@@ -29,10 +29,6 @@ export class CreateFundoDto {
   @Transform(({ value }) => value.replace(/[^\d]/g, ''))
   @Length(11, 14)
   cpf_cnpj: string;
-
-  @IsString()
-  @IsNotEmpty()
-  codigo_anbima: string;
 
   @IsString()
   @IsOptional()
@@ -63,24 +59,6 @@ export class CreateFundoDto {
   @IsString()
   @IsNotEmpty()
   telefone_backoffice: string;
-
-  @IsString()
-  @IsNotEmpty()
-  nome_administrador: string;
-
-  @IsEmail()
-  @IsNotEmpty()
-  email_administrador: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
-  @Length(14, 14)
-  cnpj_administrador: string;
-
-  @IsString()
-  @IsNotEmpty()
-  telefone_administrador: string;
 
   @IsString()
   @IsOptional()
@@ -140,12 +118,12 @@ export class CreateFundoDto {
   @IsOptional()
   faturamento_anual?: string;
 }
-export class CreateFundosDto {
+export class CriarSecuritizadorasDto {
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateFundoDto)
+  @Type(() => CriarSecuritizadoraDto)
   @ApiProperty({
-    type: [CreateFundoDto],
+    type: [CriarSecuritizadoraDto],
     description: 'Array de fundos para serem criados',
     example: [
       {
@@ -183,5 +161,13 @@ export class CreateFundosDto {
       },
     ],
   })
-  fundos: CreateFundoDto[];
+  fundos: CriarSecuritizadoraDto[];
+
+  // @IsNotEmpty()
+  // @IsString()
+  // @ApiProperty({
+  //   description: 'Tipo de estrutura a ser cadastrada',
+  //   example: 'Securitizadora',
+  // })
+  // tipo_estrutura: string;
 }

@@ -51,7 +51,7 @@ export class CartaConviteController {
   }
 
   @Post('reenviar-codigo')
-  resendCode(@Body() reenviarCodigoDto: ReenviarCodigoDto) {
+  reenviarCodigo(@Body() reenviarCodigoDto: ReenviarCodigoDto) {
     return this.cartaConviteService.reenviarCodigo(reenviarCodigoDto);
   }
 

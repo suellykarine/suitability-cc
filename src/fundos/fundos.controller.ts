@@ -10,12 +10,13 @@ import {
   Request,
 } from '@nestjs/common';
 import { FundosService } from './fundos.service';
-import { CreateFundosDto } from './dto/create-fundo.dto';
-import { UpdateFundoDto } from './dto/update-fundo.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 import { JwtAuthGuardPremium } from 'src/auth/guards/premium-auth.guard';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
+import { CriarFundosDto } from './dto/criar-fundo.dto';
+import { CriarFactoringsDto } from './dto/criar-factoring.dto';
+import { CriarSecuritizadorasDto } from './dto/criar-securitizaroda.dto copy';
 
 @ApiTags('fundos')
 @ApiBearerAuth('access-token')
@@ -26,12 +27,36 @@ export class FundosController {
   @UseGuards(JwtAuthGuardPremium)
   @Post()
   criarFundo(
-    @Body() createFundosDto: CreateFundosDto,
+    @Body() criarFundosDto: CriarFundosDto,
     @Request() req: RequisicaoPersonalizada,
   ) {
     return this.fundosService.criarFundo(
       req.user.idUsuario,
-      createFundosDto.fundos,
+      criarFundosDto.fundos,
+    );
+  }
+
+  @UseGuards(JwtAuthGuardPremium)
+  @Post('factoring')
+  criarFactoring(
+    @Body() criarFactoringsDto: CriarFactoringsDto,
+    @Request() req: RequisicaoPersonalizada,
+  ) {
+    return this.fundosService.criarFactoring(
+      req.user.idUsuario,
+      criarFactoringsDto.fundos,
+    );
+  }
+
+  @UseGuards(JwtAuthGuardPremium)
+  @Post('securitizadora')
+  criarSecuritizadora(
+    @Body() criarSecuritizadorasDto: CriarSecuritizadorasDto,
+    @Request() req: RequisicaoPersonalizada,
+  ) {
+    return this.fundosService.criarSecuritizadora(
+      req.user.idUsuario,
+      criarSecuritizadorasDto.fundos,
     );
   }
 
@@ -44,14 +69,6 @@ export class FundosController {
   @Get(':id')
   buscarUmFundo(@Param('id') id: string) {
     return this.fundosService.findOne(+id);
-  }
-
-  @Patch(':id')
-  atualizarFundo(
-    @Param('id') id: string,
-    @Body() updateFundoDto: UpdateFundoDto,
-  ) {
-    return this.fundosService.update(+id, updateFundoDto);
   }
 
   @Delete(':id')

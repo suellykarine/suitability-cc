@@ -1,6 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateFundoDto } from './dto/create-fundo.dto';
-import { UpdateFundoDto } from './dto/update-fundo.dto';
 import {
   PrismaClient,
   Prisma,
@@ -10,6 +8,9 @@ import {
 import { formatarCNPJ } from 'src/utils/formatar';
 import { StatusFundoInvestimento } from 'src/enums/StatusFundoInvestimento';
 import { PerfisInvestimento } from 'src/enums/PerfisInvestimento';
+import { CriarFundoDto } from './dto/criar-fundo.dto';
+import { CriarFactoringDto } from './dto/criar-factoring.dto';
+import { CriarSecuritizadoraDto } from './dto/criar-securitizaroda.dto copy';
 
 @Injectable()
 export class FundosService {
@@ -18,68 +19,16 @@ export class FundosService {
   constructor() {
     this.prisma = new PrismaClient();
   }
-  async criarFundo(id: number, criarFundoDto: CreateFundoDto[]) {
+
+  async criarFundo(id: number, criarFundoDto: CriarFundoDto[]) {
     const usuario = await this.obterUsuario(id);
 
     return this.prisma.$transaction(
       async (prisma: Prisma.TransactionClient) => {
         const fundosCriados = [];
         for (const fundo of criarFundoDto) {
-          const gestorFundo = await this.obterGestorFundo(
-            fundo.cnpj_gestor_fundo,
-            prisma,
-          );
-
-          const backOffice = await this.obterOuCriarBackOffice(
-            fundo.nome_backoffice,
-            fundo.email_backoffice,
-            fundo.telefone_backoffice,
-            prisma,
-          );
-
-          const administradorFundoFinal =
-            await this.obterOuCriarAdministradorFundo(
-              fundo.email_administrador,
-              fundo.nome_administrador,
-              fundo.cnpj_administrador,
-              fundo.telefone_administrador,
-              prisma,
-            );
-
-          const representante = await this.obterOuCriarRepresentante(
-            fundo,
-            administradorFundoFinal.id,
-            prisma,
-          );
-
-          const statusFundo = await this.obterStatusFundo(prisma);
-
-          const criarFundo = await this.criarNovoFundo(
-            fundo,
-            administradorFundoFinal.id,
-            backOffice.id,
-            representante?.id,
-            statusFundo?.id,
-            prisma,
-          );
-
-          if (fundo.codigo_banco && fundo.agencia_banco && fundo.conta_banco) {
-            await this.criarContaRepasse(criarFundo.id, fundo, prisma);
-          }
-
-          const fundoInvestimentoGestorFundo = await this.ligarFundoComGestor(
-            criarFundo.id,
-            gestorFundo.id,
-            prisma,
-          );
-
-          await this.associarFundoComUsuario(
-            fundoInvestimentoGestorFundo,
-            usuario.id,
-            prisma,
-          );
-
-          fundosCriados.push(criarFundo);
+          const novoFundo = await this.criarNovoFundo(fundo, usuario, prisma);
+          fundosCriados.push(novoFundo);
         }
 
         return {
@@ -88,6 +37,252 @@ export class FundosService {
         };
       },
     );
+  }
+
+  async criarFactoring(id: number, criarFundoDto: CriarFactoringDto[]) {
+    const usuario = await this.obterUsuario(id);
+
+    return this.prisma.$transaction(
+      async (prisma: Prisma.TransactionClient) => {
+        const factoringsCriadas = [];
+        for (const fundo of criarFundoDto) {
+          const novaFactoring = await this.criarNovaFactoring(
+            fundo,
+            usuario,
+            prisma,
+          );
+          factoringsCriadas.push(novaFactoring);
+        }
+
+        return {
+          mensagem: 'Factorings criadas com sucesso',
+          factorings_criadas: factoringsCriadas,
+        };
+      },
+    );
+  }
+
+  async criarSecuritizadora(
+    id: number,
+    criarFundoDto: CriarSecuritizadoraDto[],
+  ) {
+    const usuario = await this.obterUsuario(id);
+
+    return this.prisma.$transaction(
+      async (prisma: Prisma.TransactionClient) => {
+        const securitizadorasCriadas = [];
+        for (const fundo of criarFundoDto) {
+          const novaSecuritizadora = await this.criarNovaSecuritizadora(
+            fundo,
+            usuario,
+            prisma,
+          );
+          securitizadorasCriadas.push(novaSecuritizadora);
+        }
+
+        return {
+          mensagem: 'Securitizadoras criadas com sucesso',
+          securitizadoras_criadas: securitizadorasCriadas,
+        };
+      },
+    );
+  }
+
+  private async criarNovoFundo(
+    fundo: CriarFundoDto,
+    usuario: any,
+    prisma: Prisma.TransactionClient,
+  ) {
+    const gestorFundo = await this.obterGestorFundo(
+      fundo.cnpj_gestor_fundo,
+      prisma,
+    );
+    const backOffice = await this.obterOuCriarBackOffice(
+      fundo.nome_backoffice,
+      fundo.email_backoffice,
+      fundo.telefone_backoffice,
+      prisma,
+    );
+    const administradorFundoFinal = await this.obterOuCriarAdministradorFundo(
+      fundo.email_administrador,
+      fundo.nome_administrador,
+      fundo.cnpj_administrador,
+      fundo.telefone_administrador,
+      prisma,
+    );
+    const representante = await this.obterOuCriarRepresentante(
+      fundo,
+      administradorFundoFinal.id,
+      prisma,
+      PerfisInvestimento.FUNDO,
+    );
+    const statusFundo = await this.obterStatusFundo(prisma);
+
+    const novoFundo = await prisma.fundo_investimento.create({
+      data: {
+        nome: fundo.nome,
+        cpf_cnpj: fundo.cpf_cnpj,
+        razao_social: fundo.razao_social,
+        nome_fantasia: fundo.nome_fantasia,
+        codigo_anbima: fundo.codigo_anbima,
+        classe_anbima: fundo.classe_anbima,
+        atividade_principal: fundo.atividade_principal || '',
+        detalhes: fundo.detalhes || '',
+        data_criacao: new Date(),
+        tipo_estrutura: PerfisInvestimento.FUNDO,
+        id_administrador_fundo: administradorFundoFinal.id,
+        id_fundo_backoffice: backOffice.id,
+        id_representante_fundo: representante?.id,
+        id_status_fundo_investimento: statusFundo?.id,
+        faturamento_anual: String(fundo.faturamento_anual),
+      },
+      include: {
+        fundo_backoffice: true,
+        administrador_fundo: { include: { representante_fundo: true } },
+        status_fundo_investimento: true,
+      },
+    });
+
+    if (fundo.codigo_banco && fundo.agencia_banco && fundo.conta_banco) {
+      await this.criarContaRepasse(novoFundo.id, fundo, prisma);
+    }
+
+    const fundoInvestimentoGestorFundo = await this.ligarFundoComGestor(
+      novoFundo.id,
+      gestorFundo.id,
+      prisma,
+    );
+    await this.associarFundoComUsuario(
+      fundoInvestimentoGestorFundo,
+      usuario.id,
+      prisma,
+    );
+
+    return novoFundo;
+  }
+
+  private async criarNovaFactoring(
+    fundo: CriarFactoringDto,
+    usuario: any,
+    prisma: Prisma.TransactionClient,
+  ) {
+    const gestorFundo = await this.obterGestorFundo(
+      fundo.cnpj_gestor_fundo,
+      prisma,
+    );
+    const backOffice = await this.obterOuCriarBackOffice(
+      fundo.nome_backoffice,
+      fundo.email_backoffice,
+      fundo.telefone_backoffice,
+      prisma,
+    );
+    const representante = await this.obterOuCriarRepresentante(
+      fundo,
+      gestorFundo.id,
+      prisma,
+    );
+    const statusFundo = await this.obterStatusFundo(prisma);
+
+    const novaFactoring = await prisma.fundo_investimento.create({
+      data: {
+        nome: fundo.nome,
+        cpf_cnpj: fundo.cpf_cnpj,
+        razao_social: fundo.razao_social,
+        nome_fantasia: fundo.nome_fantasia,
+        atividade_principal: fundo.atividade_principal || '',
+        detalhes: fundo.detalhes || '',
+        tipo_estrutura: PerfisInvestimento.FACTORING,
+        id_fundo_backoffice: backOffice.id,
+        id_representante_fundo: representante?.id,
+        id_status_fundo_investimento: statusFundo?.id,
+        data_criacao: new Date(),
+        faturamento_anual: String(fundo.faturamento_anual),
+      },
+      include: {
+        fundo_backoffice: true,
+        representante_fundo: true,
+        status_fundo_investimento: true,
+      },
+    });
+
+    if (fundo.codigo_banco && fundo.agencia_banco && fundo.conta_banco) {
+      await this.criarContaRepasse(novaFactoring.id, fundo, prisma);
+    }
+
+    const fundoInvestimentoGestorFundo = await this.ligarFundoComGestor(
+      novaFactoring.id,
+      gestorFundo.id,
+      prisma,
+    );
+    await this.associarFundoComUsuario(
+      fundoInvestimentoGestorFundo,
+      usuario.id,
+      prisma,
+    );
+
+    return novaFactoring;
+  }
+
+  private async criarNovaSecuritizadora(
+    fundo: CriarSecuritizadoraDto,
+    usuario: any,
+    prisma: Prisma.TransactionClient,
+  ) {
+    const gestorFundo = await this.obterGestorFundo(
+      fundo.cnpj_gestor_fundo,
+      prisma,
+    );
+    const backOffice = await this.obterOuCriarBackOffice(
+      fundo.nome_backoffice,
+      fundo.email_backoffice,
+      fundo.telefone_backoffice,
+      prisma,
+    );
+    const representante = await this.obterOuCriarRepresentante(
+      fundo,
+      gestorFundo.id,
+      prisma,
+    );
+    const statusFundo = await this.obterStatusFundo(prisma);
+
+    const novaSecuritizadora = await prisma.fundo_investimento.create({
+      data: {
+        nome: fundo.nome,
+        cpf_cnpj: fundo.cpf_cnpj,
+        razao_social: fundo.razao_social,
+        nome_fantasia: fundo.nome_fantasia,
+        atividade_principal: fundo.atividade_principal || '',
+        detalhes: fundo.detalhes || '',
+        tipo_estrutura: PerfisInvestimento.SECURITIZADORA,
+        id_fundo_backoffice: backOffice.id,
+        id_representante_fundo: representante?.id,
+        id_status_fundo_investimento: statusFundo?.id,
+        data_criacao: new Date(),
+        faturamento_anual: String(fundo.faturamento_anual),
+      },
+      include: {
+        fundo_backoffice: true,
+        representante_fundo: true,
+        status_fundo_investimento: true,
+      },
+    });
+
+    if (fundo.codigo_banco && fundo.agencia_banco && fundo.conta_banco) {
+      await this.criarContaRepasse(novaSecuritizadora.id, fundo, prisma);
+    }
+
+    const fundoInvestimentoGestorFundo = await this.ligarFundoComGestor(
+      novaSecuritizadora.id,
+      gestorFundo.id,
+      prisma,
+    );
+    await this.associarFundoComUsuario(
+      fundoInvestimentoGestorFundo,
+      usuario.id,
+      prisma,
+    );
+
+    return novaSecuritizadora;
   }
 
   private async obterUsuario(id: number) {
@@ -147,9 +342,10 @@ export class FundosService {
   }
 
   private async obterOuCriarRepresentante(
-    fundo: CreateFundoDto,
+    fundo: CriarFundoDto | CriarFactoringDto | CriarSecuritizadoraDto,
     idAdministradorFundo: number,
     prisma: Prisma.TransactionClient,
+    tipo_estrutura?: string,
   ) {
     if (
       fundo.cpf_representante ||
@@ -186,7 +382,10 @@ export class FundosService {
             nome: fundo.nome_representante,
             telefone: fundo.telefone_representante,
             id_endereco: enderecoRepresentante.id,
-            id_administrador_fundo: idAdministradorFundo,
+            id_administrador_fundo:
+              tipo_estrutura !== PerfisInvestimento.FUNDO
+                ? null
+                : idAdministradorFundo,
           },
         });
       }
@@ -201,43 +400,9 @@ export class FundosService {
     });
   }
 
-  private async criarNovoFundo(
-    fundo: CreateFundoDto,
-    idAdministradorFundo: number,
-    idBackOffice: number,
-    idRepresentanteFundo: number | undefined,
-    idStatusFundo: number | undefined,
-    prisma: Prisma.TransactionClient,
-  ) {
-    return await prisma.fundo_investimento.create({
-      data: {
-        nome: fundo.nome,
-        cpf_cnpj: fundo.cpf_cnpj,
-        razao_social: fundo.razao_social,
-        nome_fantasia: fundo.nome_fantasia,
-        codigo_anbima: fundo.codigo_anbima,
-        classe_anbima: fundo.classe_anbima,
-        atividade_principal: fundo.atividade_principal || '',
-        detalhes: fundo.detalhes || '',
-        data_criacao: new Date(),
-        tipo_estrutura: PerfisInvestimento.FUNDO,
-        id_administrador_fundo: idAdministradorFundo,
-        id_fundo_backoffice: idBackOffice,
-        id_representante_fundo: idRepresentanteFundo,
-        id_status_fundo_investimento: idStatusFundo,
-        faturamento_anual: String(fundo.faturamento_anual),
-      },
-      include: {
-        fundo_backoffice: true,
-        administrador_fundo: { include: { representante_fundo: true } },
-        status_fundo_investimento: true,
-      },
-    });
-  }
-
   private async criarContaRepasse(
     idFundo: number,
-    fundo: CreateFundoDto,
+    fundo: CriarFundoDto | CriarFactoringDto | CriarSecuritizadoraDto,
     prisma: Prisma.TransactionClient,
   ) {
     return await prisma.conta_repasse.create({
@@ -291,10 +456,6 @@ export class FundosService {
 
   findOne(id: number) {
     return `This action returns a #${id} fundo`;
-  }
-
-  update(id: number, updateFundoDto: UpdateFundoDto) {
-    return `This action updates a #${id} fundo`;
   }
 
   remove(id: number) {
