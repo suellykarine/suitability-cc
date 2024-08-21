@@ -647,27 +647,27 @@ export class FundosService {
 
   async deleteFundo(
     id: number,
-    assetId: number,
+    idGestorFundo: number,
     tipoEstrutura: PerfisInvestimento,
     idUsuario: number,
   ) {
     tipoEstrutura = tipoEstrutura ? tipoEstrutura : PerfisInvestimento.FUNDO;
-    if (!assetId) {
+    if (!idGestorFundo) {
       throw new BadRequestException({
         mensagem: 'Id do gestor do fundo necessário',
       });
     }
-    const fund = await this.prisma.fundo_investimento.findUnique({
+    const fundo = await this.prisma.fundo_investimento.findUnique({
       where: { id, tipo_estrutura: tipoEstrutura },
     });
 
-    if (!fund) {
+    if (!fundo) {
       throw new NotFoundException(`${tipoEstrutura} não encontrado`);
     }
 
-    await this.verificarPropriedadeFundo(idUsuario, fund.id);
+    await this.verificarPropriedadeFundo(idUsuario, fundo.id);
 
-    await this.removerEntidadesAssociadasEFundo(fund, assetId);
+    await this.removerEntidadesAssociadasEFundo(fundo, idGestorFundo);
 
     return { mensagem: `${tipoEstrutura} removido com sucesso` };
   }
@@ -679,13 +679,13 @@ export class FundosService {
   }
 
   private async atualizarStatusFundo(
-    fundId: number,
-    statusFund: status_fundo_investimento,
+    idFundo: number,
+    statusFundo: status_fundo_investimento,
   ) {
-    const updatedFund = await this.prisma.fundo_investimento.update({
-      where: { id: fundId },
+    const fundoAtualizado = await this.prisma.fundo_investimento.update({
+      where: { id: idFundo },
       data: {
-        id_status_fundo_investimento: statusFund.id,
+        id_status_fundo_investimento: statusFundo.id,
       },
       include: {
         fundo_backoffice: true,
@@ -697,7 +697,7 @@ export class FundosService {
 
     return {
       mensagem: 'Status atualizado com sucesso',
-      fundo_atualizado: updatedFund,
+      fundo_atualizado: fundoAtualizado,
     };
   }
 
@@ -784,68 +784,65 @@ export class FundosService {
   }
 
   private async removerEntidadesAssociadasEFundo(
-    fund: fundo_investimento,
-    assetId: number,
+    fundo: fundo_investimento,
+    idGestorFundo: number,
   ) {
     await this.prisma.$transaction(async (prisma) => {
-      const fundInvestmentAssets =
+      const fundoInvestimentoGestorFundo =
         await prisma.fundo_investimento_gestor_fundo.findMany({
           where: {
-            id_fundo_investimento: fund.id,
-            id_gestor_fundo: assetId,
+            id_fundo_investimento: fundo.id,
+            id_gestor_fundo: idGestorFundo,
           },
         });
 
-      for (const asset of fundInvestmentAssets) {
+      for (const fundo of fundoInvestimentoGestorFundo) {
         await prisma.usuario_fundo_investimento.deleteMany({
-          where: { id_fundo_investimento_gestor_fundo: asset.id },
+          where: { id_fundo_investimento_gestor_fundo: fundo.id },
         });
         await prisma.fundo_investimento_gestor_fundo.delete({
-          where: { id: asset.id },
+          where: { id: fundo.id },
         });
       }
 
       await prisma.conta_repasse.deleteMany({
-        where: { id_fundo_investimento: fund.id },
+        where: { id_fundo_investimento: fundo.id },
       });
 
       await prisma.documento.deleteMany({
-        where: { id_fundo_investimento: fund.id },
+        where: { id_fundo_investimento: fundo.id },
       });
 
-      const remainingFundsWithBackoffice =
-        await prisma.fundo_investimento.findMany({
-          where: { id_fundo_backoffice: fund.id_fundo_backoffice },
-        });
+      const fundosComBackoffice = await prisma.fundo_investimento.findMany({
+        where: { id_fundo_backoffice: fundo.id_fundo_backoffice },
+      });
 
-      if (remainingFundsWithBackoffice.length === 1) {
+      if (fundosComBackoffice.length === 1) {
         await prisma.fundo_backoffice.delete({
-          where: { id: fund.id_fundo_backoffice },
+          where: { id: fundo.id_fundo_backoffice },
         });
       }
 
-      const remainingFundsWithManager =
-        await prisma.fundo_investimento.findMany({
-          where: { id_administrador_fundo: fund.id_administrador_fundo },
-        });
+      const fundosComAdministrador = await prisma.fundo_investimento.findMany({
+        where: { id_administrador_fundo: fundo.id_administrador_fundo },
+      });
 
-      if (remainingFundsWithManager.length === 1) {
+      if (fundosComAdministrador.length === 1) {
         await prisma.administrador_fundo.delete({
-          where: { id: fund.id_administrador_fundo },
+          where: { id: fundo.id_administrador_fundo },
         });
       }
 
-      const remainingFundsWithRepresentative =
-        await prisma.fundo_investimento.findMany({
-          where: { id_representante_fundo: fund.id_representante_fundo },
-        });
+      const fundosComRepresentante = await prisma.fundo_investimento.findMany({
+        where: { id_representante_fundo: fundo.id_representante_fundo },
+      });
 
-      if (remainingFundsWithRepresentative.length === 1) {
+      if (fundosComRepresentante.length === 1) {
         await prisma.representante_fundo.delete({
-          where: { id: fund.id_representante_fundo },
+          where: { id: fundo.id_representante_fundo },
         });
       }
-      await prisma.fundo_investimento.delete({ where: { id: fund.id } });
+      await prisma.fundo_investimento.delete({ where: { id: fundo.id } });
     });
   }
 
