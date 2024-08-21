@@ -162,12 +162,4 @@ export class CriarSecuritizadorasDto {
     ],
   })
   fundos: CriarSecuritizadoraDto[];
-
-  // @IsNotEmpty()
-  // @IsString()
-  // @ApiProperty({
-  //   description: 'Tipo de estrutura a ser cadastrada',
-  //   example: 'Securitizadora',
-  // })
-  // tipo_estrutura: string;
 }

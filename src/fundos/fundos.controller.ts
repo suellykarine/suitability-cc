@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { FundosService } from './fundos.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -17,6 +18,9 @@ import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interfa
 import { CriarFundosDto } from './dto/criar-fundo.dto';
 import { CriarFactoringsDto } from './dto/criar-factoring.dto';
 import { CriarSecuritizadorasDto } from './dto/criar-securitizaroda.dto copy';
+import { PerfisInvestimento } from 'src/enums/PerfisInvestimento';
+import { AtualizarFundoDto } from './dto/atualizar-fundo.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @ApiTags('fundos')
 @ApiBearerAuth('access-token')
@@ -66,13 +70,47 @@ export class FundosController {
     return this.fundosService.buscarFundos();
   }
 
-  @Get(':id')
-  buscarUmFundo(@Param('id') id: string) {
-    return this.fundosService.findOne(+id);
+  @UseGuards(JwtAuthGuardPremium)
+  @Get('usuario')
+  buscarUmFundo(@Request() req: RequisicaoPersonalizada, @Query() query) {
+    const perfil_investimento = query.PERFIL_INVESTIMENTO
+      ? query.PERFIL_INVESTIMENTO
+      : PerfisInvestimento.FUNDO;
+    return this.fundosService.buscarFundosDoUsuario(
+      req.user.idUsuario,
+      perfil_investimento,
+    );
   }
 
+  @UseGuards(JwtAuthGuardPremium)
+  @Patch(':id')
+  atualizarFundo(
+    @Param('id') id: string,
+    @Body() atualizarFundoDto: AtualizarFundoDto,
+    @Query('PERFIL_INVESTIMENTO') tipoEstrutura: PerfisInvestimento,
+    @Request() req: RequisicaoPersonalizada,
+  ) {
+    return this.fundosService.patchFundo(
+      +id,
+      atualizarFundoDto,
+      tipoEstrutura,
+      req.user.idUsuario,
+    );
+  }
+
+  @UseGuards(JwtAuthGuardPremium)
   @Delete(':id')
-  removerFundo(@Param('id') id: string) {
-    return this.fundosService.remove(+id);
+  deletarFundo(
+    @Param('id') id: string,
+    @Query('ID_GESTOR_FUNDO') assetId: string,
+    @Query('PERFIL_INVESTIMENTO') tipoEstrutura: PerfisInvestimento,
+    @Request() req: RequisicaoPersonalizada,
+  ) {
+    return this.fundosService.deleteFundo(
+      +id,
+      +assetId,
+      tipoEstrutura,
+      req.user.idUsuario,
+    );
   }
 }
