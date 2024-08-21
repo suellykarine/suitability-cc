@@ -846,7 +846,7 @@ export class FundosService {
     });
   }
 
-  private async verificarPropriedadeFundo(idUsuario: number, idFundo: number) {
+  async verificarPropriedadeFundo(idUsuario: number, idFundo: number) {
     const fundoGestor =
       await this.prisma.fundo_investimento_gestor_fundo.findFirst({
         where: { id_fundo_investimento: idFundo },
