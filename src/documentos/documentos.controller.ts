@@ -14,14 +14,16 @@ import {
 } from '@nestjs/common';
 import { DocumentosService } from './documentos.service';
 import { EnviarDocumentoDto } from './dto/create-documento.dto';
-import { UpdateDocumentoDto } from './dto/update-documento.dto';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { AtualizarDocumentoDto } from './dto/update-documento.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { TipoIdsDocumentos } from 'src/enums/TipoIdsDocumentos';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
+import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 
 @ApiTags('Documentos')
+@ApiBearerAuth('access-token')
 @Controller('api/documentos')
 export class DocumentosController {
   constructor(private readonly documentosService: DocumentosService) {}
@@ -60,16 +62,33 @@ export class DocumentosController {
     );
   }
 
-  @Patch(':id')
-  update(
+  @UseGuards(JwtAuthGuardBackoffice)
+  @Patch('analisar/:id')
+  atualizarDocumento(
     @Param('id') id: string,
-    @Body() updateDocumentoDto: UpdateDocumentoDto,
+    @Body() atualizarDocumentoDto: AtualizarDocumentoDto,
+    @Request() req: RequisicaoPersonalizada,
   ) {
-    return this.documentosService.update(+id, updateDocumentoDto);
+    return this.documentosService.atualizarDocumento(
+      +id,
+      atualizarDocumentoDto,
+      req.user.idUsuario,
+    );
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.documentosService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Post('anexar/:id')
+  async anexarDocumento(
+    @Param('id') id: string,
+    @Body() dadosDocumento: any,
+    @Request() req: RequisicaoPersonalizada,
+  ) {
+    const idFundo = Number(id);
+
+    return this.documentosService.anexarDocumento(
+      idFundo,
+      dadosDocumento,
+      req.user.idUsuario,
+    );
   }
 }

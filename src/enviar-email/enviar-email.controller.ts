@@ -3,7 +3,7 @@ import { EnviarEmailService } from './enviar-email.service';
 import { EnviarEmailDto } from './dto/create-enviar-email.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('enviar-email')
+@ApiTags('Enviar-email')
 @ApiBearerAuth('access-token')
 @Controller('api/enviar-email')
 export class EnviarEmailController {

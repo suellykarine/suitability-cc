@@ -21,7 +21,7 @@ import {
 } from './dto/criar-pre-registro.dto';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
 
-@ApiTags('pre-registro')
+@ApiTags('Pre-registro')
 @ApiBearerAuth('access-token')
 @Controller('api/pre-registro')
 export class PreRegistroController {

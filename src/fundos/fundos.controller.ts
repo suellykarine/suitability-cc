@@ -22,7 +22,7 @@ import { PerfisInvestimento } from 'src/enums/PerfisInvestimento';
 import { AtualizarFundoDto } from './dto/atualizar-fundo.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@ApiTags('fundos')
+@ApiTags('Fundos')
 @ApiBearerAuth('access-token')
 @Controller('api/fundos')
 export class FundosController {

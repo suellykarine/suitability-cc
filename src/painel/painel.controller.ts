@@ -4,7 +4,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('painel')
+@ApiTags('Painel')
 @ApiBearerAuth('access-token')
 @Controller('api/painel')
 export class PainelController {

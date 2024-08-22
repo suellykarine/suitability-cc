@@ -20,7 +20,7 @@ import { TipoUsuario } from 'src/enums/TipoUsuario';
 import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.dto';
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
 
-@ApiTags('carta-convite')
+@ApiTags('Carta-convite')
 @ApiBearerAuth('access-token')
 @Controller('api/carta-convite')
 export class CartaConviteController {
