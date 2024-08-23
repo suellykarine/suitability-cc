@@ -5,18 +5,14 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { EnviarEmailDto } from './dto/create-enviar-email.dto';
-import { PrismaClient } from '@prisma/client';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { jwtConstants } from 'src/auth/constants';
 import * as jwt from 'jsonwebtoken';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class EnviarEmailService {
-  private readonly prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private prisma: PrismaService) {}
 
   async enviarEmail(enviarEmailDto: EnviarEmailDto) {
     const usuario = await this.obterUsuarioPorEmail(enviarEmailDto.para);

@@ -13,6 +13,7 @@ import { PainelModule } from './painel/painel.module';
 import { EnviarEmailModule } from './enviar-email/enviar-email.module';
 import { FundosModule } from './fundos/fundos.module';
 import { DocumentosModule } from './documentos/documentos.module';
+import { AdmModule } from './adm/adm.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { DocumentosModule } from './documentos/documentos.module';
     EnviarEmailModule,
     FundosModule,
     DocumentosModule,
+    AdmModule,
   ],
   controllers: [AppController],
   providers: [

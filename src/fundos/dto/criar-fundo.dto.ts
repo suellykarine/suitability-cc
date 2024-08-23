@@ -26,7 +26,9 @@ export class CriarFundoDto {
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Transform(
+    ({ value }) => typeof value === 'string' && value.replace(/[^\d]/g, ''),
+  )
   @Length(11, 14)
   cpf_cnpj: string;
 
@@ -48,7 +50,9 @@ export class CriarFundoDto {
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Transform(
+    ({ value }) => typeof value === 'string' && value.replace(/[^\d]/g, ''),
+  )
   @Length(14, 14)
   cnpj_gestor_fundo: string;
 
@@ -74,7 +78,9 @@ export class CriarFundoDto {
 
   @IsString()
   @IsNotEmpty()
-  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Transform(
+    ({ value }) => typeof value === 'string' && value.replace(/[^\d]/g, ''),
+  )
   @Length(14, 14)
   cnpj_administrador: string;
 
@@ -88,7 +94,9 @@ export class CriarFundoDto {
 
   @IsString()
   @IsOptional()
-  @Transform(({ value }) => value.replace(/[^\d]/g, ''))
+  @Transform(
+    ({ value }) => typeof value === 'string' && value.replace(/[^\d]/g, ''),
+  )
   @Length(11, 11)
   cpf_representante?: string;
 

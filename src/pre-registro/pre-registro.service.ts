@@ -5,7 +5,7 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaClient, usuario, Prisma } from '@prisma/client';
+import { usuario, Prisma } from '@prisma/client';
 import {
   formatarCPF,
   formatarCNPJ,
@@ -23,14 +23,11 @@ import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
 import { customAlphabet } from 'nanoid';
 import { servicoEmailSrm } from 'src/utils/servico-email-srm/servico';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PreRegistroService {
-  private readonly prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private prisma: PrismaService) {}
 
   async encontrarTodosUsuarios() {
     const usuarios = await this.prisma.usuario.findMany({

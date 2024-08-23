@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 export type Usuario = any;
 
 @Injectable()
 export class UsuarioService {
+  constructor(private prisma: PrismaService) {}
+
   async encontrarUsuario(email: string): Promise<Usuario | undefined> {
-    const prisma = new PrismaClient();
-    const usuario = await prisma.usuario.findUnique({
+    const usuario = await this.prisma.usuario.findUnique({
       where: {
         email: email,
       },
@@ -23,9 +25,7 @@ export class UsuarioService {
   }
 
   async encontrarUsuarioMaster(email: string): Promise<Usuario | undefined> {
-    const prisma = new PrismaClient();
-
-    const usuario = prisma.usuario.findUnique({
+    const usuario = this.prisma.usuario.findUnique({
       where: {
         email: email,
       },

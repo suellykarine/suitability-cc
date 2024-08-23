@@ -10,19 +10,18 @@ import {
   EnviarDocumentoDto,
 } from './dto/create-documento.dto';
 import { AtualizarDocumentoDto } from './dto/update-documento.dto';
-import { PrismaClient } from '@prisma/client';
 import { StatusDocumento } from 'src/enums/StatusDocumento';
 import { TipoIdsDocumentos } from 'src/enums/TipoIdsDocumentos';
 import { FundosService } from 'src/fundos/fundos.service';
 import { Documento } from './entities/documento.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class DocumentosService {
-  private readonly prisma: PrismaClient;
-
-  constructor(private readonly fundosService: FundosService) {
-    this.prisma = new PrismaClient();
-  }
+  constructor(
+    private readonly fundosService: FundosService,
+    private prisma: PrismaService,
+  ) {}
   async enviarDocumento(
     enviarDocumentoDto: EnviarDocumentoDto,
     arquivo: Express.Multer.File,

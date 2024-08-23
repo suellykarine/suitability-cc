@@ -21,7 +21,6 @@ import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.d
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
 
 @ApiTags('Carta-convite')
-@ApiBearerAuth('access-token')
 @Controller('api/carta-convite')
 export class CartaConviteController {
   constructor(private readonly cartaConviteService: CartaConviteService) {}
@@ -55,12 +54,14 @@ export class CartaConviteController {
     return this.cartaConviteService.reenviarCodigo(reenviarCodigoDto);
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuardBackoffice)
   @Get()
   encontrarTodos() {
     return this.cartaConviteService.encontrarTodasCartasConvite();
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuardBackoffice)
   @Get(':id')
   encontrarUm(@Param('id') id: string) {
@@ -76,6 +77,7 @@ export class CartaConviteController {
     );
   }
 
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuardBackoffice)
   @Patch(':id')
   atualizar(
@@ -87,7 +89,7 @@ export class CartaConviteController {
       atualizarCartaConviteDto,
     );
   }
-
+  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuardBackoffice)
   @Delete(':id')
   @HttpCode(204)

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { CriarCartaConviteDto } from './dto/create-invitation-letter.dto';
 import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
-import { PrismaClient, status_carta_convite, usuario } from '@prisma/client';
+import { status_carta_convite, usuario } from '@prisma/client';
 import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
 import {
   formatarCNPJ,
@@ -21,14 +21,11 @@ import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.d
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { CartaConvite } from './entities/carta-convite.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CartaConviteService {
-  private readonly prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private prisma: PrismaService) {}
 
   async criarCartaConvite(
     criarCartaConviteDto: CriarCartaConviteDto,

@@ -6,9 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
-  PrismaClient,
   Prisma,
-  gestor_fundo,
   fundo_investimento_gestor_fundo,
   fundo_investimento,
   status_fundo_investimento,
@@ -25,14 +23,11 @@ import { CriarFundoDto } from './dto/criar-fundo.dto';
 import { CriarFactoringDto } from './dto/criar-factoring.dto';
 import { CriarSecuritizadoraDto } from './dto/criar-securitizaroda.dto copy';
 import { AtualizarFundoDto } from './dto/atualizar-fundo.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FundosService {
-  private readonly prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = new PrismaClient();
-  }
+  constructor(private prisma: PrismaService) {}
 
   async criarFundo(id: number, criarFundoDto: CriarFundoDto[]) {
     const usuario = await this.obterUsuario(id);

@@ -4,7 +4,7 @@ generator client {
 
 datasource CreditConnect {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URLs")
 }
 
 model acesso_usuario {
