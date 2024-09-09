@@ -1104,4 +1104,5 @@ export class FundosService {
 // SUGESTÕES PARA REFATORAR FUTURAMENTE:
 // Criar método genérico que substitui os métodos "criarFundo", "criarSecuritizadora" e "criarFactoring"
 // Criação de um serviço especializado para remoção de fundos e entidades associadas pois são métodos muito extensos
+// Criação de um método genérico que faz a remoção dos fundos, securitizadoras e factoring.
 // Buscar por repetições de código (que com certeza tem) e criar métodos genéricos para substituir toda essa repetição

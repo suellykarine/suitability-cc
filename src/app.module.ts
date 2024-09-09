@@ -14,6 +14,7 @@ import { EnviarEmailModule } from './enviar-email/enviar-email.module';
 import { FundosModule } from './fundos/fundos.module';
 import { DocumentosModule } from './documentos/documentos.module';
 import { AdmModule } from './adm/adm.module';
+import { CedenteModule } from './cedente/cedente.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AdmModule } from './adm/adm.module';
     FundosModule,
     DocumentosModule,
     AdmModule,
+    CedenteModule,
   ],
   controllers: [AppController],
   providers: [
