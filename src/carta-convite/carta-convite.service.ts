@@ -21,7 +21,7 @@ import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.d
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { CartaConvite } from './entities/carta-convite.entity';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class CartaConviteService {

@@ -23,7 +23,7 @@ import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
 import { customAlphabet } from 'nanoid';
 import { servicoEmailSrm } from 'src/utils/servico-email-srm/servico';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class PreRegistroService {

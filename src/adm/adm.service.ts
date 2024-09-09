@@ -9,7 +9,7 @@ import {
   AtualizarUsuarioDto,
 } from './dto/update-adm.dto';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 
 @Injectable()

@@ -14,7 +14,7 @@ import { StatusDocumento } from 'src/enums/StatusDocumento';
 import { TipoIdsDocumentos } from 'src/enums/TipoIdsDocumentos';
 import { FundosService } from 'src/fundos/fundos.service';
 import { Documento } from './entities/documento.entity';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class DocumentosService {

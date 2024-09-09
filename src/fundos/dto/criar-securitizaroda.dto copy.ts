@@ -65,11 +65,11 @@ export class CriarSecuritizadoraDto {
   telefone_backoffice: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   nome_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @Transform(
     ({ value }) => typeof value === 'string' && value.replace(/[^\d]/g, ''),
   )
@@ -77,51 +77,51 @@ export class CriarSecuritizadoraDto {
   cpf_representante?: string;
 
   @IsEmail()
-  @IsOptional()
+  @IsNotEmpty()
   email_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   telefone_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   cep_endereco_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   rua_endereco_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   numero_endereco_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   bairro_endereco_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   municipio_endereco_representante?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   estado_endereco_representante?: string;
 
   @IsNumberString()
-  @IsOptional()
+  @IsNotEmpty()
   codigo_banco?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   agencia_banco?: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   conta_banco?: string;
 
   @IsNumberString()
-  @IsOptional()
+  @IsNotEmpty()
   faturamento_anual?: string;
 }
 export class CriarSecuritizadorasDto {

@@ -8,7 +8,7 @@ import { EnviarEmailDto } from './dto/create-enviar-email.dto';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { jwtConstants } from 'src/auth/constants';
 import * as jwt from 'jsonwebtoken';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class EnviarEmailService {

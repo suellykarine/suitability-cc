@@ -72,14 +72,8 @@ export class FundosController {
 
   @UseGuards(JwtAuthGuardPremium)
   @Get('usuario')
-  buscarUmFundo(@Request() req: RequisicaoPersonalizada, @Query() query) {
-    const perfil_investimento = query.PERFIL_INVESTIMENTO
-      ? query.PERFIL_INVESTIMENTO
-      : PerfisInvestimento.FUNDO;
-    return this.fundosService.buscarFundosDoUsuario(
-      req.user.idUsuario,
-      perfil_investimento,
-    );
+  buscarFundosDoUsuario(@Request() req: RequisicaoPersonalizada) {
+    return this.fundosService.buscarFundosDoUsuario(req.user.idUsuario);
   }
 
   @UseGuards(JwtAuthGuardPremium)
