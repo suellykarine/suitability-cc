@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { sigmaHeaders } from 'src/auth/constants';
 
 @Injectable()
 export class CedenteService {
@@ -13,7 +14,7 @@ export class CedenteService {
 
     const headers = {
       'Content-Type': 'application/json',
-      'X-API-KEY': this.configService.get<string>('X_API_KEY'),
+      'X-API-KEY': sigmaHeaders['X-API-KEY'],
     };
     const resposta = await fetch(url, {
       method: 'GET',

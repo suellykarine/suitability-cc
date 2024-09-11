@@ -15,15 +15,15 @@ export class CreateCedenteDto {
     example: '12345678000199',
   })
   @IsString()
-  @IsNotEmpty({ message: 'O identificador do cedente não pode estar vazio.' })
+  @IsNotEmpty()
   identificadorCedente: string;
 
   @ApiProperty({
     description: 'Faturamento anual do cedente.',
     example: 1000000,
   })
-  @IsNumber({}, { message: 'O faturamento anual deve ser um número.' })
-  @IsPositive({ message: 'O faturamento anual deve ser um número positivo.' })
+  @IsNumber({})
+  @IsPositive()
   faturamentoAnual: number;
 
   @ApiProperty({
@@ -31,15 +31,13 @@ export class CreateCedenteDto {
     example: '2',
   })
   @IsString()
-  @IsNotEmpty({
-    message: 'O código do ramo de atividade não pode estar vazio.',
-  })
+  @IsNotEmpty()
   codigoRamoAtividade: string;
 
   @ApiProperty({
     description: 'Email do cedente.',
     example: 'cedente@empresa.com',
   })
-  @IsEmail({}, { message: 'O email informado não é válido.' })
+  @IsEmail()
   email: string;
 }
