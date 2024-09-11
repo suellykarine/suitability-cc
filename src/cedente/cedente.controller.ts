@@ -3,14 +3,19 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   UseGuards,
+  Put,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  FileTypeValidator,
+  Request,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { CedenteService } from './cedente.service';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
-import { UpdateCedenteDto } from './dto/update-cedente.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CadastroCedenteService } from './cedenteCadastro.service';
 import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
@@ -18,6 +23,10 @@ import { CreateContaCorrenteDto } from './dto/create-conta-corrente.dto';
 import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
+import { AprovarDocumentoDto } from './dto/aprovar-documento.dto';
+import { DocumentoCedenteService } from './cedenteDocumentos.service';
+import { CreateDocumentoDto } from './dto/create-documento.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/cedente')
 @ApiBearerAuth('access-token')
@@ -26,6 +35,7 @@ export class CedenteController {
   constructor(
     private readonly cedenteService: CedenteService,
     private readonly cadastroCedenteService: CadastroCedenteService,
+    private readonly documentoCedenteService: DocumentoCedenteService,
   ) {}
 
   @UseGuards(JwtAuthGuardBackoffice)
@@ -78,5 +88,42 @@ export class CedenteController {
       cnpj,
       createRepresentanteLegalDto,
     );
+  }
+
+  @Post('documentos/registrar')
+  @UseInterceptors(FileInterceptor('arquivo'))
+  registrarDocumento(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'pdf',
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    arquivo: any,
+    @Body() createDocumentoDto: CreateDocumentoDto,
+  ) {
+    return this.documentoCedenteService.registrarDocumento(
+      arquivo,
+      createDocumentoDto,
+    );
+  }
+
+  @Put('documentos/:id/aprovar')
+  aprovarDocumento(
+    @Param('id') id: string,
+    @Body() aprovarDocumentoDto: AprovarDocumentoDto,
+  ) {
+    return this.documentoCedenteService.aprovarDocumento(
+      id,
+      aprovarDocumentoDto,
+    );
+  }
+
+  @Get('documentos/:cnpj')
+  buscarDocumentosPorCnpj(@Param('cnpj') cnpj: string) {
+    return this.documentoCedenteService.buscarDocumentosPorCnpj(cnpj);
   }
 }
