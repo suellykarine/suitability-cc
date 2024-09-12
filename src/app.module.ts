@@ -15,6 +15,7 @@ import { FundosModule } from './fundos/fundos.module';
 import { DocumentosModule } from './documentos/documentos.module';
 import { AdmModule } from './adm/adm.module';
 import { CedenteModule } from './cedente/cedente.module';
+import { CcbModule } from './ccb/ccb.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CedenteModule } from './cedente/cedente.module';
     DocumentosModule,
     AdmModule,
     CedenteModule,
+    CcbModule,
   ],
   controllers: [AppController],
   providers: [

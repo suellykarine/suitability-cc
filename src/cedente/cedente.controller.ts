@@ -31,6 +31,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('api/cedente')
 @ApiBearerAuth('access-token')
 @ApiTags('Cedente')
+@UseGuards(JwtAuthGuardBackoffice)
 export class CedenteController {
   constructor(
     private readonly cedenteService: CedenteService,
@@ -38,7 +39,6 @@ export class CedenteController {
     private readonly documentoCedenteService: DocumentoCedenteService,
   ) {}
 
-  @UseGuards(JwtAuthGuardBackoffice)
   @Post('cadastro')
   cadastrarCedente(@Body() createCedenteDto: CreateCedenteDto) {
     return this.cadastroCedenteService.cadastrarCedente(createCedenteDto);

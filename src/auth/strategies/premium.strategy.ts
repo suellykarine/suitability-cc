@@ -25,7 +25,11 @@ export class JwtStrategyPremium extends PassportStrategy(Strategy, 'premium') {
         tipo_usuario: true,
       },
     });
-    if (user.tipo_usuario.tipo !== TipoUsuario.INVESTIDOR_PREMIUM) {
+    if (
+      user.tipo_usuario.tipo !== TipoUsuario.INVESTIDOR_PREMIUM &&
+      user.tipo_usuario.tipo !== TipoUsuario.BACKOFFICE &&
+      user.tipo_usuario.tipo !== TipoUsuario.ADMINISTRADOR_SISTEMAS
+    ) {
       throw new UnauthorizedException({
         mensagem: 'Você não tem acesso a essa rota',
       });
