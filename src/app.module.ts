@@ -16,6 +16,7 @@ import { DocumentosModule } from './documentos/documentos.module';
 import { AdmModule } from './adm/adm.module';
 import { CedenteModule } from './cedente/cedente.module';
 import { CcbModule } from './ccb/ccb.module';
+import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CcbModule } from './ccb/ccb.module';
     AdmModule,
     CedenteModule,
     CcbModule,
+    StatusUsuarioModule,
   ],
   controllers: [AppController],
   providers: [

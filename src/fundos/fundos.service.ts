@@ -345,6 +345,7 @@ export class FundosService {
       data: {
         nome: fundo.nome,
         cpf_cnpj: fundo.cpf_cnpj,
+        apto_debenture: false,
         razao_social: fundo.razao_social,
         nome_fantasia: fundo.nome_fantasia,
         codigo_anbima: fundo.codigo_anbima,
@@ -420,6 +421,7 @@ export class FundosService {
     const novaFactoring = await prisma.fundo_investimento.create({
       data: {
         nome: fundo.nome,
+        apto_debenture: false,
         cpf_cnpj: fundo.cpf_cnpj,
         razao_social: fundo.razao_social,
         nome_fantasia: fundo.nome_fantasia,
@@ -478,6 +480,7 @@ export class FundosService {
     const novaSecuritizadora = await prisma.fundo_investimento.create({
       data: {
         nome: fundo.nome,
+        apto_debenture: false,
         cpf_cnpj: fundo.cpf_cnpj,
         razao_social: fundo.razao_social,
         nome_fantasia: fundo.nome_fantasia,

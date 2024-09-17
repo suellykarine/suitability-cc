@@ -160,6 +160,8 @@ model fundo_investimento {
   faturamento_anual                   String?                               @CreditConnect.NVarChar(50)
   apto_debenture                      Boolean
   valor_serie                         Decimal?                              @CreditConnect.Decimal(15, 2)
+  percentual_perfil                   Decimal?                              @CreditConnect.Decimal(5, 2)
+  perfil_investidor                   String?                               @CreditConnect.VarChar(255)
   carteira_investimento               carteira_investimento[]
   conta_repasse                       conta_repasse?
   documento                           documento[]
