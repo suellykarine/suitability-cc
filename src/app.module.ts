@@ -17,6 +17,7 @@ import { AdmModule } from './adm/adm.module';
 import { CedenteModule } from './cedente/cedente.module';
 import { CcbModule } from './ccb/ccb.module';
 import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
+import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
     CedenteModule,
     CcbModule,
     StatusUsuarioModule,
+    EstruturacaoCarrinhoModule,
   ],
   controllers: [AppController],
   providers: [

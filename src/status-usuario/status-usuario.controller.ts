@@ -1,15 +1,13 @@
-import {
-  Controller,
-  Patch,
-  Param,
-  Body,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Patch, Param, Body, UseGuards } from '@nestjs/common';
 import { StatusUsuarioService } from './status-usuario.service';
 import { AtualizarStatusUsuarioDto } from './dto/atualizar-status.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
+@ApiTags('Status-usuario')
+@ApiBearerAuth('access-token')
 @Controller('api/status-usuario')
+@UseGuards(JwtAuthGuard)
 export class StatusUsuarioController {
   constructor(private readonly statusUsuarioService: StatusUsuarioService) {}
 
