@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
+import { AtualizarSenhaDto } from './dto/atualizar-senha.dto';
 
 export type Usuario = any;
 
@@ -32,5 +33,21 @@ export class UsuarioService {
     });
 
     return usuario;
+  }
+
+  async atualizarSenha(
+    idUsuario: number,
+    atualizarSenhaDto: AtualizarSenhaDto,
+  ) {
+    const hashedPassword = await bcrypt.hash(atualizarSenhaDto.senha, 10);
+
+    await this.prisma.usuario.update({
+      where: { id: idUsuario },
+      data: {
+        senha: hashedPassword,
+      },
+    });
+
+    return { mensagem: 'Senha alterada com sucesso' };
   }
 }
