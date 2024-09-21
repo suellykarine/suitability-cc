@@ -19,6 +19,7 @@ import { CcbModule } from './ccb/ccb.module';
 import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
 import { AnalisePerfilModule } from './analise-perfil/analise-perfil.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AnalisePerfilModule } from './analise-perfil/analise-perfil.module';
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
     AnalisePerfilModule,
+    FeedbackModule,
   ],
   controllers: [AppController],
   providers: [
