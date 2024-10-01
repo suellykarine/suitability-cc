@@ -18,6 +18,9 @@ import { CedenteModule } from './cedente/cedente.module';
 import { CcbModule } from './ccb/ccb.module';
 import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
+import { AnalisePerfilModule } from './analise-perfil/analise-perfil.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { BuscarArquivoModule } from './buscar-arquivo/buscar-arquivo.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao
     CcbModule,
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
+    AnalisePerfilModule,
+    FeedbackModule,
+    BuscarArquivoModule,
   ],
   controllers: [AppController],
   providers: [

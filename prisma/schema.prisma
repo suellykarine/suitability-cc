@@ -29,14 +29,6 @@ model administrador_fundo {
   fundo_investimento                      fundo_investimento[]
 }
 
-model administrador_fundo_representante_fundo {
-  id                     Int                 @id(map: "pk_administrador_fundo_representante_fundo_id") @default(autoincrement())
-  id_administrador_fundo Int
-  id_representante_fundo Int
-  administrador_fundo    administrador_fundo @relation(fields: [id_administrador_fundo], references: [id], onUpdate: NoAction, map: "fk_administrador_fundo_id_administrador_fundo")
-  representante_fundo    representante_fundo @relation(fields: [id_representante_fundo], references: [id], onUpdate: NoAction, map: "fk_representante_fundo_id_representante_fundo")
-}
-
 model ativo_investido {
   id                       Int                    @id(map: "pk_ativo_investido_id") @default(autoincrement())
   id_carteira_investimento Int?
@@ -159,9 +151,10 @@ model fundo_investimento {
   tipo_estrutura                      String?                               @CreditConnect.NVarChar(Max)
   faturamento_anual                   String?                               @CreditConnect.NVarChar(50)
   apto_debenture                      Boolean
-  valor_serie                         Decimal?                              @CreditConnect.Decimal(15, 2)
-  percentual_perfil                   Decimal?                              @CreditConnect.Decimal(5, 2)
-  perfil_investidor                   String?                               @CreditConnect.VarChar(255)
+  valor_serie_debenture               Decimal?                              @CreditConnect.Decimal(15, 2)
+  nota_investidor_suitability         Decimal?                              @CreditConnect.Decimal(5, 2)
+  perfil_investidor_suitability       String?                               @CreditConnect.VarChar(255)
+  data_expiracao_suitability          DateTime?                             @CreditConnect.Date
   carteira_investimento               carteira_investimento[]
   conta_repasse                       conta_repasse?
   documento                           documento[]
@@ -214,25 +207,6 @@ model modulo {
   nome           String           @unique(map: "unique_modulo_nome") @CreditConnect.NVarChar(255)
   descricao      String           @CreditConnect.NVarChar(255)
   acesso_usuario acesso_usuario[]
-}
-
-model procurador_fundo {
-  id                                  Int                                   @id(map: "pk_procurador_fundo_id") @default(autoincrement())
-  nome                                String?                               @CreditConnect.NVarChar(255)
-  cpf                                 String?                               @unique(map: "unique_procurador_fundo_cpf") @CreditConnect.NVarChar(50)
-  telefone                            String?                               @unique(map: "unique_procurador_fundo_telefone") @CreditConnect.NVarChar(50)
-  email                               String?                               @unique(map: "unique_procurador_fundo_email") @CreditConnect.NVarChar(255)
-  id_endereco                         Int?
-  endereco                            endereco?                             @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procurador_fundo_id_endereco")
-  procurador_fundo_fundo_investimento procurador_fundo_fundo_investimento[]
-}
-
-model procurador_fundo_fundo_investimento {
-  id                    Int                @id(map: "pk_procurador_fundo_fundo_investimento_id") @default(autoincrement())
-  id_fundo_investimento Int
-  id_procurador_fundo   Int
-  fundo_investimento    fundo_investimento @relation(fields: [id_fundo_investimento], references: [id], onUpdate: NoAction, map: "fk_fundo_id_fundo")
-  procurador_fundo      procurador_fundo   @relation(fields: [id_procurador_fundo], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_procurador_id_fundo")
 }
 
 model representante_fundo {
@@ -386,4 +360,31 @@ model conta_repasse {
   conta_bancaria        String?             @CreditConnect.NVarChar(255)
   id_fundo_investimento Int?                @unique(map: "UQ__conta_re__66954A1B7097B9AE")
   fundo_investimento    fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conta_repasse_id_fundo_investimento")
+}
+
+model administrador_fundo_representante_fundo {
+  id                     Int                 @id(map: "pk_administrador_fundo_representante_fundo_id") @default(autoincrement())
+  id_administrador_fundo Int
+  id_representante_fundo Int
+  administrador_fundo    administrador_fundo @relation(fields: [id_administrador_fundo], references: [id], onUpdate: NoAction, map: "fk_administrador_fundo_representante_fundo_id_administrador_fundo_administrador_fundo_id")
+  representante_fundo    representante_fundo @relation(fields: [id_representante_fundo], references: [id], onUpdate: NoAction, map: "fk_administrador_fundo_representante_fundo_id_representante_fundo_representante_fundo_id")
+}
+
+model procurador_fundo {
+  id                                  Int                                   @id(map: "pk_procurador_fundo_id") @default(autoincrement())
+  nome                                String?                               @CreditConnect.NVarChar(255)
+  cpf                                 String?                               @unique(map: "unique_procurador_fundo_cpf") @CreditConnect.NVarChar(50)
+  telefone                            String?                               @unique(map: "unique_procurador_fundo_telefone") @CreditConnect.NVarChar(50)
+  email                               String?                               @unique(map: "unique_procurador_fundo_email") @CreditConnect.NVarChar(255)
+  id_endereco                         Int?
+  endereco                            endereco?                             @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procurador_fundo_id_endereco_endereco_id")
+  procurador_fundo_fundo_investimento procurador_fundo_fundo_investimento[]
+}
+
+model procurador_fundo_fundo_investimento {
+  id                    Int                @id(map: "pk_procurador_fundo_fundo_investimento_id") @default(autoincrement())
+  id_fundo_investimento Int
+  id_procurador_fundo   Int
+  fundo_investimento    fundo_investimento @relation(fields: [id_fundo_investimento], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_fundo_investimento_id_fundo_investimento_fundo_investimento_id")
+  procurador_fundo      procurador_fundo   @relation(fields: [id_procurador_fundo], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_fundo_investimento_id_procurador_fundo_procurador_fundo_id")
 }
