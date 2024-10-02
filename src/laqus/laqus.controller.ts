@@ -28,7 +28,7 @@ export class LaqusController {
     private readonly buscarStatusInvestidorLaqusService: buscarStatusInvestidorLaqusService,
   ) {}
 
-  @Post('autenticar')
+  @Get('autenticar')
   @HttpCode(HttpStatus.OK)
   async autenticar() {
     try {
