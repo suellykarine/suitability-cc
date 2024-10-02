@@ -1,9 +1,9 @@
 import { PartialType } from '@nestjs/swagger';
-import { AdmCreateUsuarioDto } from './create-adm.dto';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateUsuarioDto } from 'src/usuarios/dto/criar-usuario.dto';
 
-export class AtualizarUsuarioDto extends PartialType(AdmCreateUsuarioDto) {}
+export class AtualizarUsuarioDto extends PartialType(CreateUsuarioDto) {}
 
 export class AtualizarSenhaMasterDto {
   @IsString()

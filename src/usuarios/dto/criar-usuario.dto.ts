@@ -1,8 +1,8 @@
-import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
-import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class AdmCreateUsuarioDto {
+export class CreateUsuarioDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({

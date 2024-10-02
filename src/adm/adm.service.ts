@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AdmCreateUsuarioDto } from './dto/create-adm.dto';
 import {
   AtualizarSenhaMasterDto,
   AtualizarUsuarioDto,
@@ -11,12 +10,13 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'prisma/prisma.service';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
+import { CreateUsuarioDto } from 'src/usuarios/dto/criar-usuario.dto';
 
 @Injectable()
 export class AdmService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async criarUsuario(createAdmDto: AdmCreateUsuarioDto) {
+  async criarUsuario(createAdmDto: CreateUsuarioDto) {
     const statusUsuario = await this.obterStatusUsuario(StatusUsuario.APROVADO);
     const tipoUsuario = await this.obterTipoUsuario(createAdmDto.tipo_usuario);
 
