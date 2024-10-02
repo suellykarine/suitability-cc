@@ -18,6 +18,7 @@ import { CedenteModule } from './cedente/cedente.module';
 import { CcbModule } from './ccb/ccb.module';
 import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
+import { SrmBankModule } from './srm-bank/srm-bank.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao
     CcbModule,
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
+    SrmBankModule,
   ],
   controllers: [AppController],
   providers: [
