@@ -7,14 +7,20 @@ import {
   HttpCode,
   Param,
   Get,
+  UsePipes,
 } from '@nestjs/common';
 import { AutenticarLaqusService } from './services/autenticarLaqus.service';
 import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
 import { AutenticarLaqusDto } from './dto/autenticarLaqus.dto';
 import { CriarInvestidorLaqusService } from './services/criarInvestidorLaqus.service';
 import { buscarStatusInvestidorLaqusService } from './services/buscarStatusInvestidorLaqus.service';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ZodValidationPipe } from '@anatine/zod-nestjs';
 
+@ApiTags('Laqus')
 @Controller('api/laqus')
+@ApiBearerAuth('access-token')
+@UsePipes(ZodValidationPipe)
 export class LaqusController {
   constructor(
     private readonly AutenticarLaqusService: AutenticarLaqusService,
