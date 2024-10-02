@@ -1,4 +1,4 @@
 include:
   - project: 'comum/pipeline-2.0/repo-default'
-    ref: nextjs-node18
+    ref: nestjs-node18
     file: .gitlab-ci.yml
