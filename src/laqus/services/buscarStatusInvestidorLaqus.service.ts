@@ -1,5 +1,7 @@
+import { BuscarStatusLaqusDto } from '../dto/buscarStatusLaqus.dto';
+
 export class buscarStatusInvestidorLaqusService {
-  async buscarStatusInvestidor(id: string, token: string) {
+  async buscarStatusInvestidor({ id, token }: BuscarStatusLaqusDto) {
     try {
       const response = await fetch(
         `${process.env.LAQUS_BASE_URL}cadastros/${id}`,

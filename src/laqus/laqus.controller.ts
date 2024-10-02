@@ -71,10 +71,10 @@ export class LaqusController {
     try {
       const { accessToken } = await this.autenticar();
       const buscarStatusInvestidor =
-        await this.buscarStatusInvestidorLaqusService.buscarStatusInvestidor(
+        await this.buscarStatusInvestidorLaqusService.buscarStatusInvestidor({
           id,
-          accessToken,
-        );
+          token: accessToken,
+        });
       return buscarStatusInvestidor;
     } catch (error) {
       if (error.message.includes('Validation failed')) {
