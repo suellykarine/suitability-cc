@@ -154,6 +154,7 @@ model fundo_investimento {
   valor_serie_debenture               Decimal?                              @CreditConnect.Decimal(15, 2)
   nota_investidor_suitability         Decimal?                              @CreditConnect.Decimal(5, 2)
   perfil_investidor_suitability       String?                               @CreditConnect.VarChar(255)
+  data_expiracao_suitability          DateTime?                             @CreditConnect.Date
   carteira_investimento               carteira_investimento[]
   conta_investidor                    conta_investidor[]
   conta_repasse                       conta_repasse?
@@ -389,7 +390,6 @@ model procurador_fundo_fundo_investimento {
   fundo_investimento    fundo_investimento @relation(fields: [id_fundo_investimento], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_fundo_investimento_id_fundo_investimento_fundo_investimento_id")
   procurador_fundo      procurador_fundo   @relation(fields: [id_procurador_fundo], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_fundo_investimento_id_procurador_fundo_procurador_fundo_id")
 }
-
 model conta_investidor {
   id                         Int                          @id(map: "pk_conta_investidor") @default(autoincrement())
   id_fundo_investidor        Int?
@@ -469,3 +469,4 @@ model debenture_serie_investidor {
 
   @@unique([id_debenture_serie, id_conta_investidor], map: "unique_debenture_serie_investidor")
 }
+

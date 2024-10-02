@@ -19,6 +19,9 @@ import { CcbModule } from './ccb/ccb.module';
 import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
 import { SrmBankModule } from './srm-bank/srm-bank.module';
+import { AnalisePerfilModule } from './analise-perfil/analise-perfil.module';
+import { FeedbackModule } from './feedback/feedback.module';
+import { BuscarArquivoModule } from './buscar-arquivo/buscar-arquivo.module';
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { SrmBankModule } from './srm-bank/srm-bank.module';
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
     SrmBankModule,
+    AnalisePerfilModule,
+    FeedbackModule,
+    BuscarArquivoModule,
   ],
   controllers: [AppController],
   providers: [
