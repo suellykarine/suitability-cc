@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { CriarInvestidorLaqusDto } from '../dto/criarInvestidorLaqus.dto';
 
 export class CriarInvestidorLaqusService {
@@ -21,12 +22,9 @@ export class CriarInvestidorLaqusService {
       }
       return res;
     } catch (error) {
-      if (error.message.includes('500')) {
-        throw new Error(
-          `Erro ao criar investidor: ${error.message.includes('Cadastro já existe') ? 'Cadastro já existe' : 'Erro interno da API'}`,
-        );
-      }
-      throw new Error(`Erro interno ao processar o cadastro: ${error.message}`);
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.message || 'Erro ao cadastrar o investidor';
+      throw new HttpException(message, status);
     }
   }
 }

@@ -1,5 +1,11 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { AutenticarLaqusDto } from '../dto/autenticarLaqus.dto';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
 @Injectable()
 export class AutenticarLaqusService {
@@ -10,38 +16,34 @@ export class AutenticarLaqusService {
     if (this.isTokenValid()) {
       return { accessToken: this.token };
     }
+    try {
+      const response = await fetch(`${process.env.LAQUS_AUTH_BASE_URL}auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(AutenticarLaqus),
+      });
 
-    const response = await fetch(`${process.env.LAQUS_AUTH_BASE_URL}auth`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(AutenticarLaqus),
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      if (response.status === 401) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.UNAUTHORIZED,
-            message: error.message || 'Credenciais inválidas',
-            error: 'Unauthorized',
-          },
-          HttpStatus.UNAUTHORIZED,
-        );
+      if (!response.ok) {
+        if (response.status === 401) {
+          const naoAutorizado = response.status === 401;
+          if (naoAutorizado)
+            throw new UnauthorizedException('Credenciais Inválidas');
+        }
+        throw new InternalServerErrorException('Falha na autenticação');
       }
 
-      throw new HttpException(
-        'Falha na autenticação',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      const data = await response.json();
+      this.token = data.accessToken;
+      this.tokenExpiration = new Date(data.expiresAt);
+
+      return { accessToken: this.token };
+    } catch (error) {
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.message || 'Erro ao cadastrar o investidor';
+      throw new HttpException(message, status);
     }
-
-    const data = await response.json();
-    this.token = data.accessToken;
-    this.tokenExpiration = new Date(data.expiresAt);
-
-    return { accessToken: this.token };
   }
 
   private isTokenValid(): boolean {

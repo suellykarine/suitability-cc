@@ -1,22 +1,22 @@
 import {
+  Min,
+  Length,
+  IsEnum,
+  IsArray,
+  IsEmail,
+  IsNumber,
   IsString,
   IsNotEmpty,
-  IsEmail,
-  IsEnum,
-  IsNumberString,
-  Length,
-  IsArray,
-  ValidateNested,
   IsOptional,
-  IsNumber,
-  Min,
+  IsNumberString,
+  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 
 enum TipoDeEmpresa {
-  Limitada = 'Limitada',
   SA = 'SA',
+  Limitada = 'Limitada',
 }
 
 enum TipoPessoa {
@@ -29,14 +29,17 @@ enum Funcao {
 
 class EnderecoDto {
   @ApiProperty({
-    example: '12345678',
-    description: 'CEP do endereço',
+    maxLength: 9,
     minLength: 8,
-    maxLength: 8,
+    example: '12345-678',
+    description: 'CEP do endereço (com ou sem hífen)',
   })
   @IsNotEmpty()
   @IsString()
-  @Length(8, 8)
+  @Length(8, 8, {
+    message: 'CEP deve ter exatamente 8 dígitos numéricos, sem contar o hífen.',
+  })
+  @Transform(({ value }) => value.replace(/-/g, ''))
   cep: string;
 
   @ApiProperty({

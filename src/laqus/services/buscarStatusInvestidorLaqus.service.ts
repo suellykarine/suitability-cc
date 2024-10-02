@@ -1,3 +1,9 @@
+import {
+  HttpStatus,
+  HttpException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { BuscarStatusLaqusDto } from '../dto/buscarStatusLaqus.dto';
 
 export class buscarStatusInvestidorLaqusService {
@@ -16,25 +22,19 @@ export class buscarStatusInvestidorLaqusService {
 
       const res = await response.json();
       if (!response.ok) {
-        const errorMessage = res.erro ? res.erro : response.statusText;
-        throw new Error(`Erro ao buscar status do investidor: ${errorMessage}`);
+        const usuarioNaoExiste = res.statusCode === 404;
+        if (usuarioNaoExiste)
+          throw new NotFoundException('Entidade não encontrada');
+
+        const RequisicaoInvalida = res.statusCode === 400;
+        if (RequisicaoInvalida) throw new BadRequestException('uuid inválido');
       }
 
       return res;
     } catch (error) {
-      let errorMessage = 'Erro interno ao processar a solicitação.';
-
-      if (error instanceof Error) {
-        if (error.message.includes('500')) {
-          errorMessage = 'Erro interno da API.';
-        } else if (error.message.includes('Cadastro já existe')) {
-          errorMessage = 'Cadastro já existe.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      throw new Error(errorMessage);
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.message || 'Erro ao cadastrar o investidor';
+      throw new HttpException(message, status);
     }
   }
 }

@@ -1,26 +1,27 @@
 import {
   Body,
-  Controller,
   Post,
-  HttpStatus,
-  HttpException,
-  HttpCode,
   Param,
   Get,
   UsePipes,
+  HttpCode,
+  HttpStatus,
+  Controller,
+  HttpException,
 } from '@nestjs/common';
-import { AutenticarLaqusService } from './services/autenticarLaqus.service';
-import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
+import { BadRequestException } from '@nestjs/common';
+import { ZodValidationPipe } from '@anatine/zod-nestjs';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AutenticarLaqusDto } from './dto/autenticarLaqus.dto';
+import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
+import { AutenticarLaqusService } from './services/autenticarLaqus.service';
 import { CriarInvestidorLaqusService } from './services/criarInvestidorLaqus.service';
 import { buscarStatusInvestidorLaqusService } from './services/buscarStatusInvestidorLaqus.service';
-import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
-import { ZodValidationPipe } from '@anatine/zod-nestjs';
 
 @ApiTags('Laqus')
 @Controller('api/laqus')
-@ApiBearerAuth('access-token')
 @UsePipes(ZodValidationPipe)
+@ApiBearerAuth('access-token')
 export class LaqusController {
   constructor(
     private readonly AutenticarLaqusService: AutenticarLaqusService,
@@ -33,23 +34,26 @@ export class LaqusController {
   async autenticar() {
     try {
       const body: AutenticarLaqusDto = {
-        secretKey: process.env.LAQUS_SECRET_KEY,
         apiKey: process.env.LAQUS_API_KEY,
+        secretKey: process.env.LAQUS_SECRET_KEY,
       };
 
       const token = await this.AutenticarLaqusService.autenticar(body);
+
       return token;
     } catch (error) {
-      throw new HttpException(
-        error.response || { message: 'Erro ao autenticar' },
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      const message = error.message || 'Erro ao autenticar';
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+
+      throw new HttpException(message, status);
     }
   }
+
   @Post('cadastrar')
   async cadastrar(@Body() criarInvestidorLaqusDto: CriarInvestidorLaqusDto) {
     try {
       const { accessToken } = await this.autenticar();
+
       const cadastro = await this.criarInvestidorLaqusService.criarInvestidor(
         criarInvestidorLaqusDto,
         accessToken,
@@ -59,55 +63,40 @@ export class LaqusController {
         id: cadastro.id,
       };
     } catch (error) {
-      const message = error.message || 'Erro ao cadastrar o investidor';
-      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const usuarioExiste = error.message.includes('Cadastro já existe');
+      if (usuarioExiste) throw new BadRequestException('Cadastro já existe');
 
-      if (message.includes('Cadastro já existe')) {
-        throw new HttpException(
-          { message: 'Cadastro já existe' },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+      const message = error.message || 'Erro ao cadastrar o investidor';
 
       throw new HttpException(message, status);
     }
   }
+
   @Get('buscar-status-investidor/:id')
   async buscarStatus(@Param('id') id: string) {
     try {
       const { accessToken } = await this.autenticar();
+
       const buscarStatusInvestidor =
         await this.buscarStatusInvestidorLaqusService.buscarStatusInvestidor({
           id,
           token: accessToken,
         });
+
       return buscarStatusInvestidor;
     } catch (error) {
-      if (error.message.includes('Validation failed')) {
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            message: 'O ID fornecido não é um UUID válido.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      if (error.message.includes('500')) {
-        throw new HttpException(
-          {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: 'Erro interno da API.',
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      throw new HttpException(
-        {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Erro ao buscar status do investidor.',
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      const usuarioExiste = error.message.includes('Validation failed');
+      if (usuarioExiste) throw new BadRequestException('Cadastro já existe');
+
+      const uuidInvalido = error.message.includes('Validation failed');
+      if (uuidInvalido)
+        throw new BadRequestException('O ID fornecido não é um UUID válido.');
+
+      const message = error.message || 'Erro ao buscar status do investidor';
+      const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
+
+      throw new HttpException(message, status);
     }
   }
 }
