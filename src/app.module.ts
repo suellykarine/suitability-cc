@@ -18,6 +18,8 @@ import { CedenteModule } from './cedente/cedente.module';
 import { CcbModule } from './ccb/ccb.module';
 import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
+import { LaqusController } from './laqus/laqus.controller';
+import { LaqusModule } from './laqus/laqus.module';
 
 @Module({
   imports: [
@@ -36,8 +38,9 @@ import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao
     CcbModule,
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
+    LaqusModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, LaqusController],
   providers: [
     AppService,
     {
