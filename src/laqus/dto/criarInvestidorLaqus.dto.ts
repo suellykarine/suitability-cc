@@ -36,7 +36,7 @@ class EnderecoDto {
   })
   @IsNotEmpty()
   @IsString()
-  @Length(8, 8, {
+  @Length(8, 9, {
     message: 'CEP deve ter exatamente 8 dígitos numéricos, sem contar o hífen.',
   })
   @Transform(({ value }) => value.replace(/-/g, ''))
