@@ -5,7 +5,7 @@ import {
   SituacaoCadastral,
 } from 'src/@types/entities/banco';
 
-export interface SucessoCriarConta {
+interface SucessoCriarConta {
   sucesso: boolean;
   documentoTitular: string;
   nomeTitular: string;
