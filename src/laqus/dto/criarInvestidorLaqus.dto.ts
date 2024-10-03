@@ -33,14 +33,14 @@ enum Funcao {
 
 class EnderecoDto {
   @ApiProperty({
-    maxLength: 9,
+    maxLength: 8,
     minLength: 8,
-    example: '12345-678',
-    description: 'CEP do endereço (com ou sem hífen)',
+    example: '12345678',
+    description: 'CEP do endereço (sem hífen)',
   })
   @IsNotEmpty()
   @IsString()
-  @Length(8, 9, {
+  @Length(8, 8, {
     message: 'CEP deve ter exatamente 8 dígitos numéricos, sem contar o hífen.',
   })
   @Validate(ValidarCEP)
