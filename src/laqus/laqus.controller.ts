@@ -3,7 +3,6 @@ import {
   Post,
   Param,
   Get,
-  UsePipes,
   HttpCode,
   HttpStatus,
   Controller,
@@ -11,7 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
-import { ZodValidationPipe } from '@anatine/zod-nestjs';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AutenticarLaqusDto } from './dto/autenticarLaqus.dto';
 import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
@@ -22,7 +20,6 @@ import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 
 @ApiTags('Laqus')
 @Controller('api/laqus')
-@UsePipes(ZodValidationPipe)
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuardBackoffice)
 export class LaqusController {
