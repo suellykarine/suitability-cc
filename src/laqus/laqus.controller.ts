@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Controller,
   HttpException,
+  UseGuards,
 } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { ZodValidationPipe } from '@anatine/zod-nestjs';
@@ -17,11 +18,13 @@ import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
 import { AutenticarLaqusService } from './services/autenticarLaqus.service';
 import { CriarInvestidorLaqusService } from './services/criarInvestidorLaqus.service';
 import { buscarStatusInvestidorLaqusService } from './services/buscarStatusInvestidorLaqus.service';
+import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
 
 @ApiTags('Laqus')
 @Controller('api/laqus')
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuardBackoffice)
 export class LaqusController {
   constructor(
     private readonly AutenticarLaqusService: AutenticarLaqusService,

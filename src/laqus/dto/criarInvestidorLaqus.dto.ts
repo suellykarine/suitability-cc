@@ -10,9 +10,13 @@ import {
   IsOptional,
   IsNumberString,
   ValidateNested,
+  validate,
+  Validate,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
+import { ValidarCNPJ } from 'src/utils/validadores/validarCnpjECpf';
+import { ValidarCEP } from 'src/utils/validadores/validarCep';
 
 enum TipoDeEmpresa {
   SA = 'SA',
@@ -39,7 +43,7 @@ class EnderecoDto {
   @Length(8, 9, {
     message: 'CEP deve ter exatamente 8 dígitos numéricos, sem contar o hífen.',
   })
-  @Transform(({ value }) => value.replace(/-/g, ''))
+  @Validate(ValidarCEP)
   cep: string;
 
   @ApiProperty({
@@ -200,6 +204,7 @@ export class CriarInvestidorLaqusDto {
   @IsNotEmpty()
   @IsNumberString()
   @Length(14, 14)
+  @Validate(ValidarCNPJ)
   cnpj: string;
 
   @ApiProperty({
