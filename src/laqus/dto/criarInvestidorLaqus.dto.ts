@@ -41,7 +41,7 @@ class EnderecoDto {
   @IsNotEmpty()
   @IsString()
   @Length(8, 8, {
-    message: 'CEP deve ter exatamente 8 dígitos numéricos, sem contar o hífen.',
+    message: 'CEP deve ter exatamente 8 dígitos numéricos.',
   })
   @Validate(ValidarCEP)
   cep: string;
