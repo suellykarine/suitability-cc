@@ -44,54 +44,32 @@ export class StatusUsuarioService {
     const statusUpperCase = atualizarStatusUsuarioDto.status.toUpperCase();
 
     if (statusUpperCase === StatusUsuario.APROVADO) {
-      idTipoUsuario = (
-        await this.prisma.tipo_usuario.findFirst({
-          where: { tipo: TipoUsuario.INVESTIDOR_PREMIUM },
-        })
-      )?.id;
+      const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
+        TipoUsuario.INVESTIDOR_PREMIUM,
+      );
+      idTipoUsuario = tipoUsuario?.id || null;
     } else if (statusUpperCase === StatusUsuario.RECUSADO) {
-      idTipoUsuario = (
-        await this.prisma.tipo_usuario.findFirst({
-          where: { tipo: TipoUsuario.INVESTIDOR_TRIAL },
-        })
-      )?.id;
+      const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
+        TipoUsuario.INVESTIDOR_TRIAL,
+      );
+      idTipoUsuario = tipoUsuario?.id || null;
     }
 
-    idStatusUsuario = (
-      await this.prisma.status_usuario.findFirst({
-        where: { nome: statusUpperCase },
-      })
-    )?.id;
+    const statusUsuario =
+      await this.statusUsuarioRepositorio.encontrarPorNome(statusUpperCase);
+    idStatusUsuario = statusUsuario?.id || null;
 
     if (!idStatusUsuario) {
       throw new BadRequestException('Status não encontrado');
     }
 
-    const usuarioAtualizado = await this.prisma.usuario.update({
-      where: { id: idUsuario },
-      data: {
-        id_status_usuario: idStatusUsuario ?? usuario.id_status_usuario,
-        id_tipo_usuario: idTipoUsuario ?? usuario.id_tipo_usuario,
-      },
-      select: this.selecionarCamposUsuario(),
-    });
+    const usuarioAtualizado =
+      await this.usuarioRepositorio.atualizarStatusETipo(
+        idUsuario,
+        idStatusUsuario,
+        idTipoUsuario,
+      );
 
     return usuarioAtualizado;
-  }
-
-  private selecionarCamposUsuario() {
-    return {
-      id: true,
-      nome: true,
-      email: true,
-      telefone: true,
-      id_tipo_usuario: true,
-      id_status_usuario: true,
-      cpf: true,
-      data_nascimento: true,
-      id_gestor_fundo: true,
-      id_endereco: true,
-      data_criacao: true,
-    };
   }
 }

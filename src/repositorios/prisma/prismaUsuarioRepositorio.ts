@@ -3,6 +3,7 @@ import { AtualizarUsuarioDto } from 'src/app/adm/dto/update-adm.dto';
 import { Prisma, usuario } from '@prisma/client';
 import { UsuarioRepositorio } from '../contratos/usuarioRepositorio';
 import { PrismaService } from 'prisma/prisma.service';
+import { UsuarioComStatusETipo } from 'src/@types/entities/usuarioComStatusETipo';
 @Injectable()
 export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
   constructor(private prisma: PrismaService) {}
@@ -24,7 +25,7 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     });
   }
 
-  async encontrarPorId(id: number): Promise<usuario | null> {
+  async encontrarPorId(id: number): Promise<UsuarioComStatusETipo | null> {
     return this.prisma.usuario.findUnique({
       where: { id },
       include: {

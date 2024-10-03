@@ -21,6 +21,7 @@ import { EstruturacaoCarrinhoModule } from './app/estruturacao-carrinho/estrutur
 import { AnalisePerfilModule } from './app/analise-perfil/analise-perfil.module';
 import { FeedbackModule } from './app/feedback/feedback.module';
 import { BuscarArquivoModule } from './app/buscar-arquivo/buscar-arquivo.module';
+import { SrmBankModule } from './srm-bank/srm-bank.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { BuscarArquivoModule } from './app/buscar-arquivo/buscar-arquivo.module'
     CcbModule,
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
+    SrmBankModule,
     AnalisePerfilModule,
     FeedbackModule,
     BuscarArquivoModule,
