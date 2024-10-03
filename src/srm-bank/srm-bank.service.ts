@@ -1,6 +1,14 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { IBuscarCedente, IRespostaSrmBank } from './interface/interface';
+import {
+  ErroCriarConta,
+  IBuscarCedente,
+  IRespostaSrmBank,
+} from './interface/interface';
 import { sigmaHeaders } from 'src/auth/constants';
 
 @Injectable()
@@ -11,16 +19,20 @@ export class SrmBankService {
     try {
       const criarConta = await this.CriarContaSRMBank(dados.identificador);
 
-      if (criarConta.sucesso) {
-        return {
-          mensagem: 'Conta Criada com sucesso ',
-          conta_investidor: criarConta,
-        };
+      if (!criarConta.sucesso) {
+        const erroCriarConta = criarConta as ErroCriarConta;
+        throw new InternalServerErrorException(
+          erroCriarConta.motivo || 'Falha ao criar conta',
+        );
       }
+
+      return {
+        mensagem: 'Conta Criada com sucesso ',
+        conta_investidor: criarConta,
+      };
     } catch (error) {
-      throw new HttpException(
-        { status: error.status, message: error.message },
-        error.status,
+      throw new InternalServerErrorException(
+        error.message || 'Erro ao criar conta',
       );
     }
   }
@@ -45,17 +57,9 @@ export class SrmBankService {
 
     const response = await criarConta.json();
 
-    if (criarConta.ok) {
-      return { sucesso: true, ...response };
-    } else {
-      throw new HttpException(
-        {
-          status: response.status || 400,
-          message: response.message || 'Erro ao criar conta',
-        },
-        response.status || 400,
-      );
-    }
+    if (criarConta.ok) return { sucesso: true, ...response };
+
+    return { sucesso: false, ...response };
   }
 
   private async BuscarCedenteSigma(

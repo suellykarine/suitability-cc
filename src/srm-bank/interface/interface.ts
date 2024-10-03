@@ -1,4 +1,11 @@
-interface SucessoCriarConta {
+import {
+  CnaePrincipal,
+  Gerente,
+  RecuperacaoJudicial,
+  SituacaoCadastral,
+} from 'src/@types/entities/banco';
+
+export interface SucessoCriarConta {
   sucesso: boolean;
   documentoTitular: string;
   nomeTitular: string;
@@ -11,7 +18,7 @@ interface SucessoCriarConta {
     nome: string;
   };
 }
-interface ErroCriarConta {
+export interface ErroCriarConta {
   sucesso: boolean;
   id: string;
   status: number;
@@ -27,11 +34,7 @@ export type IRespostaSrmBank = SucessoCriarConta | ErroCriarConta;
 export type IBuscarCedente = {
   codigoCedente: number;
   identificadorCedente: string;
-  gerente: {
-    identificadorGerente: string;
-    nome: string;
-    filial: string;
-  };
+  gerente: Gerente;
   nomeEmpresarial: string;
   dataAbertura: string;
   faturamentoAnual: number;
@@ -39,18 +42,9 @@ export type IBuscarCedente = {
     codigo: number;
     descricao: string;
   };
-  recuperacaoJudicial: {
-    recuperacaoJudicial: boolean;
-    status: string;
-  };
-  situacaoCadastral: {
-    descricao: string;
-    data: string;
-  };
-  cnaePrincipal: {
-    codigo: string;
-    descricao: string;
-  };
+  recuperacaoJudicial: RecuperacaoJudicial;
+  situacaoCadastral: SituacaoCadastral;
+  cnaePrincipal: CnaePrincipal;
   quantidadeFuncionarios: number;
   endereco: {
     uf: string;
