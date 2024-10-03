@@ -20,6 +20,7 @@ import { StatusUsuarioModule } from './status-usuario/status-usuario.module';
 import { EstruturacaoCarrinhoModule } from './estruturacao-carrinho/estruturacao-carrinho.module';
 import { LaqusController } from './laqus/laqus.controller';
 import { LaqusModule } from './laqus/laqus.module';
+import { SrmBankModule } from './srm-bank/srm-bank.module';
 import { AnalisePerfilModule } from './analise-perfil/analise-perfil.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { BuscarArquivoModule } from './buscar-arquivo/buscar-arquivo.module';
@@ -42,7 +43,7 @@ import { BuscarArquivoModule } from './buscar-arquivo/buscar-arquivo.module';
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
     LaqusModule,
-
+    SrmBankModule,
     AnalisePerfilModule,
     FeedbackModule,
     BuscarArquivoModule,
