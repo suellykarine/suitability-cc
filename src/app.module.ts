@@ -7,8 +7,11 @@ import { CartaConviteModule } from './app/carta-convite/carta-convite.module';
 import { PreRegistroModule } from './app/pre-registro/pre-registro.module';
 import { AuthorizationInterceptor } from 'interceptors/authorization.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { PdfModule } from './app/pdf/pdf.module';
+import { LaqusController } from './laqus/laqus.controller';
+import { LaqusModule } from './laqus/laqus.module';
+import { SrmBankModule } from './srm-bank/srm-bank.module';
 import { AtivosModule } from './app/ativos/ativos.module';
+import { PdfModule } from './app/pdf/pdf.module';
 import { PainelModule } from './app/painel/painel.module';
 import { EnviarEmailModule } from './app/enviar-email/enviar-email.module';
 import { FundosModule } from './app/fundos/fundos.module';
@@ -21,7 +24,6 @@ import { EstruturacaoCarrinhoModule } from './app/estruturacao-carrinho/estrutur
 import { AnalisePerfilModule } from './app/analise-perfil/analise-perfil.module';
 import { FeedbackModule } from './app/feedback/feedback.module';
 import { BuscarArquivoModule } from './app/buscar-arquivo/buscar-arquivo.module';
-import { SrmBankModule } from './srm-bank/srm-bank.module';
 
 @Module({
   imports: [
@@ -40,12 +42,13 @@ import { SrmBankModule } from './srm-bank/srm-bank.module';
     CcbModule,
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
+    LaqusModule,
     SrmBankModule,
     AnalisePerfilModule,
     FeedbackModule,
     BuscarArquivoModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, LaqusController],
   providers: [
     AppService,
     {
