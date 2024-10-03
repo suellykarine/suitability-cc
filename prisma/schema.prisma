@@ -24,7 +24,7 @@ model administrador_fundo {
   telefone                                String?                                   @CreditConnect.NVarChar(255)
   id_endereco                             Int?
   cnpj                                    String?                                   @CreditConnect.NVarChar(50)
-  endereco                                endereco?                                 @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_administrador_fundo_id_endereco")
+  endereco                                endereco?                                 @relation(fields: [id_endereco], references: [id], onUpdate: NoAction, map: "fk_administrador_fundo_id_endereco")
   administrador_fundo_representante_fundo administrador_fundo_representante_fundo[]
   fundo_investimento                      fundo_investimento[]
 }
@@ -49,7 +49,7 @@ model ativo_investido {
   status_ativo             String?                @CreditConnect.NVarChar(255)
   score_interno            String?                @CreditConnect.NVarChar(255)
   data_criacao             DateTime?              @CreditConnect.DateTime
-  carteira_investimento    carteira_investimento? @relation(fields: [id_carteira_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_ativo_investido_id_carteira_investimento")
+  carteira_investimento    carteira_investimento? @relation(fields: [id_carteira_investimento], references: [id],  onUpdate: NoAction, map: "fk_ativo_investido_id_carteira_investimento")
 }
 
 model carta_convite {
@@ -63,8 +63,8 @@ model carta_convite {
   mensagem                String?               @CreditConnect.NVarChar(Max)
   id_status_carta_convite Int?
   id_usuario              Int?
-  status_carta_convite    status_carta_convite? @relation(fields: [id_status_carta_convite], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carta_convite_id_status_carta_convite")
-  usuario                 usuario?              @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carta_convite_id_usuario")
+  status_carta_convite    status_carta_convite? @relation(fields: [id_status_carta_convite], references: [id],  onUpdate: NoAction, map: "fk_carta_convite_id_status_carta_convite")
+  usuario                 usuario?              @relation(fields: [id_usuario], references: [id],  onUpdate: NoAction, map: "fk_carta_convite_id_usuario")
 }
 
 model carteira_investimento {
@@ -77,8 +77,8 @@ model carteira_investimento {
   data_criacao                    DateTime?                     @CreditConnect.DateTime
   ativo_investido                 ativo_investido[]
   fundo_investimento              fundo_investimento?           @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carteira_investimento_id_fundo_investimento")
-  status_carteira_investimento    status_carteira_investimento? @relation(fields: [id_status_carteira_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carteira_investimento_id_status_carteira_investimento")
-  transacao_carteira              transacao_carteira?           @relation(fields: [id_transacao_carteira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_carteira_investimento_id_transacao_carteira")
+  status_carteira_investimento    status_carteira_investimento? @relation(fields: [id_status_carteira_investimento], references: [id], map: "fk_carteira_investimento_id_status_carteira_investimento")
+  transacao_carteira              transacao_carteira?           @relation(fields: [id_transacao_carteira], references: [id],  map: "fk_carteira_investimento_id_transacao_carteira")
 }
 
 model codigo_verificacao {
@@ -103,8 +103,8 @@ model documento {
   data_validade_documento DateTime?             @CreditConnect.Date
   fundo_investimento      fundo_investimento?   @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_fundo_investimento")
   gestor_fundo            gestor_fundo?         @relation(fields: [id_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_gestor_fundo")
-  status_documento        status_documento?     @relation(fields: [id_status_documento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_status_documento")
-  usuario                 usuario?              @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_documento_id_usuario")
+  status_documento        status_documento?     @relation(fields: [id_status_documento], references: [id], map: "fk_documento_id_status_documento")
+  usuario                 usuario?              @relation(fields: [id_usuario], references: [id],  map: "fk_documento_id_usuario")
   feedback_backoffice     feedback_backoffice[]
 }
 
@@ -161,10 +161,10 @@ model fundo_investimento {
   debenture_serie_investidor          debenture_serie_investidor[]
   documento                           documento[]
   feedback_backoffice                 feedback_backoffice[]
-  administrador_fundo                 administrador_fundo?                  @relation(fields: [id_administrador_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__fundo_inv__id_ad__6A30C649")
-  fundo_backoffice                    fundo_backoffice?                     @relation(fields: [id_fundo_backoffice], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__fundo_inv__id_fu__693CA210")
-  status_fundo_investimento           status_fundo_investimento?            @relation(fields: [id_status_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__fundo_inv__id_st__68487DD7")
-  representante_fundo                 representante_fundo?                  @relation(fields: [id_representante_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__representante_fundo_inv_id")
+  administrador_fundo                 administrador_fundo?                  @relation(fields: [id_administrador_fundo], references: [id],onDelete: NoAction,  onUpdate: NoAction, map: "FK__fundo_inv__id_ad__6A30C649")
+  fundo_backoffice                    fundo_backoffice?                     @relation(fields: [id_fundo_backoffice], references: [id], map: "FK__fundo_inv__id_fu__693CA210")
+  status_fundo_investimento           status_fundo_investimento?            @relation(fields: [id_status_fundo_investimento], references: [id], map: "FK__fundo_inv__id_st__68487DD7")
+  representante_fundo                 representante_fundo?                  @relation(fields: [id_representante_fundo], references: [id], map: "FK__representante_fundo_inv_id")
   fundo_investimento_gestor_fundo     fundo_investimento_gestor_fundo[]
   procurador_fundo_fundo_investimento procurador_fundo_fundo_investimento[]
 }
@@ -191,8 +191,8 @@ model gestor_fundo {
   data_criacao                    DateTime?                         @CreditConnect.DateTime
   documento                       documento[]
   fundo_investimento_gestor_fundo fundo_investimento_gestor_fundo[]
-  endereco                        endereco?                         @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_gestor_fundo_id_endereco")
-  status_gestor_fundo             status_gestor_fundo?              @relation(fields: [id_status_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_gestor_fundo_id_status_gestor_fundo")
+  endereco                        endereco?                         @relation(fields: [id_endereco], references: [id],  onUpdate: NoAction, map: "fk_gestor_fundo_id_endereco")
+  status_gestor_fundo             status_gestor_fundo?              @relation(fields: [id_status_gestor_fundo], references: [id],  onUpdate: NoAction, map: "fk_gestor_fundo_id_status_gestor_fundo")
   usuario                         usuario[]
 }
 
@@ -220,7 +220,7 @@ model representante_fundo {
   id_endereco                             Int?
   administrador_fundo_representante_fundo administrador_fundo_representante_fundo[]
   fundo_investimento                      fundo_investimento[]
-  endereco                                endereco?                                 @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_representante_fundo_id_endereco")
+  endereco                                endereco?                                 @relation(fields: [id_endereco], references: [id],  onUpdate: NoAction, map: "fk_representante_fundo_id_endereco")
 }
 
 model status_carta_convite {
@@ -301,8 +301,8 @@ model transacao_carteira {
   id_usuario                   Int?
   carteira_investimento        carteira_investimento[]
   modalidade_investimento      modalidade_investimento    @relation(fields: [id_modalidade_investimento], references: [id], onUpdate: NoAction, map: "fk_transacao_carteira_id_modalidade_investimento")
-  status_transacao             status_transacao_carteira? @relation(fields: [id_status_transacao_carteira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transacao_carteira_id_status_transacao_carteira")
-  usuario                      usuario?                   @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transacao_carteira_id_usuario")
+  status_transacao             status_transacao_carteira? @relation(fields: [id_status_transacao_carteira], references: [id],  onUpdate: NoAction, map: "fk_transacao_carteira_id_status_transacao_carteira")
+  usuario                      usuario?                   @relation(fields: [id_usuario], references: [id],  onUpdate: NoAction, map: "fk_transacao_carteira_id_usuario")
 }
 
 model usuario {
@@ -324,10 +324,10 @@ model usuario {
   feedbacks_backoffice_as_backoffice feedback_backoffice[]        @relation("UsuarioBackofficeFeedback")
   feedbacks_backoffice_as_investidor feedback_backoffice[]        @relation("UsuarioInvestidorFeedback")
   transacao_carteira                 transacao_carteira[]
-  endereco                           endereco?                    @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_id_endereco")
-  gestor_fundo                       gestor_fundo?                @relation(fields: [id_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_id_gestor_fundo")
-  status_usuario                     status_usuario?              @relation(fields: [id_status_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_id_status_usuario")
-  tipo_usuario                       tipo_usuario                 @relation(fields: [id_tipo_usuario], references: [id], onUpdate: NoAction, map: "fk_usuario_id_tipo_usuario")
+  endereco                           endereco?                    @relation(fields: [id_endereco], references: [id],onDelete: NoAction,  onUpdate: NoAction, map: "fk_usuario_id_endereco")
+  gestor_fundo                       gestor_fundo?                @relation(fields: [id_gestor_fundo], references: [id], map: "fk_usuario_id_gestor_fundo")
+  status_usuario                     status_usuario?              @relation(fields: [id_status_usuario], references: [id], map: "fk_usuario_id_status_usuario")
+  tipo_usuario                       tipo_usuario                 @relation(fields: [id_tipo_usuario], references: [id], map: "fk_usuario_id_tipo_usuario")
   usuario_fundo_investimento         usuario_fundo_investimento[]
 }
 
@@ -336,8 +336,8 @@ model usuario_fundo_investimento {
   id_usuario                         Int?
   id_fundo_investimento_gestor_fundo Int?
   acesso_permitido                   Boolean?
-  fundo_investimento_gestor_fundo    fundo_investimento_gestor_fundo? @relation(fields: [id_fundo_investimento_gestor_fundo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_fundo_investimento_id_fundo_investimento_gestor_fundo")
-  usuario                            usuario?                         @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_fundo_investimento_id_usuario")
+  fundo_investimento_gestor_fundo    fundo_investimento_gestor_fundo? @relation(fields: [id_fundo_investimento_gestor_fundo], references: [id], map: "fk_usuario_fundo_investimento_id_fundo_investimento_gestor_fundo")
+  usuario                            usuario?                         @relation(fields: [id_usuario], references: [id], map: "fk_usuario_fundo_investimento_id_usuario")
 
   @@unique([id_usuario, id_fundo_investimento_gestor_fundo], map: "unique_usuario_fundo_investimento_id_usuario_id_fundo_investimento_gestor_fundo")
 }
@@ -349,10 +349,10 @@ model feedback_backoffice {
   id_documento          Int?
   mensagem              String?             @CreditConnect.NVarChar(Max)
   id_fundo_investimento Int?
-  documento             documento?          @relation(fields: [id_documento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_documento")
-  fundo_investimento    fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_fundo_investimento")
-  usuario_backoffice    usuario?            @relation("UsuarioBackofficeFeedback", fields: [id_usuario_backoffice], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_usuario_backoffice")
-  usuario_investidor    usuario?            @relation("UsuarioInvestidorFeedback", fields: [id_usuario_investidor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_feedback_backoffice_id_usuario_investidor")
+  documento             documento?          @relation(fields: [id_documento], references: [id],onDelete: NoAction,  onUpdate: NoAction, map: "fk_feedback_backoffice_id_documento")
+  fundo_investimento    fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id],onDelete: NoAction,  onUpdate: NoAction, map: "fk_feedback_backoffice_id_fundo_investimento")
+  usuario_backoffice    usuario?            @relation("UsuarioBackofficeFeedback", fields: [id_usuario_backoffice], references: [id],onDelete: NoAction,  onUpdate: NoAction, map: "fk_feedback_backoffice_id_usuario_backoffice")
+  usuario_investidor    usuario?            @relation("UsuarioInvestidorFeedback", fields: [id_usuario_investidor], references: [id], map: "fk_feedback_backoffice_id_usuario_investidor")
 }
 
 model conta_repasse {
@@ -361,14 +361,14 @@ model conta_repasse {
   agencia               String?             @CreditConnect.NVarChar(255)
   conta_bancaria        String?             @CreditConnect.NVarChar(255)
   id_fundo_investimento Int?                @unique(map: "UQ__conta_re__66954A1B7097B9AE")
-  fundo_investimento    fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conta_repasse_id_fundo_investimento")
+  fundo_investimento    fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id],  map: "fk_conta_repasse_id_fundo_investimento")
 }
 
 model administrador_fundo_representante_fundo {
   id                     Int                 @id(map: "pk_administrador_fundo_representante_fundo_id") @default(autoincrement())
   id_administrador_fundo Int
   id_representante_fundo Int
-  administrador_fundo    administrador_fundo @relation(fields: [id_administrador_fundo], references: [id], onUpdate: NoAction, map: "fk_administrador_fundo_representante_fundo_id_administrador_fundo_administrador_fundo_id")
+  administrador_fundo    administrador_fundo @relation(fields: [id_administrador_fundo], references: [id], map: "fk_administrador_fundo_representante_fundo_id_administrador_fundo_administrador_fundo_id")
   representante_fundo    representante_fundo @relation(fields: [id_representante_fundo], references: [id], onUpdate: NoAction, map: "fk_administrador_fundo_representante_fundo_id_representante_fundo_representante_fundo_id")
 }
 
@@ -379,7 +379,7 @@ model procurador_fundo {
   telefone                            String?                               @unique(map: "unique_procurador_fundo_telefone") @CreditConnect.NVarChar(50)
   email                               String?                               @unique(map: "unique_procurador_fundo_email") @CreditConnect.NVarChar(255)
   id_endereco                         Int?
-  endereco                            endereco?                             @relation(fields: [id_endereco], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_procurador_fundo_id_endereco_endereco_id")
+  endereco                            endereco?                             @relation(fields: [id_endereco], references: [id], map: "fk_procurador_fundo_id_endereco_endereco_id")
   procurador_fundo_fundo_investimento procurador_fundo_fundo_investimento[]
 }
 
@@ -387,37 +387,46 @@ model procurador_fundo_fundo_investimento {
   id                    Int                @id(map: "pk_procurador_fundo_fundo_investimento_id") @default(autoincrement())
   id_fundo_investimento Int
   id_procurador_fundo   Int
-  fundo_investimento    fundo_investimento @relation(fields: [id_fundo_investimento], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_fundo_investimento_id_fundo_investimento_fundo_investimento_id")
+  fundo_investimento    fundo_investimento @relation(fields: [id_fundo_investimento], references: [id], map: "fk_procurador_fundo_fundo_investimento_id_fundo_investimento_fundo_investimento_id")
   procurador_fundo      procurador_fundo   @relation(fields: [id_procurador_fundo], references: [id], onUpdate: NoAction, map: "fk_procurador_fundo_fundo_investimento_id_procurador_fundo_procurador_fundo_id")
 }
-
 model conta_investidor {
-  id                         Int                          @id(map: "pkconta_investidor_id") @default(autoincrement())
+  id                         Int                          @id(map: "pk_conta_investidor") @default(autoincrement())
   id_fundo_investidor        Int?
   identificador_favorecido   String                       @CreditConnect.VarChar(30)
   nome_favorecido            String                       @CreditConnect.VarChar(100)
   agencia                    String                       @CreditConnect.VarChar(10)
-  agencia_digito             String?                      @CreditConnect.VarChar(10)
+  agencia_digito             String                       @CreditConnect.VarChar(10)
   codigo_banco               String                       @CreditConnect.VarChar(10)
   conta                      String                       @CreditConnect.VarChar(10)
-  conta_digito               String?                      @CreditConnect.VarChar(10)
+  conta_digito               String                       @CreditConnect.VarChar(10)
   codigo_conta               String                       @CreditConnect.VarChar(10)
-  fundo_investimento         fundo_investimento?          @relation(fields: [id_fundo_investidor], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fkconta_investidor_id_fundo_investidor_fundo_investimento_id")
+  data_inclusao              DateTime                     @CreditConnect.Date
+  data_exclusao              DateTime?                    @CreditConnect.Date
+  id_transacao               DateTime?                    @CreditConnect.Date
+  versionamento_inicial      DateTime?                    @CreditConnect.Date
+  versionamento_final        DateTime?                    @CreditConnect.Date
+  fundo_investimento         fundo_investimento?          @relation(fields: [id_fundo_investidor], references: [id], map: "fk_fundo_investidor")
   debenture_serie_investidor debenture_serie_investidor[]
 }
 
 model debenture {
-  id               Int               @id(map: "pkdebenture_id") @default(autoincrement())
-  numero_debenture Int               @unique(map: "unique_debenture_numero_debenture")
-  nome_debenture   String            @unique(map: "unique_debenture_nome_debenture") @CreditConnect.VarChar(100)
-  valor_debenture  Decimal           @CreditConnect.Decimal(15, 2)
-  data_emissao     DateTime          @CreditConnect.Date
-  data_vencimento  DateTime          @CreditConnect.Date
-  debenture_serie  debenture_serie[]
+  id                    Int               @id(map: "pk_debenture") @default(autoincrement())
+  numero_debenture      Int               @unique(map: "unique_debenture_numero")
+  nome_debenture        String            @unique(map: "unique_debenture_nome") @CreditConnect.VarChar(100)
+  valor_debenture       Decimal           @CreditConnect.Decimal(15, 2)
+  data_emissao          DateTime          @CreditConnect.Date
+  data_vencimento       DateTime          @CreditConnect.Date
+  data_inclusao         DateTime          @CreditConnect.Date
+  data_exclusao         DateTime?         @CreditConnect.Date
+  id_transacao          DateTime?         @CreditConnect.Date
+  versionamento_inicial DateTime?         @CreditConnect.Date
+  versionamento_final   DateTime?         @CreditConnect.Date
+  debenture_serie       debenture_serie[]
 }
 
 model debenture_serie {
-  id                         Int                          @id(map: "pkdebenture_serie_id") @default(autoincrement())
+  id                         Int                          @id(map: "pk_debenture_serie") @default(autoincrement())
   id_debenture               Int
   numero_serie               Int
   valor_serie                Decimal                      @CreditConnect.Decimal(15, 2)
@@ -425,14 +434,19 @@ model debenture_serie {
   valor_serie_restante       Decimal?                     @CreditConnect.Decimal(16, 2)
   data_emissao               DateTime                     @CreditConnect.Date
   data_vencimento            DateTime                     @CreditConnect.Date
-  debenture                  debenture                    @relation(fields: [id_debenture], references: [id], onUpdate: NoAction, map: "fkdebenture_serie_id_debenture_debenture_id")
+  data_inclusao              DateTime                     @CreditConnect.Date
+  data_exclusao              DateTime?                    @CreditConnect.Date
+  id_transacao               DateTime?                    @CreditConnect.Date
+  versionamento_inicial      DateTime?                    @CreditConnect.Date
+  versionamento_final        DateTime?                    @CreditConnect.Date
+  debenture                  debenture                    @relation(fields: [id_debenture], references: [id], map: "fk_debenture_serie_id_debenture")
   debenture_serie_investidor debenture_serie_investidor[]
 
-  @@unique([id_debenture, numero_serie], map: "unique_debenture_serie_id_debenture_numero_serie")
+  @@unique([id_debenture, numero_serie], map: "unique_debenture_serie")
 }
 
 model debenture_serie_investidor {
-  id                         Int                 @id(map: "pkdebenture_serie_investidor_id") @default(autoincrement())
+  id                         Int                 @id(map: "pk_debenture_serie_investidor") @default(autoincrement())
   id_debenture_serie         Int
   id_conta_investidor        Int
   id_fundo_investimento      Int?
@@ -444,9 +458,15 @@ model debenture_serie_investidor {
   mensagem_retorno_laqus     String?             @CreditConnect.VarChar(255)
   status_retorno_creditsec   String?             @CreditConnect.VarChar(50)
   mensagem_retorno_creditsec String?             @CreditConnect.VarChar(255)
-  conta_investidor           conta_investidor    @relation(fields: [id_conta_investidor], references: [id], onUpdate: NoAction, map: "fkdebenture_serie_investidor_id_conta_investidor_conta_investidor_id")
-  debenture_serie            debenture_serie     @relation(fields: [id_debenture_serie], references: [id], onUpdate: NoAction, map: "fkdebenture_serie_investidor_id_debenture_serie_debenture_serie_id")
-  fundo_investimento         fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fkdebenture_serie_investidor_id_fundo_investimento_fundo_investimento_id")
+  data_inclusao              DateTime            @CreditConnect.Date
+  data_exclusao              DateTime?           @CreditConnect.Date
+  id_transacao               DateTime?           @CreditConnect.Date
+  versionamento_inicial      DateTime?           @CreditConnect.Date
+  versionamento_final        DateTime?           @CreditConnect.Date
+  conta_investidor           conta_investidor    @relation(fields: [id_conta_investidor], references: [id], onUpdate: NoAction, map: "fk_conta_investidor")
+  debenture_serie            debenture_serie     @relation(fields: [id_debenture_serie], references: [id], map: "fk_debenture_serie")
+  fundo_investimento         fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], map: "fk_fundo_investimento")
 
-  @@unique([id_debenture_serie, id_conta_investidor], map: "unique_debenture_serie_investidor_id_debenture_serie_id_conta_investidor")
+  @@unique([id_debenture_serie, id_conta_investidor], map: "unique_debenture_serie_investidor")
 }
+
