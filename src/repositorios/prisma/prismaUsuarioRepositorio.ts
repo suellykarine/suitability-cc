@@ -60,12 +60,6 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
       },
     });
 
-    if (!tipoUsuario) {
-      throw new BadRequestException(
-        `Tipo de usuário '${data.tipo_usuario}' não encontrado.`,
-      );
-    }
-
     const dataParaAtualizar: any = {
       nome: data.nome,
       email: data.email,
