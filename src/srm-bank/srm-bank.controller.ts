@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { SrmBankService } from './srm-bank.service';
-import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from 'src/app/auth/guards/backoffice-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CriarContaSrmBankDto } from './dto/criar-conta-srm-bank.dto';
 

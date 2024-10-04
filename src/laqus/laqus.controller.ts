@@ -16,7 +16,7 @@ import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
 import { AutenticarLaqusService } from './services/autenticarLaqus.service';
 import { CriarInvestidorLaqusService } from './services/criarInvestidorLaqus.service';
 import { buscarStatusInvestidorLaqusService } from './services/buscarStatusInvestidorLaqus.service';
-import { JwtAuthGuardBackoffice } from 'src/auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from 'src/app/auth/guards/backoffice-auth.guard';
 
 @ApiTags('Laqus')
 @Controller('api/laqus')

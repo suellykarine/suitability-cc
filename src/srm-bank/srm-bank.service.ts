@@ -9,7 +9,7 @@ import {
   IBuscarCedente,
   IRespostaSrmBank,
 } from './interface/interface';
-import { sigmaHeaders } from 'src/auth/constants';
+import { sigmaHeaders } from 'src/app/auth/constants';
 
 @Injectable()
 export class SrmBankService {

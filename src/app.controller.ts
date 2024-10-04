@@ -9,8 +9,8 @@ import {
   Body,
 } from '@nestjs/common';
 import { AppService } from './app.service';
-import { LocalAuthGuard } from './auth/guards/local-auth.guard';
-import { AutenticacaoService } from './auth/auth.service';
+import { LocalAuthGuard } from './app/auth/guards/local-auth.guard';
+import { AutenticacaoService } from './app/auth/auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
