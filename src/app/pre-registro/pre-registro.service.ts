@@ -180,18 +180,30 @@ export class PreRegistroService {
           });
         }
 
-        let gestorSalvo = await this.gestorFundoRepositorio.encontrarPorCnpj(
-          encontrarCartaConvite.cnpj,
-        );
-        if (!gestorSalvo) {
-          gestorSalvo = await this.gestorFundoRepositorio.criar({
-            cnpj: encontrarCartaConvite.cnpj,
-            nome_fantasia: encontrarCartaConvite.empresa,
-            status_gestor_fundo: {
-              connect: { id: statusGestor.id },
-            },
-          });
+        async function buscarOuCriarGestor(
+          cnpj: string,
+          nomeFantasia: string,
+          statusGestorId: number,
+        ) {
+          const gestorSalvo =
+            await this.gestorFundoRepositorio.encontrarPorCnpj(cnpj);
+
+          return gestorSalvo
+            ? gestorSalvo
+            : await this.gestorFundoRepositorio.criar({
+                cnpj,
+                nome_fantasia: nomeFantasia,
+                status_gestor_fundo: {
+                  connect: { id: statusGestorId },
+                },
+              });
         }
+
+        const gestorSalvo = await buscarOuCriarGestor(
+          encontrarCartaConvite.cnpj,
+          encontrarCartaConvite.empresa,
+          statusGestor.id,
+        );
 
         const usuarioSalvo = await this.usuarioRepositorio.criar({
           nome: encontrarCartaConvite.nome,
