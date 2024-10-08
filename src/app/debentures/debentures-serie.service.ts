@@ -63,18 +63,10 @@ export class DebentureSerieService {
       Number(fundo.valor_serie_debenture),
     );
 
-    const proximoNumeroSerie =
-      seriesExistentes.length === 0
-        ? 1
-        : seriesExistentes
-            .map((serie) => serie.numero_serie)
-            .sort((a, b) => a - b)
-            .reduce((acc, current) => (acc === current ? acc + 1 : acc), 1);
-
     function calcularProximoNumeroSerie(seriesExistentes) {
-      if (seriesExistentes.length === 0) {
-        return 1;
-      }
+      const semSeriesExistentes = !seriesExistentes.length;
+
+      if (semSeriesExistentes) return 1;
 
       const numerosSerie = seriesExistentes
         .map((serie) => serie.numero_serie)
@@ -84,6 +76,8 @@ export class DebentureSerieService {
         return acc === current ? acc + 1 : acc;
       }, 1);
     }
+
+    const proximoNumeroSerie = calcularProximoNumeroSerie(seriesExistentes);
 
     const novaSerie = await this.debentureSerieRepositorio.criar({
       numero_serie: proximoNumeroSerie,
