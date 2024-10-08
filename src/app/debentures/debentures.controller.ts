@@ -23,18 +23,21 @@ export class DebenturesController {
 
   @Get()
   @ApiQuery({
-    name: 'page',
+    name: 'pagina',
     required: false,
     example: 1,
     description: 'Página a ser retornada',
   })
   @ApiQuery({
-    name: 'limit',
+    name: 'limite',
     required: false,
     example: 10,
     description: 'Número de registros por página',
   })
-  async findAll(@Query('pagina') pagina = 1, @Query('limite') limite = 10) {
+  async encontrarTodos(
+    @Query('pagina') pagina = 1,
+    @Query('limite') limite = 10,
+  ) {
     return this.debenturesSerieService.encontrarTodos(
       Number(pagina),
       Number(limite),
@@ -42,7 +45,7 @@ export class DebenturesController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  async encontrarPorId(@Param('id') id: string) {
     return this.debenturesSerieService.encontrarPorId(+id);
   }
 
@@ -58,7 +61,7 @@ export class DebenturesController {
   }
 
   @Patch(':id')
-  async update(
+  async atualizar(
     @Param('id') id: string,
     @Body() atualizarDebentureSerieDto: AtualizarDebentureSerieDto,
   ) {
@@ -69,7 +72,7 @@ export class DebenturesController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string) {
+  async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
   }
 }
