@@ -12,7 +12,7 @@ type ConvertDecimalToNumber<T> = {
 export const converterCamposDecimais = <T>(
   dados: T,
 ): ConvertDecimalToNumber<T> => {
-  if (dados === null || dados === undefined) {
+  if (!dados) {
     return dados as ConvertDecimalToNumber<T>;
   }
 
