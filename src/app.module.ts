@@ -24,6 +24,7 @@ import { EstruturacaoCarrinhoModule } from './app/estruturacao-carrinho/estrutur
 import { AnalisePerfilModule } from './app/analise-perfil/analise-perfil.module';
 import { FeedbackModule } from './app/feedback/feedback.module';
 import { BuscarArquivoModule } from './app/buscar-arquivo/buscar-arquivo.module';
+import { DebenturesModule } from './app/debentures/debentures.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { BuscarArquivoModule } from './app/buscar-arquivo/buscar-arquivo.module'
     AnalisePerfilModule,
     FeedbackModule,
     BuscarArquivoModule,
+    DebenturesModule,
   ],
   controllers: [AppController, LaqusController],
   providers: [
