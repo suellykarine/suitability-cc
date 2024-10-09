@@ -1,9 +1,8 @@
 import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { fundo_investimento } from '@prisma/client';
 import { FundoInvestimentoRepositorio } from '../contratos/fundoInvestimentoRepositorio';
-import { FundoInvestimento } from 'src/@types/entities/fundos';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { FundoInvestimento } from 'src/@types/entities/fundos';
 
 @Injectable()
 export class PrismaFundoInvestimentoRepositorio
