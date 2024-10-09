@@ -48,20 +48,25 @@ export class DebentureSerieService {
     }
 
     const vinculoEncerrado =
-      await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo(
-        id_fundo_investimento,
-      );
+      await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo();
     if (vinculoEncerrado) {
       if (
         fundo.valor_serie_debenture ===
         Number(vinculoEncerrado.debenture_serie.valor_serie)
       ) {
-        await this.reutilizarDebentureSerieInvestidor(
-          vinculoEncerrado.id_debenture_serie,
-          vinculoEncerrado.id_conta_investidor,
-          id_fundo_investimento,
-        );
-        return;
+        const vinculoEncerradoContaInvestidor =
+          await this.debentureSerieInvestidorRepositorio.encontrarPorIdContaInvestidorDataDesvinculo(
+            vinculoEncerrado.id_conta_investidor,
+          );
+
+        if (!vinculoEncerradoContaInvestidor) {
+          await this.reutilizarDebentureSerieInvestidor(
+            vinculoEncerrado.id_debenture_serie,
+            vinculoEncerrado.id_conta_investidor,
+            id_fundo_investimento,
+          );
+          return vinculoEncerrado.debenture_serie;
+        }
       }
     }
 
@@ -98,15 +103,20 @@ export class DebentureSerieService {
     });
 
     const serieLiquidada =
-      await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento(
-        id_fundo_investimento,
-      );
+      await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento();
+
     if (serieLiquidada) {
-      await this.reutilizarDebentureSerieInvestidor(
-        novaSerie.id,
-        serieLiquidada.id_conta_investidor,
-        id_fundo_investimento,
-      );
+      const serieLiquidadaContaInvestidor =
+        await this.debentureSerieInvestidorRepositorio.encontrarPorIdContaInvestidorDataEncerramento(
+          serieLiquidada.id_conta_investidor,
+        );
+      if (!serieLiquidadaContaInvestidor) {
+        await this.reutilizarDebentureSerieInvestidor(
+          novaSerie.id,
+          serieLiquidada.id_conta_investidor,
+          id_fundo_investimento,
+        );
+      }
     }
 
     return novaSerie;
@@ -121,7 +131,7 @@ export class DebentureSerieService {
       id_debenture_serie: idDebentureSerie,
       id_conta_investidor: idContaInvestidor,
       id_fundo_investimento: idFundoInvestimento,
-      data_vinculo: null,
+      data_vinculo: new Date(),
       data_desvinculo: null,
       data_encerramento: null,
       codigo_investidor_laqus: null,
