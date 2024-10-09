@@ -24,9 +24,6 @@ export const converterCamposDecimais = <T>(
       if (value instanceof Decimal) {
         return [key, value.toNumber()];
       }
-      if (value === null || value === 0) {
-        return [key, value];
-      }
       if (typeof value === 'object' && value !== null) {
         return [key, converterCamposDecimais(value)];
       }
