@@ -1,4 +1,4 @@
-import { CarteiraInvestimento } from './CarteiraInvestimento';
+import { CarteiraInvestimento } from './carteiraInvestimento';
 
 export type AtivoInvestido = {
   id: number;

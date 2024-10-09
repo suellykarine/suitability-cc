@@ -14,3 +14,11 @@ export type FeedbackBackoffice = {
   usuario_backoffice?: Usuario;
   usuario_investidor?: Usuario;
 };
+
+export type FundoBackoffice = {
+  id: number;
+  nome: string;
+  email: string;
+  telefone?: string;
+  fundo_investimento?: FundoInvestimento[];
+};

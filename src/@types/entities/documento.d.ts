@@ -1,6 +1,5 @@
-import { FeedbackBackoffice } from './feedbackBackoffice';
-import { FundoInvestimento } from './fundos';
-import { GestorFundo } from './gestorFundo';
+import { FeedbackBackoffice } from './backoffice';
+import { FundoInvestimento, GestorFundo } from './fundos';
 import { Usuario } from './usuario';
 
 export type Documento = {
