@@ -1,4 +1,4 @@
-import { CarteiraInvestimento } from './CarteiraInvestimento';
+import { CarteiraInvestimento } from './carteiraInvestimento';
 import { ModalidadeInvestimento } from './modalidadeInvestimento';
 import { Usuario } from './usuario';
 

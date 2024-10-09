@@ -1,4 +1,4 @@
-import { CarteiraInvestimento } from './CarteiraInvestimento';
+import { CarteiraInvestimento } from './carteiraInvestimento';
 import { AdministradorFundo } from './administradorFundo';
 import { ContaInvestidor } from './contaInvestidor';
 import { ContaRepasse } from './contaRepasse';
