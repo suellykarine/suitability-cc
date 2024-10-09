@@ -30,4 +30,4 @@ export const converterCamposDecimais = <T>(
       return [key, value];
     }),
   ) as ConvertDecimalToNumber<T>;
-};
+}
