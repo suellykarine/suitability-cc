@@ -1,11 +1,8 @@
-import { Modulo } from './Modulo';
 import { CartaConvite } from './cartaConvite';
 import { Documento } from './documento';
 import { Endereco } from './endereco';
-import { FeedbackBackoffice } from './feedbackBackoffice';
-import { FundoInvestimentoGestorFundo } from './fundoInvestimentoGestorFundo';
-import { GestorFundo } from './gestorFundo';
-import { TipoAcesso } from './tipoAcesso';
+import { FeedbackBackoffice } from './backoffice';
+import { FundoInvestimentoGestorFundo, GestorFundo } from './fundos';
 import { TransacaoCarteira } from './transacaoCarteira';
 
 export type Usuario = {
@@ -65,4 +62,18 @@ export type AcessoUsuario = {
   modulo: Modulo;
   tipo_acesso: TipoAcesso;
   usuario: Usuario;
+};
+
+export type TipoAcesso = {
+  id: number;
+  acesso: string;
+  descricao: string;
+  acesso_usuario?: AcessoUsuario[];
+};
+
+export type Modulo = {
+  id: number;
+  nome: string;
+  descricao: string;
+  acesso_usuario?: AcessoUsuario[];
 };

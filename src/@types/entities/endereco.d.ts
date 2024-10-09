@@ -1,7 +1,9 @@
-import { AdministradorFundo } from './administradorFundo';
-import { GestorFundo } from './gestorFundo';
-import { ProcuradorFundo } from './procuradorFundo';
-import { RepresentanteFundo } from './representanteFundo';
+import {
+  AdministradorFundo,
+  GestorFundo,
+  ProcuradorFundo,
+  RepresentanteFundo,
+} from './fundos';
 import { Usuario } from './usuario';
 
 export type Endereco = {
