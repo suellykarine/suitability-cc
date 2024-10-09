@@ -8,6 +8,7 @@ import { DebentureRepositorio } from 'src/repositorios/contratos/debentureReposi
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture.dto';
+import { DebentureSerie } from 'src/@types/entities/debenture';
 
 @Injectable()
 export class DebentureSerieService {
@@ -22,7 +23,7 @@ export class DebentureSerieService {
   async criar(
     id_debenture: number,
     id_fundo_investimento: number,
-  ): Promise<debenture_serie> {
+  ): Promise<DebentureSerie> {
     const debenture =
       await this.debentureRespositorio.encontrarPorId(id_debenture);
 
@@ -38,7 +39,8 @@ export class DebentureSerieService {
       throw new NotFoundException(
         `Fundo de investimento com ID ${id_fundo_investimento} não encontrado`,
       );
-    } else if (!fundo.valor_serie_debenture) {
+    }
+    if (!fundo.valor_serie_debenture) {
       throw new BadRequestException(
         'Esse fundo de investimento não possui um valor_serie_debenture',
       );
@@ -81,14 +83,12 @@ export class DebentureSerieService {
 
     const novaSerie = await this.debentureSerieRepositorio.criar({
       numero_serie: proximoNumeroSerie,
+      id_debenture: id_debenture,
       valor_serie: fundo.valor_serie_debenture,
       valor_serie_investido: 0,
       valor_serie_restante: fundo.valor_serie_debenture,
       data_emissao: null,
       data_vencimento: null,
-      debenture: {
-        connect: { id: id_debenture },
-      },
     });
 
     return novaSerie;
@@ -112,7 +112,7 @@ export class DebentureSerieService {
     };
   }
 
-  async encontrarPorId(id: number): Promise<debenture_serie | null> {
+  async encontrarPorId(id: number): Promise<DebentureSerie | null> {
     const debenture = await this.debentureSerieRepositorio.encontrarPorId(id);
     if (!debenture) {
       throw new NotFoundException(`Debenture Serie with ID ${id} not found`);
@@ -123,7 +123,7 @@ export class DebentureSerieService {
   async atualizar(
     id: number,
     data: AtualizarDebentureSerieDto,
-  ): Promise<debenture_serie | null> {
+  ): Promise<DebentureSerie | null> {
     if (data.valor_serie) {
       const debentureSerie = await this.encontrarPorId(id);
       const seriesExistentes =
@@ -144,7 +144,7 @@ export class DebentureSerieService {
   }
 
   private verificarLimiteDebenture(
-    arrayDeSeries: debenture_serie[],
+    arrayDeSeries: DebentureSerie[],
     valor_serie: number,
   ) {
     const valorTotalSeriesExistentes = arrayDeSeries.reduce(

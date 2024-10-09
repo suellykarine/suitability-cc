@@ -1,21 +1,22 @@
-import { Prisma, debenture_serie } from '@prisma/client';
+import { DebentureSerie } from 'src/@types/entities/debenture';
+import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture.dto';
 
 export abstract class DebentureSerieRepositorio {
   abstract criar(
-    debentureSerie: Prisma.debenture_serieCreateInput,
-  ): Promise<debenture_serie>;
+    debentureSerie: Omit<DebentureSerie, 'id'>,
+  ): Promise<DebentureSerie>;
 
-  abstract encontrarPorId(id: number): Promise<debenture_serie | null>;
+  abstract encontrarPorId(id: number): Promise<DebentureSerie | null>;
 
   abstract encontrarTodos(
     limite: number,
     deslocamento: number,
-  ): Promise<debenture_serie[]>;
+  ): Promise<DebentureSerie[]>;
 
   abstract atualizar(
     id: number,
-    debentureSerie: Prisma.debenture_serieUpdateInput,
-  ): Promise<debenture_serie | null>;
+    debentureSerie: AtualizarDebentureSerieDto,
+  ): Promise<DebentureSerie | null>;
 
   abstract deletar(id: number): Promise<void>;
 
@@ -25,5 +26,5 @@ export abstract class DebentureSerieRepositorio {
 
   abstract encontrarSeriesPorIdDebenture(
     idDebenture: number,
-  ): Promise<debenture_serie[]>;
+  ): Promise<DebentureSerie[]>;
 }

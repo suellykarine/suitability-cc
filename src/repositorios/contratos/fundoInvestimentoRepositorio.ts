@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { fundo_investimento } from '@prisma/client';
+import { FundoInvestimento } from 'src/@types/entities/fundos';
 
 @Injectable()
 export abstract class FundoInvestimentoRepositorio {
-  abstract encontrarPorId(id: number): Promise<fundo_investimento | null>;
+  abstract encontrarPorId(id: number): Promise<FundoInvestimento | null>;
 }
