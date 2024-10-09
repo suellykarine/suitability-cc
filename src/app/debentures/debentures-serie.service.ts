@@ -3,7 +3,6 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { debenture_serie } from '@prisma/client';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
