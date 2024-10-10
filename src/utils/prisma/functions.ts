@@ -9,10 +9,13 @@ type ConvertDecimalToNumber<T> = {
         ? ConvertDecimalToNumber<T[K]>
         : T[K];
 };
-
-export function converterCamposDecimais<T>(
+export const converterCamposDecimais = <T>(
   dados: T,
-): ConvertDecimalToNumber<T> {
+): ConvertDecimalToNumber<T> => {
+  if (!dados) {
+    return dados as ConvertDecimalToNumber<T>;
+  }
+
   return Object.fromEntries(
     Object.entries(dados).map(([key, value]) => {
       if (value instanceof Date) {

@@ -28,7 +28,7 @@ export type DebentureSerieInvestidor = {
   id_debenture_serie: number;
   id_conta_investidor: number;
   id_fundo_investimento?: number;
-  data_vinculo: Date;
+  data_vinculo?: Date;
   data_desvinculo?: Date;
   data_encerramento?: Date;
   codigo_investidor_laqus?: string;
@@ -36,7 +36,7 @@ export type DebentureSerieInvestidor = {
   mensagem_retorno_laqus?: string;
   status_retorno_creditsec?: string;
   mensagem_retorno_creditsec?: string;
-  conta_investidor: ContaInvestidor;
-  debenture_serie: DebentureSerie;
+  conta_investidor?: ContaInvestidor;
+  debenture_serie?: DebentureSerie;
   fundo_investimento?: FundoInvestimento;
 };

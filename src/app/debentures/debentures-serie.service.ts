@@ -8,6 +8,8 @@ import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debentures
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture.dto';
 import { DebentureSerie } from 'src/@types/entities/debenture';
+import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
+import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 
 @Injectable()
 export class DebentureSerieService {
@@ -17,6 +19,8 @@ export class DebentureSerieService {
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly prismaFundoRepositorio: FundoInvestimentoRepositorio,
     private readonly debentureRespositorio: DebentureRepositorio,
+    private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
+    private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
   ) {}
 
   async criar(
@@ -45,6 +49,29 @@ export class DebentureSerieService {
       );
     }
 
+    const vinculoEncerrado =
+      await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo();
+    if (vinculoEncerrado) {
+      if (
+        fundo.valor_serie_debenture ===
+        Number(vinculoEncerrado.debenture_serie.valor_serie)
+      ) {
+        const vinculoEncerradoContaInvestidor =
+          await this.debentureSerieInvestidorRepositorio.encontrarPorIdContaInvestidorDataDesvinculo(
+            vinculoEncerrado.id_conta_investidor,
+          );
+
+        if (!vinculoEncerradoContaInvestidor) {
+          await this.reutilizarDebentureSerieInvestidor(
+            vinculoEncerrado.id_debenture_serie,
+            vinculoEncerrado.id_conta_investidor,
+            id_fundo_investimento,
+          );
+          return vinculoEncerrado.debenture_serie;
+        }
+      }
+    }
+
     const countSeries =
       await this.debentureSerieRepositorio.contarSeries(id_debenture);
 
@@ -64,21 +91,8 @@ export class DebentureSerieService {
       Number(fundo.valor_serie_debenture),
     );
 
-    function calcularProximoNumeroSerie(seriesExistentes) {
-      const semSeriesExistentes = !seriesExistentes.length;
-
-      if (semSeriesExistentes) return 1;
-
-      const numerosSerie = seriesExistentes
-        .map((serie) => serie.numero_serie)
-        .sort((a, b) => a - b);
-
-      return numerosSerie.reduce((acc, current) => {
-        return acc === current ? acc + 1 : acc;
-      }, 1);
-    }
-
-    const proximoNumeroSerie = calcularProximoNumeroSerie(seriesExistentes);
+    const proximoNumeroSerie =
+      this.calcularProximoNumeroSerie(seriesExistentes);
 
     const novaSerie = await this.debentureSerieRepositorio.criar({
       numero_serie: proximoNumeroSerie,
@@ -90,7 +104,48 @@ export class DebentureSerieService {
       data_vencimento: null,
     });
 
+    const serieLiquidada =
+      await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento();
+
+    if (serieLiquidada) {
+      const serieLiquidadaContaInvestidor =
+        await this.debentureSerieInvestidorRepositorio.encontrarPorIdContaInvestidorDataEncerramento(
+          serieLiquidada.id_conta_investidor,
+        );
+      if (!serieLiquidadaContaInvestidor) {
+        await this.reutilizarDebentureSerieInvestidor(
+          novaSerie.id,
+          serieLiquidada.id_conta_investidor,
+          id_fundo_investimento,
+        );
+      }
+    }
+
     return novaSerie;
+  }
+
+  private async reutilizarDebentureSerieInvestidor(
+    idDebentureSerie: number,
+    idContaInvestidor: number,
+    idFundoInvestimento: number,
+  ): Promise<void> {
+    await this.contaInvestidorRepositorio.atualizarContaInvestidorFundoInvestimento(
+      idContaInvestidor,
+      idFundoInvestimento,
+    );
+    await this.debentureSerieInvestidorRepositorio.criar({
+      id_debenture_serie: idDebentureSerie,
+      id_conta_investidor: idContaInvestidor,
+      id_fundo_investimento: idFundoInvestimento,
+      data_vinculo: new Date(),
+      data_desvinculo: null,
+      data_encerramento: null,
+      codigo_investidor_laqus: null,
+      status_retorno_laqus: null,
+      mensagem_retorno_laqus: null,
+      status_retorno_creditsec: null,
+      mensagem_retorno_creditsec: null,
+    });
   }
 
   async encontrarTodos(pagina: number, limite: number) {
@@ -156,5 +211,19 @@ export class DebentureSerieService {
         'Não é possível criar uma nova série: o limite da debênture foi atingido (R$ 50 milhões).',
       );
     }
+  }
+
+  private calcularProximoNumeroSerie(seriesExistentes: DebentureSerie[]) {
+    const semSeriesExistentes = !seriesExistentes.length;
+
+    if (semSeriesExistentes) return 1;
+
+    const numerosSerie = seriesExistentes
+      .map((serie) => serie.numero_serie)
+      .sort((a, b) => a - b);
+
+    return numerosSerie.reduce((acc, current) => {
+      return acc === current ? acc + 1 : acc;
+    }, 1);
   }
 }
