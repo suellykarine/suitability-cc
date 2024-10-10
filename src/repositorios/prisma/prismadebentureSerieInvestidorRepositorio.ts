@@ -70,7 +70,10 @@ export class PrismaDebentureSerieInvestidorRepositorio
   }
 
   private async encontrarPorCampo(
-    campo: 'data_desvinculo' | 'data_encerramento',
+    campo: Extract<
+      keyof DebentureSerieInvestidor,
+      'data_encerramento' | 'data_desvinculo'
+    >,
   ): Promise<DebentureSerieInvestidor | null> {
     const serieInvestidorData =
       await this.prisma.debenture_serie_investidor.findFirst({

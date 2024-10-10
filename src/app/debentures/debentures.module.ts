@@ -10,6 +10,8 @@ import { DebentureRepositorio } from 'src/repositorios/contratos/debentureReposi
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/prisma/prismadebentureSerieInvestidorRepositorio';
+import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
 
 @Module({
   controllers: [DebenturesController],
@@ -31,6 +33,10 @@ import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/pris
     {
       provide: DebentureSerieInvestidorRepositorio,
       useClass: PrismaDebentureSerieInvestidorRepositorio,
+    },
+    {
+      provide: ContaInvestidorRepositorio,
+      useClass: PrismaContaInvestidorRepositorio,
     },
   ],
 })

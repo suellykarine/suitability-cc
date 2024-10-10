@@ -9,6 +9,7 @@ import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoIn
 import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture.dto';
 import { DebentureSerie } from 'src/@types/entities/debenture';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
+import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 
 @Injectable()
 export class DebentureSerieService {
@@ -19,6 +20,7 @@ export class DebentureSerieService {
     private readonly prismaFundoRepositorio: FundoInvestimentoRepositorio,
     private readonly debentureRespositorio: DebentureRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
+    private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
   ) {}
 
   async criar(
@@ -127,6 +129,10 @@ export class DebentureSerieService {
     idContaInvestidor: number,
     idFundoInvestimento: number,
   ): Promise<void> {
+    await this.contaInvestidorRepositorio.atualizarContaInvestidorFundoInvestimento(
+      idContaInvestidor,
+      idFundoInvestimento,
+    );
     await this.debentureSerieInvestidorRepositorio.criar({
       id_debenture_serie: idDebentureSerie,
       id_conta_investidor: idContaInvestidor,
