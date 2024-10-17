@@ -34,6 +34,7 @@ export class AppController {
   @ApiTags('login')
   @Post('api/login')
   async login(@Request() req, @Body() loginDto: LoginDto) {
+    console.log('entrando no login...');
     return this.autenticacaoService.login(req.user);
   }
 }
