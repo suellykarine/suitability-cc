@@ -22,7 +22,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.ALLOWED_URL,
+    origin: [process.env.ALLOWED_URL, 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
