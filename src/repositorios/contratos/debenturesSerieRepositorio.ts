@@ -1,5 +1,5 @@
 import { DebentureSerie } from 'src/@types/entities/debenture';
-import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture.dto';
+import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
 
 export abstract class DebentureSerieRepositorio {
   abstract criar(

@@ -12,12 +12,14 @@ import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/
 import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/prisma/prismadebentureSerieInvestidorRepositorio';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
+import { DebentureService } from './debentures.service';
 
 @Module({
   controllers: [DebenturesController],
   providers: [
     DebentureSerieService,
     PrismaService,
+    DebentureService,
     {
       provide: DebentureSerieRepositorio,
       useClass: PrismaDebentureSerieRepositorio,

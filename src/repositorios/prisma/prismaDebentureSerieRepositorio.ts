@@ -4,7 +4,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { DebentureSerie } from 'src/@types/entities/debenture';
-import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture.dto';
+import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
 import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
