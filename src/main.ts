@@ -20,10 +20,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
+  const allowedOrigins = process.env.ALLOWED_URL.split(',');
   app.enableCors({
-    origin: [process.env.ALLOWED_URL, 'http://localhost:3000'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: [...allowedOrigins],
+    methods: '*',
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
