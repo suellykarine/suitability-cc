@@ -1,13 +1,9 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import {
-  ErroCriarConta,
-  IBuscarCedente,
-  IRespostaSrmBank,
+  RespostaCriarContaSrmBank,
+  RespostaBuscarContaSrmBank,
+  RegistrarContaNoCC,
 } from './interface/interface';
 import { sigmaHeaders } from 'src/app/auth/constants';
 
@@ -15,36 +11,47 @@ import { sigmaHeaders } from 'src/app/auth/constants';
 export class SrmBankService {
   constructor(private prisma: PrismaService) {}
 
-  async criarContaInvestidor(dados: { identificador: string }) {
+  async criarContaInvestidor(dados: {
+    identificador: string;
+    id_cedente: string;
+  }) {
     try {
       const criarConta = await this.CriarContaSRMBank(dados.identificador);
+      const buscarConta = await this.buscarContaSrmBank(
+        dados.identificador,
+        criarConta.conta.slice(0, 9),
+      );
 
-      if (!criarConta.sucesso) {
-        const erroCriarConta = criarConta as ErroCriarConta;
-        throw new InternalServerErrorException(
-          erroCriarConta.motivo || 'Falha ao criar conta',
-        );
-      }
+      const objRegistrarContaCC: RegistrarContaNoCC = {
+        id_fundo_investidor: Number(dados.id_cedente),
+        identificador_favorecido: String(criarConta.id),
+        agencia: criarConta.agencia,
+        agencia_digito: '0',
+        codigo_banco: '533',
+        codigo_conta: String(buscarConta.dadosBancarios.codigoContaCorrente),
+        conta: criarConta.conta.slice(0, 9),
+        conta_digito: criarConta.conta.slice(-1),
+        nome_favorecido: criarConta.nomeTitular,
+      };
+      await this.registrarContaNoCreditConnect(objRegistrarContaCC);
 
       return {
         mensagem: 'Conta Criada com sucesso ',
         conta_investidor: criarConta,
       };
     } catch (error) {
-      throw new InternalServerErrorException(
-        error.message || 'Erro ao criar conta',
-      );
+      throw error;
     }
   }
 
   private async CriarContaSRMBank(
     identificador: string,
-  ): Promise<IRespostaSrmBank> {
+  ): Promise<RespostaCriarContaSrmBank> {
     const body = {
       documentoIdentificacao: identificador,
     };
 
-    const criarConta = await fetch(
+    const req = await fetch(
       `${process.env.BASE_URL_SRM_BANK}gestao/contas/serie`,
       {
         method: 'POST',
@@ -55,18 +62,21 @@ export class SrmBankService {
       },
     );
 
-    const response = await criarConta.json();
+    const response = await req.json();
 
-    if (criarConta.ok) return { sucesso: true, ...response };
+    if (req.ok) return { sucesso: true, ...response };
 
-    return { sucesso: false, ...response };
+    throw new HttpException(
+      `Erro ao criar conta: ${req.status} ${req.statusText}`,
+      req.status,
+    );
   }
-
-  private async BuscarCedenteSigma(
+  private async buscarContaSrmBank(
     identificador: string,
-  ): Promise<IBuscarCedente> {
-    const buscarCedente = await fetch(
-      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}`,
+    numeroConta: string,
+  ): Promise<RespostaBuscarContaSrmBank> {
+    const req = await fetch(
+      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -74,15 +84,34 @@ export class SrmBankService {
         },
       },
     );
-    const response = await buscarCedente.json();
 
-    return response;
+    if (!req.ok)
+      throw new HttpException(
+        `Erro ao buscar conta: ${req.status} ${req.statusText}`,
+        req.status,
+      );
+
+    const res = await req.json();
+    const findConta = res.find(
+      (ele: RespostaBuscarContaSrmBank) =>
+        ele.dadosBancarios.contaCorrente == numeroConta,
+    );
+    return findConta;
   }
 
-  private async BuscarCedenteCreditConnect(identificador: string) {
-    const fund = await this.prisma.fundo_investimento.findUnique({
-      where: { cpf_cnpj: identificador },
+  private async registrarContaNoCreditConnect(data: RegistrarContaNoCC) {
+    await this.prisma.conta_investidor.create({
+      data: {
+        agencia: data.agencia,
+        agencia_digito: data.agencia_digito,
+        codigo_conta: data.codigo_conta,
+        conta: data.conta,
+        conta_digito: data.conta_digito,
+        codigo_banco: data.codigo_banco,
+        identificador_favorecido: data.identificador_favorecido,
+        id_fundo_investidor: data.id_fundo_investidor,
+        nome_favorecido: data.nome_favorecido,
+      },
     });
-    return fund;
   }
 }

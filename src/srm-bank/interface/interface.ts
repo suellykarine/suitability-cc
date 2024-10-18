@@ -1,11 +1,6 @@
-import {
-  CnaePrincipal,
-  Gerente,
-  RecuperacaoJudicial,
-  SituacaoCadastral,
-} from 'src/@types/entities/banco';
+import { Favorecido, DadosBancarios } from 'src/@types/entities/banco';
 
-interface SucessoCriarConta {
+export type RespostaCriarContaSrmBank = {
   sucesso: boolean;
   documentoTitular: string;
   nomeTitular: string;
@@ -17,55 +12,20 @@ interface SucessoCriarConta {
     codigo: string;
     nome: string;
   };
-}
-export interface ErroCriarConta {
-  sucesso: boolean;
-  id: string;
-  status: number;
-  erro: string;
-  codigoErro: string;
-  motivo: string;
-  data: string;
-  metodo: string;
-  url: string;
-}
-export type IRespostaSrmBank = SucessoCriarConta | ErroCriarConta;
+};
 
-export type IBuscarCedente = {
-  codigoCedente: number;
-  identificadorCedente: string;
-  gerente: Gerente;
-  nomeEmpresarial: string;
-  dataAbertura: string;
-  faturamentoAnual: number;
-  ramoAtividade: {
-    codigo: number;
-    descricao: string;
-  };
-  recuperacaoJudicial: RecuperacaoJudicial;
-  situacaoCadastral: SituacaoCadastral;
-  cnaePrincipal: CnaePrincipal;
-  quantidadeFuncionarios: number;
-  endereco: {
-    uf: string;
-    cep: string;
-    cidade: string;
-    bairro: string;
-    logradouro: string;
-    numero: string;
-    complemento: string;
-  };
-  telefone: {
-    numero: string;
-    ddd: string;
-  };
-  email: string;
-  usuarioInclusao: string;
-  dataHoraInclusao: string;
-  sociosPessoaFisica: [];
-  sociosPessoaJuridica: [];
-  representantesLegais: [];
-  devedoresSolidariosPessoaFisica: [];
-  devedoresSolidariosPessoaJuridica: [];
-  contaCorrente: [];
+export type RespostaBuscarContaSrmBank = {
+  favorecido: Favorecido;
+  dadosBancarios: DadosBancarios;
+};
+export type RegistrarContaNoCC = {
+  id_fundo_investidor: number;
+  identificador_favorecido: string;
+  nome_favorecido: string;
+  agencia: string;
+  agencia_digito: string;
+  codigo_banco: string;
+  conta: string;
+  conta_digito: string;
+  codigo_conta: string;
 };
