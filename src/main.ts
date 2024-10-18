@@ -20,8 +20,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  console.log('rodando branch !!')
+  console.log('rodando branch !!');
   const allowedOrigins = process.env.ALLOWED_URL.split(',');
+  console.log('allowedOrigins');
+  console.log(allowedOrigins);
   app.enableCors({
     origin: [...allowedOrigins],
     methods: '*',
