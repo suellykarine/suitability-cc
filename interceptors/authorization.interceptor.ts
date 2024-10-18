@@ -11,6 +11,7 @@ import { jwtConstants } from 'src/app/auth/constants';
 @Injectable()
 export class AuthorizationInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    console.log('interceptando...');
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
     const segTimeBeforeExpiration =
