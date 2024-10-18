@@ -12,8 +12,6 @@ export class AutenticacaoService {
   ) {}
 
   async validarUsuario(email: string, senha: string): Promise<any> {
-    console.log('Validando Usuário 1');
-    console.log({ email, senha });
     const usuario = await this.usuarioService.encontrarUsuario(email);
 
     if (!usuario) {
@@ -39,8 +37,6 @@ export class AutenticacaoService {
         usuarioMaster.senha,
       );
     }
-    console.log('Validando Usuário 2');
-    console.log({ comparacaoSenha, comparacaoSenhaUsuarioMaster });
 
     if (comparacaoSenha || comparacaoSenhaUsuarioMaster) {
       const { sen, ...resultado } = usuario;
@@ -55,8 +51,6 @@ export class AutenticacaoService {
       idUsuario: user.id,
       tipoUsuario: user.tipo_usuario.tipo,
     };
-    console.log('auth login user');
-    console.log({ user });
     const { senha, ...result } = user;
     return {
       data: result,

@@ -952,7 +952,6 @@ export class FundosService {
         },
       },
     );
-    console.log(fundoGestor.id);
 
     if (!usuarioFundo) {
       throw new ForbiddenException({
