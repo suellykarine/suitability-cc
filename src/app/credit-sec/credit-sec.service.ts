@@ -8,7 +8,6 @@ import {
 import { PrismaService } from 'prisma/prisma.service';
 import { CedenteType } from 'src/@types/entities/cedente';
 import { Endereco } from 'src/@types/entities/cedente';
-import { ContaInvestidor } from 'src/@types/entities/contaInvestidor';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
 import {
   FundoInvestimento,
@@ -149,7 +148,7 @@ export class CreditSecService {
       numero_emissao:
         serieInvestidor.debenture_serie.debenture.numero_debenture,
       numero_serie: serieInvestidor.debenture_serie.numero_serie,
-      callback_url: 'http://schamberger.example/wes_rempel',
+      callback_url: `${process.env.BASE_URL}api/credit-sec/solicitar-serie/callback`,
       conta_serie: {
         banco: '533',
         agencia: serieInvestidor.conta_investidor.agencia,
