@@ -7,9 +7,19 @@ import { DebentureRepositorio } from 'src/repositorios/contratos/debentureReposi
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto';
-import { DebentureSerie } from 'src/@types/entities/debenture';
+import {
+  DebentureSerie,
+  DebentureSerieInvestidor,
+} from 'src/@types/entities/debenture';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { LaqusService } from '../laqus/laqus.service';
+import {
+  Funcao,
+  TipoDeEmpresa,
+  TipoPessoa,
+} from '../laqus/dto/criarInvestidorLaqus.dto';
+import { FundoInvestimento } from 'src/@types/entities/fundos';
 
 @Injectable()
 export class DebentureSerieService {
@@ -21,6 +31,7 @@ export class DebentureSerieService {
     private readonly debentureRespositorio: DebentureRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+    private readonly laqusService: LaqusService,
   ) {}
 
   async criar(
@@ -49,6 +60,12 @@ export class DebentureSerieService {
       );
     }
 
+    if (!fundo.administrador_fundo.endereco) {
+      throw new BadRequestException(
+        'O administrador do fundo não possui um endereço',
+      );
+    }
+
     const vinculoEncerrado =
       await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo();
     if (vinculoEncerrado) {
@@ -67,6 +84,7 @@ export class DebentureSerieService {
             vinculoEncerrado.id_conta_investidor,
             id_fundo_investimento,
           );
+          await this.montarDados(fundo, vinculoEncerrado);
           return vinculoEncerrado.debenture_serie;
         }
       }
@@ -113,6 +131,8 @@ export class DebentureSerieService {
           serieLiquidada.id_conta_investidor,
         );
       if (!serieLiquidadaContaInvestidor) {
+        await this.montarDados(fundo, serieLiquidada);
+
         await this.reutilizarDebentureSerieInvestidor(
           novaSerie.id,
           serieLiquidada.id_conta_investidor,
@@ -130,8 +150,8 @@ export class DebentureSerieService {
     idFundoInvestimento: number,
   ): Promise<void> {
     await this.contaInvestidorRepositorio.atualizarContaInvestidorFundoInvestimento(
-      idContaInvestidor,
       idFundoInvestimento,
+      idContaInvestidor,
     );
     await this.debentureSerieInvestidorRepositorio.criar({
       id_debenture_serie: idDebentureSerie,
@@ -225,5 +245,45 @@ export class DebentureSerieService {
     return numerosSerie.reduce((acc, current) => {
       return acc === current ? acc + 1 : acc;
     }, 1);
+  }
+
+  private async montarDados(
+    fundo: FundoInvestimento,
+    serie: DebentureSerieInvestidor,
+  ) {
+    await this.laqusService.cadastrarInvestidor({
+      tipoDeEmpresa: TipoDeEmpresa.Limitada,
+      tipoPessoa: TipoPessoa.Juridica,
+      funcao: Funcao.Investidor,
+      email:
+        fundo.fundo_investimento_gestor_fundo[0].usuario_fundo_investimento[0]
+          .usuario.email,
+      cnpj: fundo.cpf_cnpj,
+      razaoSocial: fundo.razao_social,
+      atividadePrincipal: fundo.atividade_principal,
+      faturamentoMedioMensal12Meses: Number(fundo.faturamento_anual),
+      endereco: {
+        cep: fundo.administrador_fundo.endereco.cep,
+        rua: fundo.administrador_fundo.endereco.logradouro,
+        numero: fundo.administrador_fundo.endereco.numero,
+        complemento: fundo.administrador_fundo.endereco.complemento,
+        bairro: fundo.administrador_fundo.endereco.bairro,
+        cidade: fundo.administrador_fundo.endereco.cidade,
+        uf: fundo.administrador_fundo.endereco.estado,
+      },
+      dadosBancarios: {
+        codigoDoBanco: serie.conta_investidor.codigo_banco,
+        agencia: serie.conta_investidor.agencia,
+        digitoDaAgencia: serie.conta_investidor.agencia_digito,
+        contaCorrente: serie.conta_investidor.conta,
+        digitoDaConta: serie.conta_investidor.conta_digito,
+      },
+      telefones: [
+        {
+          numero: fundo.administrador_fundo.telefone,
+          tipo: 'Celular',
+        },
+      ],
+    });
   }
 }

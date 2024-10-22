@@ -27,7 +27,7 @@ export type Usuario = {
   endereco?: Endereco;
   gestor_fundo?: GestorFundo;
   status_usuario?: StatusUsuario;
-  tipo_usuario: TipoUsuario;
+  tipo_usuario?: TipoUsuario;
   usuario_fundo_investimento?: UsuarioFundoInvestimento[];
 };
 

@@ -244,7 +244,6 @@ export class EnviarEmailService {
     );
     if (!res.ok) {
       const response = await res.json();
-      console.log(response);
       return;
     }
     return res;

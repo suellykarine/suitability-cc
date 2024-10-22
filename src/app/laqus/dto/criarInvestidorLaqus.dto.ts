@@ -10,7 +10,6 @@ import {
   IsOptional,
   IsNumberString,
   ValidateNested,
-  validate,
   Validate,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
@@ -18,16 +17,16 @@ import { Type } from 'class-transformer';
 import { ValidarCNPJ } from 'src/utils/validadores/validarCnpjECpf';
 import { ValidarCEP } from 'src/utils/validadores/validarCep';
 
-enum TipoDeEmpresa {
+export enum TipoDeEmpresa {
   SA = 'SA',
   Limitada = 'Limitada',
 }
 
-enum TipoPessoa {
+export enum TipoPessoa {
   Juridica = 'Juridica',
 }
 
-enum Funcao {
+export enum Funcao {
   Investidor = 'Investidor',
 }
 
