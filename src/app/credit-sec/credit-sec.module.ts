@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CreditSecService } from './credit-sec.service';
 import { CreditSecControler } from './credit-sec.controller';
-import { PrismaService } from 'prisma/prisma.service';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { PrismaDebentureSerieRepositorio } from 'src/repositorios/prisma/prismaDebentureSerieRepositorio';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
@@ -14,11 +13,13 @@ import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/
 import { PrismaUsuarioFundoInvestimentoRepositorio } from 'src/repositorios/prisma/prismaUsuarioFundoInvestimento';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   controllers: [CreditSecControler],
   providers: [
     CreditSecService,
+    PrismaService,
     {
       provide: DebentureSerieRepositorio,
       useClass: PrismaDebentureSerieRepositorio,
