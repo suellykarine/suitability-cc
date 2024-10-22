@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { DebentureSerie } from 'src/@types/entities/debenture';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
-import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class PrismaDebentureSerieRepositorio
@@ -82,5 +81,14 @@ export class PrismaDebentureSerieRepositorio
       orderBy: { numero_serie: 'asc' },
     });
     return seriesExistentes.map(converterCamposDecimais);
+  }
+
+  async encontrarSeriesPorNumeroSerie(
+    numero_serie,
+  ): Promise<DebentureSerie | null> {
+    const debenture_serie = await this.prisma.debenture_serie.findFirst({
+      where: { numero_serie: numero_serie },
+    });
+    return converterCamposDecimais(debenture_serie);
   }
 }

@@ -16,11 +16,25 @@ import {
 import { Usuario } from 'src/@types/entities/usuario';
 
 import { sigmaHeaders } from 'src/app/auth/constants';
+import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
+import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
+import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoGestorFundoRepositorio';
+import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
+import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
+import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+import { BodyCallbackDto } from './dto/body-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
 
 @Injectable()
 export class CreditSecService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
+    private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
+    private readonly usuarioFundoInvestimentoRepositorio: UsuarioFundoInvestimentoRepositorio,
+    private readonly usuarioRepositorio: UsuarioRepositorio,
+    private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
+    private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
+  ) {}
 
   async solicitarSerie(id_cedente: number) {
     try {
@@ -59,7 +73,31 @@ export class CreditSecService {
       throw error;
     }
   }
+  async registrarRetornoCreditSec(data: BodyCallbackDto) {
+    try {
+      const debentureSerie =
+        await this.debentureSerieRepositorio.encontrarSeriesPorNumeroSerie(
+          data.numero_serie,
+        );
+      const debentureSerieInvestidor =
+        await this.debentureSerieInvestidorRepositorio.encontrarPorIdDebentureSerie(
+          debentureSerie.id,
+        );
 
+      const atualizaDebentureSerieInvestidor =
+        await this.debentureSerieInvestidorRepositorio.atualizaDebentureSerieInvestidor(
+          debentureSerieInvestidor.id,
+          data.status,
+          data.motivo,
+        );
+
+      return atualizaDebentureSerieInvestidor;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Ocorreu um erro ao registrar os dados',
+      );
+    }
+  }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
     const req = await fetch(
       `${process.env.BASE_URL_CREDIT_SEC}/serie/solicitar_emissao`,
@@ -103,18 +141,8 @@ export class CreditSecService {
   }
 
   private async buscarCedenteCreditConnect(id: number) {
-    const fund = await this.prisma.fundo_investimento.findUnique({
-      where: { id },
-      include: {
-        debenture_serie_investidor: {
-          include: {
-            debenture_serie: { include: { debenture: true } },
-            conta_investidor: true,
-          },
-        },
-        representante_fundo: true,
-      },
-    });
+    const fund =
+      await this.fundoInvestimentoRepositorio.encontrarComRelacionamentos(id);
 
     if (fund.cpf_cnpj) return fund;
     throw new InternalServerErrorException('Erro ao buscar cedente');
@@ -122,15 +150,17 @@ export class CreditSecService {
 
   private async buscarUsuario(idFundo: number) {
     const fundoGestorFundo =
-      await this.prisma.fundo_investimento_gestor_fundo.findFirst({
-        where: { id_fundo_investimento: idFundo },
-      });
-    const usuarioFundo = await this.prisma.usuario_fundo_investimento.findFirst(
-      { where: { id_fundo_investimento_gestor_fundo: fundoGestorFundo.id } },
+      await this.fundoInvestimentoGestorFundoRepositorio.encontrarPorIdDoFundo(
+        idFundo,
+      );
+
+    const usuarioFundo =
+      await this.usuarioFundoInvestimentoRepositorio.encontrarPeloIdGestorFundo(
+        fundoGestorFundo.id,
+      );
+    const usuario = await this.usuarioRepositorio.encontrarPorId(
+      usuarioFundo.id_usuario,
     );
-    const usuario = await this.prisma.usuario.findUnique({
-      where: { id: usuarioFundo.id_usuario },
-    });
 
     if (usuario.cpf) return usuario;
 

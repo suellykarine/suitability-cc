@@ -69,6 +69,29 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return serieInvestidorData;
   }
 
+  async encontrarPorIdDebentureSerie(id_debenture_serie: number) {
+    const debentureSerieInvestidor =
+      await this.prisma.debenture_serie_investidor.findFirst({
+        where: { id_debenture_serie },
+      });
+    return debentureSerieInvestidor;
+  }
+  async atualizaDebentureSerieInvestidor(
+    id_debenture_serie_investidor: number,
+    status: string,
+    motivo: string,
+  ): Promise<DebentureSerieInvestidor> {
+    const atualizaDebentureSerieInvestidor =
+      await this.prisma.debenture_serie_investidor.update({
+        where: { id: id_debenture_serie_investidor },
+        data: {
+          status_retorno_creditsec: status,
+          mensagem_retorno_creditsec: motivo ?? null,
+        },
+      });
+    return atualizaDebentureSerieInvestidor;
+  }
+
   private async encontrarPorCampo(
     campo: Extract<
       keyof DebentureSerieInvestidor,
