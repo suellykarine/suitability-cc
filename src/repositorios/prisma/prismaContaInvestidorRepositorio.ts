@@ -14,8 +14,6 @@ export class PrismaContaInvestidorRepositorio
     idFundoInvestimento: number,
     idContaInvestidor: number,
   ): Promise<ContaInvestidor | null> {
-    console.log(idFundoInvestimento);
-    console.log(idContaInvestidor);
     return await this.prisma.conta_investidor.update({
       where: { id: idContaInvestidor },
       data: { fundo_investimento: { connect: { id: idFundoInvestimento } } },

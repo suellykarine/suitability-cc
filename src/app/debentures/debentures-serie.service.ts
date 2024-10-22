@@ -84,7 +84,6 @@ export class DebentureSerieService {
             vinculoEncerrado.id_conta_investidor,
             id_fundo_investimento,
           );
-          console.log(vinculoEncerrado);
           await this.montarDados(fundo, vinculoEncerrado);
           return vinculoEncerrado.debenture_serie;
         }
