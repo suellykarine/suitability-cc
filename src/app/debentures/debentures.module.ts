@@ -13,6 +13,8 @@ import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/pris
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
 import { DebentureService } from './debentures.service';
+import { LaqusService } from '../laqus/laqus.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [DebenturesController],
@@ -20,6 +22,8 @@ import { DebentureService } from './debentures.service';
     DebentureSerieService,
     PrismaService,
     DebentureService,
+    LaqusService,
+    ConfigService,
     {
       provide: DebentureSerieRepositorio,
       useClass: PrismaDebentureSerieRepositorio,
