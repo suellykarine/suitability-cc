@@ -13,6 +13,22 @@ export class PrismaFundoInvestimentoRepositorio
   async encontrarPorId(id: number): Promise<FundoInvestimento | null> {
     const fundoDados = await this.prisma.fundo_investimento.findUnique({
       where: { id },
+      include: {
+        administrador_fundo: {
+          include: {
+            endereco: true,
+          },
+        },
+        fundo_investimento_gestor_fundo: {
+          include: {
+            usuario_fundo_investimento: {
+              include: {
+                usuario: true,
+              },
+            },
+          },
+        },
+      },
     });
     return converterCamposDecimais(fundoDados);
   }
