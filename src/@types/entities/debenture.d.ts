@@ -5,7 +5,7 @@ export type Debenture = {
   id: number;
   numero_debenture: number;
   nome_debenture: string;
-  valor_debenture: number;
+  valor_debenture: number | Decimal;
   data_emissao: Date;
   data_vencimento: Date;
   debenture_serie?: DebentureSerie[];
@@ -15,9 +15,9 @@ export type DebentureSerie = {
   id: number;
   id_debenture: number;
   numero_serie: number;
-  valor_serie: number;
-  valor_serie_investido: number;
-  valor_serie_restante?: number;
+  valor_serie: number | Decimal;
+  valor_serie_investido: number | Decimal;
+  valor_serie_restante?: number | Decimal;
   data_emissao?: Date;
   data_vencimento?: Date;
   debenture?: Debenture;

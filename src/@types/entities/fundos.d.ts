@@ -6,6 +6,7 @@ import { Documento } from './documento';
 import { FeedbackBackoffice, FundoBackoffice } from './backoffice';
 import { Endereco } from './endereco';
 import { Usuario, UsuarioFundoInvestimento } from './usuario';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export type FundoInvestimento = {
   id: number;
@@ -25,8 +26,8 @@ export type FundoInvestimento = {
   tipo_estrutura?: string;
   faturamento_anual?: string;
   apto_debenture: boolean;
-  valor_serie_debenture?: number;
-  nota_investidor_suitability?: number;
+  valor_serie_debenture?: number | Decimal;
+  nota_investidor_suitability?: number | Decimal;
   perfil_investidor_suitability?: string;
   data_expiracao_suitability?: Date;
   carteira_investimento?: CarteiraInvestimento[];
