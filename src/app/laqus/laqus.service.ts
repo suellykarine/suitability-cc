@@ -12,7 +12,7 @@ export class LaqusService {
   }
 
   async cadastrarInvestidor(data: CriarInvestidorLaqusDto) {
-    const response = await fetch(this.laqusApi, {
+    const response = await fetch(`${this.laqusApi}/cadastro`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
