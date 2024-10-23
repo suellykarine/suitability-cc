@@ -1,24 +1,24 @@
 import {
-  Controller,
   Get,
   Post,
   Body,
   Patch,
   Param,
   Delete,
-  UseGuards,
   HttpCode,
+  UseGuards,
+  Controller,
 } from '@nestjs/common';
-import { CartaConviteService } from './carta-convite.service';
-import { CriarCartaConviteDto } from './dto/create-invitation-letter.dto';
-import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
 import { Headers } from '@nestjs/common';
-import { TipoUsuario } from 'src/enums/TipoUsuario';
 import { decodificarToken } from 'src/utils/extrairId';
-import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
+import { CartaConviteService } from './carta-convite.service';
+import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
+import { CriarCartaConviteDto } from './dto/create-invitation-letter.dto';
+import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.dto';
+import { TipoUsuario } from 'src/enums/TipoUsuario';
 
 @ApiTags('Carta-convite')
 @Controller('api/carta-convite')
@@ -36,7 +36,7 @@ export class CartaConviteController {
     let userId: number | undefined;
     if (tokenDecodificado) {
       userId =
-        tokenDecodificado.tipoUsuario === TipoUsuario.BACKOFFICE
+        tokenDecodificado.tipoUsuario<TipoUsuario> === 'BACKOFFICE'
           ? tokenDecodificado.idUsuario
           : undefined;
     }

@@ -17,7 +17,6 @@ import { AmbimaModule } from './app/ambima/anbima.module';
 import { PainelModule } from './app/painel/painel.module';
 import { AtivosModule } from './app/ativos/ativos.module';
 import { FundosModule } from './app/fundos/fundos.module';
-import { LaqusModule } from './app/laqus/laqus.module';
 import { AuthModule } from './app/auth/auth.module';
 import { CcbModule } from './app/ccb/ccb.module';
 import { AppController } from './app.controller';
@@ -47,7 +46,6 @@ import { Module } from '@nestjs/common';
     PainelModule,
     FundosModule,
     AmbimaModule,
-    LaqusModule,
     AuthModule,
     CcbModule,
     PdfModule,

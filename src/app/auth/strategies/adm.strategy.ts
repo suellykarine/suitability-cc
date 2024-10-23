@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConstants } from '../constants';
-import { TipoUsuario } from 'src/enums/TipoUsuario';
+import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class JwtStrategyAdm extends PassportStrategy(Strategy, 'adm') {
         tipo_usuario: true,
       },
     });
-    if (usuario.tipo_usuario.tipo !== TipoUsuario.ADMINISTRADOR_SISTEMAS) {
+    if (usuario.tipo_usuario.tipo !== TipoUsuarioEnum.ADMINISTRADOR_SISTEMAS) {
       throw new UnauthorizedException({
         mensagem: 'Você não tem acesso a essa rota',
       });
