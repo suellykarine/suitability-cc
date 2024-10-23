@@ -4,7 +4,7 @@ import { RetornoLaqusService } from './retornoStatusLaqus.service';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Laqus')
-@Controller('atualizarStatus')
+@Controller('/api/laqus/atualizarStatus')
 export class LaqusController {
   constructor(private readonly laqusService: RetornoLaqusService) {}
   @Post('')

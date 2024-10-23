@@ -17,7 +17,7 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '15m' },
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   providers: [

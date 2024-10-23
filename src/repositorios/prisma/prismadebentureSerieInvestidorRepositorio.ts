@@ -92,7 +92,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
             not: null,
           },
         },
-        include: { debenture_serie: true },
+        include: { debenture_serie: true, conta_investidor: true },
       });
 
     return converterCamposDecimais(serieInvestidorData);
@@ -108,7 +108,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
           [campo]: null,
           id_conta_investidor: idContaInvestidor,
         },
-        include: { debenture_serie: true },
+        include: { debenture_serie: true, conta_investidor: true },
       });
 
     return converterCamposDecimais(serieInvestidorData);
