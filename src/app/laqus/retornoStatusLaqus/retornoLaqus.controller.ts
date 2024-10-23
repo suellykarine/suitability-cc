@@ -1,13 +1,13 @@
-import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
+import { StatusRetornoLaqusDto } from '../dto/statusRetornoLaqus.dto';
 import { Body, Controller, Post } from '@nestjs/common';
-import { LaqusService } from './laqusService';
+import { RetornoLaqusService } from './retornoStatusLaqus.service';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Laqus')
-@Controller('api/laqus')
+@Controller('atualizarStatus')
 export class LaqusController {
-  constructor(private readonly laqusService: LaqusService) {}
-  @Post('atualizarStatus')
+  constructor(private readonly laqusService: RetornoLaqusService) {}
+  @Post('')
   async atualizarStatusLaqus(
     @Body() statusRetornoLaqusDto: StatusRetornoLaqusDto,
   ) {

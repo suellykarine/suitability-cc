@@ -25,8 +25,8 @@ export class StatusRetornoLaqusDto {
   status: StatusCadastro;
 
   @ApiProperty({
-    description: 'Identificador único do investidor',
-    example: '123456',
+    description: 'Identificador único do investidor cnpj ou cpf',
+    example: '00000000000000',
   })
   @IsString({
     message: 'O campo "identificadorInvestidor" deve ser uma string válida.',

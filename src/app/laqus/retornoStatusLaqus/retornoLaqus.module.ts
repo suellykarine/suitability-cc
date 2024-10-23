@@ -1,6 +1,6 @@
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
-import { LaqusController } from './laqus.controller';
-import { LaqusService } from './laqusService';
+import { LaqusController } from './retornoLaqus.controller';
+import { RetornoLaqusService } from './retornoStatusLaqus.service';
 import { Module } from '@nestjs/common';
 import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/prisma/prismadebentureSerieInvestidorRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
@@ -13,7 +13,7 @@ import { PrismaService } from 'prisma/prisma.service';
   controllers: [LaqusController],
   providers: [
     PrismaService,
-    LaqusService,
+    RetornoLaqusService,
     {
       provide: DebentureSerieInvestidorRepositorio,
       useClass: PrismaDebentureSerieInvestidorRepositorio,
@@ -27,6 +27,6 @@ import { PrismaService } from 'prisma/prisma.service';
       useClass: PrismaAdaptadorDb,
     },
   ],
-  exports: [LaqusService],
+  exports: [RetornoLaqusService],
 })
 export class LaqusModule {}

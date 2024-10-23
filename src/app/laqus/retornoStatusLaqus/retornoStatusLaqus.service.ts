@@ -3,7 +3,7 @@ import {
   Injectable,
   BadRequestException,
 } from '@nestjs/common';
-import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
+import { StatusRetornoLaqusDto } from '../dto/statusRetornoLaqus.dto';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import {
   definirContextosDeTransacao,
@@ -13,7 +13,7 @@ import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoIn
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 
 @Injectable()
-export class LaqusService {
+export class RetornoLaqusService {
   constructor(
     private readonly adaptadorDb: AdaptadorDb,
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
