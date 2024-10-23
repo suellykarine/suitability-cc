@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { DebentureSerie } from 'src/@types/entities/debenture';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
-import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class PrismaDebentureSerieRepositorio
@@ -15,10 +14,13 @@ export class PrismaDebentureSerieRepositorio
 
   async criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
+    sessao?: Prisma.TransactionClient,
   ): Promise<DebentureSerie> {
+    const prismaClient = sessao ?? this.prisma;
+
     const { id_debenture, ...restoDebentureSerie } = debentureSerie;
 
-    const debentureSerieData = await this.prisma.debenture_serie.create({
+    const debentureSerieData = await prismaClient.debenture_serie.create({
       data: {
         ...restoDebentureSerie,
         debenture: {
@@ -50,16 +52,21 @@ export class PrismaDebentureSerieRepositorio
   async atualizar(
     id: number,
     debentureSerie: AtualizarDebentureSerieDto,
+    sessao?: Prisma.TransactionClient,
   ): Promise<DebentureSerie | null> {
-    const updatedDebentureSerie = await this.prisma.debenture_serie.update({
+    const prismaClient = sessao ?? this.prisma;
+
+    const updatedDebentureSerie = await prismaClient.debenture_serie.update({
       where: { id },
       data: debentureSerie,
     });
 
     return converterCamposDecimais(updatedDebentureSerie);
   }
-  async deletar(id: number): Promise<void> {
-    await this.prisma.debenture_serie.delete({
+  async deletar(id: number, sessao?: Prisma.TransactionClient): Promise<void> {
+    const prismaClient = sessao ?? this.prisma;
+
+    await prismaClient.debenture_serie.delete({
       where: { id },
     });
   }

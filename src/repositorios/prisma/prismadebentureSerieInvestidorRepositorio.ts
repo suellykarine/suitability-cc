@@ -47,17 +47,19 @@ export class PrismaDebentureSerieInvestidorRepositorio
     );
   }
 
-  async criar({
-    id_conta_investidor,
-    id_debenture_serie,
-    id_fundo_investimento,
-    ...data
-  }: Omit<
-    Partial<DebentureSerieInvestidor>,
-    'id'
-  >): Promise<DebentureSerieInvestidor> {
+  async criar(
+    {
+      id_conta_investidor,
+      id_debenture_serie,
+      id_fundo_investimento,
+      ...data
+    }: Omit<Partial<DebentureSerieInvestidor>, 'id'>,
+    sessao?: Prisma.TransactionClient,
+  ): Promise<DebentureSerieInvestidor> {
+    const prismaClient = sessao ?? this.prisma;
+
     const serieInvestidorData =
-      await this.prisma.debenture_serie_investidor.create({
+      await prismaClient.debenture_serie_investidor.create({
         data: {
           ...(data as Prisma.debenture_serie_investidorCreateInput),
           conta_investidor: { connect: { id: id_conta_investidor } },

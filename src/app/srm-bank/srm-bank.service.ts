@@ -6,15 +6,22 @@ import {
   RegistrarContaNoCC,
 } from './interface/interface';
 import { sigmaHeaders } from 'src/app/auth/constants';
+import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 
 @Injectable()
 export class SrmBankService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+  ) {}
 
-  async criarContaInvestidor(dados: {
-    identificador: string;
-    id_cedente: string;
-  }) {
+  async criarContaInvestidor(
+    dados: {
+      identificador: string;
+      id_cedente: string;
+    },
+    sessao?: unknown,
+  ) {
     try {
       const criarConta = await this.CriarContaSRMBank(dados.identificador);
       const buscarConta = await this.buscarContaSrmBank(
@@ -33,11 +40,14 @@ export class SrmBankService {
         conta_digito: criarConta.conta.slice(-1),
         nome_favorecido: criarConta.nomeTitular,
       };
-      await this.registrarContaNoCreditConnect(objRegistrarContaCC);
+      const contaCreditConnect = await this.registrarContaNoCreditConnect(
+        objRegistrarContaCC,
+        sessao,
+      );
 
       return {
         mensagem: 'Conta Criada com sucesso ',
-        conta_investidor: criarConta,
+        conta_investidor: contaCreditConnect,
       };
     } catch (error) {
       throw error;
@@ -67,7 +77,7 @@ export class SrmBankService {
     if (req.ok) return { sucesso: true, ...response };
 
     throw new HttpException(
-      `Erro ao criar conta: ${req.status} ${req.statusText}`,
+      `Erro ao criar conta: ${response.motivo}`,
       req.status,
     );
   }
@@ -99,9 +109,12 @@ export class SrmBankService {
     return findConta;
   }
 
-  private async registrarContaNoCreditConnect(data: RegistrarContaNoCC) {
-    await this.prisma.conta_investidor.create({
-      data: {
+  private async registrarContaNoCreditConnect(
+    data: RegistrarContaNoCC,
+    sessao: unknown,
+  ) {
+    return await this.contaInvestidorRepositorio.criarContaInvestidor(
+      {
         agencia: data.agencia,
         agencia_digito: data.agencia_digito,
         codigo_conta: data.codigo_conta,
@@ -112,6 +125,7 @@ export class SrmBankService {
         id_fundo_investidor: data.id_fundo_investidor,
         nome_favorecido: data.nome_favorecido,
       },
-    });
+      sessao,
+    );
   }
 }

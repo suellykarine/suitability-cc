@@ -6,6 +6,7 @@ export abstract class DebentureSerieInvestidorRepositorio {
   abstract encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null>;
   abstract criar(
     data: Partial<DebentureSerieInvestidor>,
+    sessao?: unknown,
   ): Promise<DebentureSerieInvestidor>;
 
   abstract encontrarPorIdContaInvestidorDataDesvinculo(

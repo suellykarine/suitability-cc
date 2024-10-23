@@ -4,6 +4,7 @@ import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-deb
 export abstract class DebentureSerieRepositorio {
   abstract criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
+    sessao?: unknown,
   ): Promise<DebentureSerie>;
 
   abstract encontrarPorId(id: number): Promise<DebentureSerie | null>;
@@ -16,9 +17,10 @@ export abstract class DebentureSerieRepositorio {
   abstract atualizar(
     id: number,
     debentureSerie: AtualizarDebentureSerieDto,
+    sessao?: unknown,
   ): Promise<DebentureSerie | null>;
 
-  abstract deletar(id: number): Promise<void>;
+  abstract deletar(id: number, sessao?: unknown): Promise<void>;
 
   abstract contarSeries(idDebenture: number): Promise<number>;
 
