@@ -16,7 +16,6 @@ import { AmbimaModule } from './app/ambima/anbima.module';
 import { PainelModule } from './app/painel/painel.module';
 import { FundosModule } from './app/fundos/fundos.module';
 import { AtivosModule } from './app/ativos/ativos.module';
-import { LaqusModule } from './app/laqus/laqus.module';
 import { AuthModule } from './app/auth/auth.module';
 import { CcbModule } from './app/ccb/ccb.module';
 import { AppController } from './app.controller';
@@ -25,6 +24,7 @@ import { PdfModule } from './app/pdf/pdf.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppService } from './app.service';
 import { Module } from '@nestjs/common';
+import { LaqusModule } from './app/laqus/laqus.module';
 
 @Module({
   imports: [
