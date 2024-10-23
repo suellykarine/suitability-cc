@@ -24,6 +24,8 @@ import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { BodyCallbackDto } from './dto/body-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
+import { Cron } from '@nestjs/schedule';
+import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 
 @Injectable()
 export class CreditSecService {
@@ -34,7 +36,37 @@ export class CreditSecService {
     private readonly usuarioRepositorio: UsuarioRepositorio,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
+    private readonly debentureRepositorio: DebentureRepositorio,
   ) {}
+
+  @Cron('05 * * * * *')
+  async buscarStatusSolicitacaoSerie() {
+    const debentureSerieInvestidor =
+      await this.debentureSerieInvestidorRepositorio.todosStatusCreditSecNull();
+
+    debentureSerieInvestidor.map(async (ele) => {
+      const debentureSerie =
+        await this.debentureSerieRepositorio.encontrarPorId(
+          ele.id_debenture_serie,
+        );
+      const debenture = await this.debentureRepositorio.encontrarPorId(
+        debentureSerie.id_debenture,
+      );
+
+      const remittance_number = debentureSerie.numero_serie;
+      const remittance_id = debenture.numero_debenture;
+
+      const statusCreditSec = await this.buscarStatusSerieCreditSec(
+        remittance_number,
+        remittance_id,
+      );
+
+      if (statusCreditSec.status === 'PENDING') return;
+
+      const registrarRetornoCreditSec =
+        await this.registrarRetornoCreditSec(statusCreditSec);
+    });
+  }
 
   async solicitarSerie(id_cedente: number) {
     try {
@@ -47,13 +79,19 @@ export class CreditSecService {
       const enderecoCedente = cedenteSigma.endereco;
       const representanteCedente = cedenteCreditConnect.representante_fundo;
 
-      const serieInvestidor =
-        cedenteCreditConnect.debenture_serie_investidor.find(
-          (deb) =>
-            deb.data_vinculo !== null &&
-            deb.status_retorno_laqus.toLowerCase() == 'aprovado' &&
-            deb.status_retorno_creditsec === null,
-        );
+      const debentureSerieInvestidorIsArray = Array.isArray(
+        cedenteCreditConnect.debenture_serie_investidor,
+      );
+      const debentureSerieInvestidor = debentureSerieInvestidorIsArray
+        ? cedenteCreditConnect.debenture_serie_investidor
+        : Object.values(cedenteCreditConnect.debenture_serie_investidor);
+
+      const serieInvestidor = debentureSerieInvestidor.find(
+        (deb) =>
+          deb.data_vinculo !== null &&
+          deb.status_retorno_laqus.toLowerCase() == 'aprovado' &&
+          deb.status_retorno_creditsec === null,
+      );
       if (!serieInvestidor)
         throw new NotAcceptableException(
           'Não foi possível identificar a série do investidor',
@@ -97,6 +135,27 @@ export class CreditSecService {
         'Ocorreu um erro ao registrar os dados',
       );
     }
+  }
+
+  private async buscarStatusSerieCreditSec(
+    remittance_number: number,
+    remittance_id: number,
+  ): Promise<BodyCallbackDto> {
+    const req = await fetch(
+      `${process.env.BASE_URL_CREDIT_SEC}/serie/solicitar_emissao?remittance_id=${remittance_id}&remittance_number=${remittance_number}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC}`,
+        },
+      },
+    );
+
+    if (req.ok) return await req.json();
+    throw new HttpException(
+      `Erro ao buscar serie: ${req.status} ${req.statusText}`,
+      req.status,
+    );
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
     const req = await fetch(

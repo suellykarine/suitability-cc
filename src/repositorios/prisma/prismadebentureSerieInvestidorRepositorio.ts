@@ -92,6 +92,13 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return atualizaDebentureSerieInvestidor;
   }
 
+  async todosStatusCreditSecNull(): Promise<DebentureSerieInvestidor[] | null> {
+    const data = await this.prisma.debenture_serie_investidor.findMany({
+      where: { status_retorno_creditsec: null },
+    });
+    return data;
+  }
+
   private async encontrarPorCampo(
     campo: Extract<
       keyof DebentureSerieInvestidor,

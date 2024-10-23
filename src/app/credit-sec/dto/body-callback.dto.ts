@@ -24,7 +24,7 @@ export class BodyCallbackDto {
   })
   @IsString()
   @IsNotEmpty()
-  status: string;
+  status: 'PENDING' | 'SUCCESS' | 'FAILURE';
 
   @ApiProperty({
     description: 'Motivo de recusa',

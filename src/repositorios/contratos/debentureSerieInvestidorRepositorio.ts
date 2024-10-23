@@ -29,4 +29,8 @@ export abstract class DebentureSerieInvestidorRepositorio {
     status: string,
     motivo: string | null,
   ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract todosStatusCreditSecNull(): Promise<
+    DebentureSerieInvestidor[] | null
+  >;
 }

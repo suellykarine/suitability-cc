@@ -14,12 +14,20 @@ import { PrismaUsuarioFundoInvestimentoRepositorio } from 'src/repositorios/pris
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
 import { PrismaService } from 'prisma/prisma.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
+import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
 
 @Module({
+  imports: [ScheduleModule.forRoot()],
   controllers: [CreditSecControler],
   providers: [
     CreditSecService,
     PrismaService,
+    {
+      provide: DebentureRepositorio,
+      useClass: PrismaDebentureRepositorio,
+    },
     {
       provide: DebentureSerieRepositorio,
       useClass: PrismaDebentureSerieRepositorio,

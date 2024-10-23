@@ -12,7 +12,7 @@ import { JwtAuthGuardBackoffice } from 'src/app/auth/guards/backoffice-auth.guar
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BodyCallbackDto } from './dto/body-callback.dto';
 
-@ApiTags('SRM-bank')
+@ApiTags('CREDIT-SEC')
 @ApiBearerAuth('access-token')
 @Controller('api/credit-sec/solicitar-serie')
 export class CreditSecControler {
@@ -22,7 +22,7 @@ export class CreditSecControler {
   callbackCrediSec(@Body() body: BodyCallbackDto) {
     return this.CreditSecService.registrarRetornoCreditSec(body);
   }
-  @UseGuards(JwtAuthGuardBackoffice)
+  //@UseGuards(JwtAuthGuardBackoffice)
   @Post(':id_cedente')
   @HttpCode(204)
   solicitarSerie(@Param('id_cedente') id_cedente: string) {
