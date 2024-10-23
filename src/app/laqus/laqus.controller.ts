@@ -1,7 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { LaqusService } from './laqusService';
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
+import { Body, Controller, Post } from '@nestjs/common';
+import { LaqusService } from './laqusService';
+import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Laqus')
 @Controller('api/laqus')

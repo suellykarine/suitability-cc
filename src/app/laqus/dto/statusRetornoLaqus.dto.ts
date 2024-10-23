@@ -14,10 +14,6 @@ export enum StatusCadastro {
 
 export class StatusRetornoLaqusDto {
   @ApiProperty({
-    description: 'URL para onde o callback será enviado',
-    example: 'https://exemplo.com/callback',
-  })
-  @ApiProperty({
     description: 'Status do cadastro do investidor',
     enum: StatusCadastro,
     example: StatusCadastro.Aprovado,

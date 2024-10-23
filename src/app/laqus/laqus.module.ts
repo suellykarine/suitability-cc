@@ -7,10 +7,12 @@ import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoIn
 import { PrismaFundoInvestimentoRepositorio } from 'src/repositorios/prisma/prismaFundoInvestimentoRepositorio';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   controllers: [LaqusController],
   providers: [
+    PrismaService,
     LaqusService,
     {
       provide: DebentureSerieInvestidorRepositorio,
