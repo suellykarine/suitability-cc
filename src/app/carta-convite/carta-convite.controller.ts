@@ -15,8 +15,8 @@ import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
 import { Headers } from '@nestjs/common';
-import { decodificarToken } from 'src/utils/extrairId';
 import { TipoUsuario } from 'src/enums/TipoUsuario';
+import { decodificarToken } from 'src/utils/extrairId';
 import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.dto';
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
 
@@ -30,16 +30,14 @@ export class CartaConviteController {
     @Body() criarCartaConviteDto: CriarCartaConviteDto,
     @Headers() headers: any,
   ) {
-    let tokenDecodificado;
-    if (headers.authorization) {
-      tokenDecodificado = decodificarToken(headers.authorization.split(' ')[1]);
-    }
+    const token = headers.authorization.split(' ')[1];
+    const tokenDecodificado = decodificarToken(token);
 
     let userId: number | undefined;
     if (tokenDecodificado) {
       userId =
-        tokenDecodificado.typeUser === TipoUsuario.BACKOFFICE
-          ? tokenDecodificado.idUser
+        tokenDecodificado.tipoUsuario === TipoUsuario.BACKOFFICE
+          ? tokenDecodificado.idUsuario
           : undefined;
     }
 
