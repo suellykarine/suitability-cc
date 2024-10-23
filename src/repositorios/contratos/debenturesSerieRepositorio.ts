@@ -1,7 +1,8 @@
 import { DebentureSerie } from 'src/@types/entities/debenture';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
+import { Repositorio } from './repositorio';
 
-export abstract class DebentureSerieRepositorio {
+export abstract class DebentureSerieRepositorio extends Repositorio {
   abstract criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
     sessao?: unknown,

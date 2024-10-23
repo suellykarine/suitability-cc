@@ -15,13 +15,10 @@ export class SrmBankService {
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
   ) {}
 
-  async criarContaInvestidor(
-    dados: {
-      identificador: string;
-      id_cedente: string;
-    },
-    sessao?: unknown,
-  ) {
+  async criarContaInvestidor(dados: {
+    identificador: string;
+    id_cedente: string;
+  }) {
     try {
       const criarConta = await this.CriarContaSRMBank(dados.identificador);
       const buscarConta = await this.buscarContaSrmBank(
@@ -40,10 +37,8 @@ export class SrmBankService {
         conta_digito: criarConta.conta.slice(-1),
         nome_favorecido: criarConta.nomeTitular,
       };
-      const contaCreditConnect = await this.registrarContaNoCreditConnect(
-        objRegistrarContaCC,
-        sessao,
-      );
+      const contaCreditConnect =
+        await this.registrarContaNoCreditConnect(objRegistrarContaCC);
 
       return {
         mensagem: 'Conta Criada com sucesso ',
@@ -109,23 +104,17 @@ export class SrmBankService {
     return findConta;
   }
 
-  private async registrarContaNoCreditConnect(
-    data: RegistrarContaNoCC,
-    sessao: unknown,
-  ) {
-    return await this.contaInvestidorRepositorio.criarContaInvestidor(
-      {
-        agencia: data.agencia,
-        agencia_digito: data.agencia_digito,
-        codigo_conta: data.codigo_conta,
-        conta: data.conta,
-        conta_digito: data.conta_digito,
-        codigo_banco: data.codigo_banco,
-        identificador_favorecido: data.identificador_favorecido,
-        id_fundo_investidor: data.id_fundo_investidor,
-        nome_favorecido: data.nome_favorecido,
-      },
-      sessao,
-    );
+  private async registrarContaNoCreditConnect(data: RegistrarContaNoCC) {
+    return await this.contaInvestidorRepositorio.criarContaInvestidor({
+      agencia: data.agencia,
+      agencia_digito: data.agencia_digito,
+      codigo_conta: data.codigo_conta,
+      conta: data.conta,
+      conta_digito: data.conta_digito,
+      codigo_banco: data.codigo_banco,
+      identificador_favorecido: data.identificador_favorecido,
+      id_fundo_investidor: data.id_fundo_investidor,
+      nome_favorecido: data.nome_favorecido,
+    });
   }
 }

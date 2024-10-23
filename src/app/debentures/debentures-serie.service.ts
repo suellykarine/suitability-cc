@@ -23,6 +23,10 @@ import { FundoInvestimento } from 'src/@types/entities/fundos';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { ConfigService } from '@nestjs/config';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import {
+  definirContextosDeTransacao,
+  removerContextosDeTransacao,
+} from 'src/utils/funcoes/repositorios';
 
 @Injectable()
 export class DebentureSerieService {
@@ -44,7 +48,15 @@ export class DebentureSerieService {
     id_debenture: number,
     id_fundo_investimento: number,
   ): Promise<DebentureSerie> {
-    return this.adaptadorDb.fazerTransacao(async (sessao) => {
+    return this.adaptadorDb.fazerTransacao(async (contexto) => {
+      definirContextosDeTransacao({
+        repositorios: [
+          this.debentureSerieRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+          this.contaInvestidorRepositorio,
+        ],
+        contexto,
+      });
       const debenture =
         await this.debentureRespositorio.encontrarPorId(id_debenture);
 
@@ -90,7 +102,6 @@ export class DebentureSerieService {
               vinculoEncerrado.id_debenture_serie,
               vinculoEncerrado.id_conta_investidor,
               id_fundo_investimento,
-              sessao,
             );
             // await this.montarDados(fundo, vinculoEncerrado);
             return vinculoEncerrado.debenture_serie;
@@ -120,18 +131,15 @@ export class DebentureSerieService {
       const proximoNumeroSerie =
         this.calcularProximoNumeroSerie(seriesExistentes);
 
-      const novaSerie = await this.debentureSerieRepositorio.criar(
-        {
-          numero_serie: proximoNumeroSerie,
-          id_debenture: id_debenture,
-          valor_serie: fundo.valor_serie_debenture,
-          valor_serie_investido: 0,
-          valor_serie_restante: fundo.valor_serie_debenture,
-          data_emissao: null,
-          data_vencimento: null,
-        },
-        sessao,
-      );
+      const novaSerie = await this.debentureSerieRepositorio.criar({
+        numero_serie: proximoNumeroSerie,
+        id_debenture: id_debenture,
+        valor_serie: fundo.valor_serie_debenture,
+        valor_serie_investido: 0,
+        valor_serie_restante: fundo.valor_serie_debenture,
+        data_emissao: null,
+        data_vencimento: null,
+      });
 
       const serieLiquidada =
         await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento();
@@ -148,29 +156,31 @@ export class DebentureSerieService {
             novaSerie.id,
             serieLiquidada.id_conta_investidor,
             id_fundo_investimento,
-            sessao,
           );
           return novaSerie;
         }
       }
       const identificador = this.configService.get('IDENTIFICADOR_CEDENTE');
       const novaContaInvestidor =
-        await this.srmBankService.criarContaInvestidor(
-          {
-            identificador: identificador,
-            id_cedente: String(fundo.id),
-          },
-          sessao,
-        );
+        await this.srmBankService.criarContaInvestidor({
+          identificador: identificador,
+          id_cedente: String(fundo.id),
+        });
 
       const novaDeventureSerieInvestidor =
         await this.criarDebentureSerieInvestidor(
           novaSerie.id,
           novaContaInvestidor.conta_investidor.id,
           fundo.id,
-          sessao,
         );
 
+      removerContextosDeTransacao({
+        repositorios: [
+          this.debentureSerieRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+          this.contaInvestidorRepositorio,
+        ],
+      });
       return novaSerie;
     });
   }
@@ -179,18 +189,15 @@ export class DebentureSerieService {
     idDebentureSerie: number,
     idContaInvestidor: number,
     idFundoInvestimento: number,
-    sessao,
   ): Promise<void> {
     await this.contaInvestidorRepositorio.atualizarContaInvestidorFundoInvestimento(
       idFundoInvestimento,
       idContaInvestidor,
-      sessao,
     );
     await this.criarDebentureSerieInvestidor(
       idDebentureSerie,
       idContaInvestidor,
       idFundoInvestimento,
-      sessao,
     );
   }
 
@@ -198,24 +205,20 @@ export class DebentureSerieService {
     idDebentureSerie: number,
     idContaInvestidor: number,
     idFundoInvestimento: number,
-    sessao,
   ) {
-    return await this.debentureSerieInvestidorRepositorio.criar(
-      {
-        id_debenture_serie: idDebentureSerie,
-        id_conta_investidor: idContaInvestidor,
-        id_fundo_investimento: idFundoInvestimento,
-        data_vinculo: new Date(),
-        data_desvinculo: null,
-        data_encerramento: null,
-        codigo_investidor_laqus: null,
-        status_retorno_laqus: 'Pendente',
-        mensagem_retorno_laqus: null,
-        status_retorno_creditsec: null,
-        mensagem_retorno_creditsec: null,
-      },
-      sessao,
-    );
+    return await this.debentureSerieInvestidorRepositorio.criar({
+      id_debenture_serie: idDebentureSerie,
+      id_conta_investidor: idContaInvestidor,
+      id_fundo_investimento: idFundoInvestimento,
+      data_vinculo: new Date(),
+      data_desvinculo: null,
+      data_encerramento: null,
+      codigo_investidor_laqus: null,
+      status_retorno_laqus: 'Pendente',
+      mensagem_retorno_laqus: null,
+      status_retorno_creditsec: null,
+      mensagem_retorno_creditsec: null,
+    });
   }
 
   async encontrarTodos(pagina: number, limite: number) {

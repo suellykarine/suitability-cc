@@ -8,7 +8,15 @@ import { Prisma } from '@prisma/client';
 export class PrismaContaInvestidorRepositorio
   implements ContaInvestidorRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async atualizarContaInvestidorFundoInvestimento(
     idFundoInvestimento: number,

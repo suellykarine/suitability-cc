@@ -9,7 +9,15 @@ import { converterCamposDecimais } from 'src/utils/prisma/functions';
 export class PrismaDebentureSerieInvestidorRepositorio
   implements DebentureSerieInvestidorRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null> {
     const serieInvestidorData =

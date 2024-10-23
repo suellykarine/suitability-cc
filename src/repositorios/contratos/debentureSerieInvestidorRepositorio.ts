@@ -1,6 +1,7 @@
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
+import { Repositorio } from './repositorio';
 
-export abstract class DebentureSerieInvestidorRepositorio {
+export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null>;

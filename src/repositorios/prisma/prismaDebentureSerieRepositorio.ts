@@ -10,7 +10,15 @@ import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-deb
 export class PrismaDebentureSerieRepositorio
   implements DebentureSerieRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
