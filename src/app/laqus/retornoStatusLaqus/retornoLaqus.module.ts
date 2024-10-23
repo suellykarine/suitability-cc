@@ -29,4 +29,4 @@ import { PrismaService } from 'prisma/prisma.service';
   ],
   exports: [RetornoLaqusService],
 })
-export class LaqusModule {}
+export class RetornoLaqusModule {}
