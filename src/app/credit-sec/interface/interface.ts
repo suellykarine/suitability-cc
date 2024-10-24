@@ -1,4 +1,4 @@
-import { Endereco } from 'src/@types/entities/cedente';
+import { EnderecoCedente } from 'src/@types/entities/cedente';
 
 type Contato = {
   nome: string;
@@ -9,7 +9,7 @@ type Debenturista = {
   cnpj: string;
   razao_social: string;
   nome_fantasia: string;
-  endereco: Endereco;
+  endereco: EnderecoCedente;
   contato: Contato;
 };
 type Representantes = {

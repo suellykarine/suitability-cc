@@ -1,20 +1,25 @@
-import { DadosBancarios } from './banco';
+import { DadosBancarios, Favorecido } from './banco';
+import { Endereco } from './endereco';
 
 type Gerente = {
   identificadorGerente: string;
   nome: string;
   filial: string;
 };
-export type Endereco = {
-  logradouro: string;
-  numero: string;
-  complemento: string;
-  bairro: string;
-  cep: string;
-  cidade: string;
+type ContaCorrente = {
+  favorecido: Favorecido;
+  dadosBancarios: Omit<
+    DadosBancarios,
+    'tipoChavePix' | 'valorChavePix' | 'agenciaDigitoVerificador'
+  >;
+};
+export type EnderecoCedente = Pick<
+  Endereco,
+  'logradouro' | 'numero' | 'complemento' | 'bairro' | 'cep' | 'cidade'
+> & {
   uf: string;
 };
-export type CedenteType = {
+export type Cedente = {
   codigoCedente: number;
   identificadorCedente: string;
   gerente: Gerente;
@@ -38,7 +43,7 @@ export type CedenteType = {
     descricao: string;
   };
   quantidadeFuncionarios: 0;
-  endereco: Endereco;
+  endereco: EnderecoCedente;
   telefone: {
     numero: string;
     ddd: string;
@@ -51,16 +56,5 @@ export type CedenteType = {
   representantesLegais: [];
   devedoresSolidariosPessoaFisica: [];
   devedoresSolidariosPessoaJuridica: [];
-  contaCorrente: [
-    {
-      favorecido: {
-        identificador: string;
-        nome: string;
-      };
-      dadosBancarios: Omit<
-        DadosBancarios,
-        'tipoChavePix' | 'valorChavePix' | 'agenciaDigitoVerificador'
-      >;
-    },
-  ];
+  contaCorrente: ContaCorrente[];
 };

@@ -6,8 +6,8 @@ import {
   NotAcceptableException,
 } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { CedenteType } from 'src/@types/entities/cedente';
-import { Endereco } from 'src/@types/entities/cedente';
+import { Cedente } from 'src/@types/entities/cedente';
+import { EnderecoCedente } from 'src/@types/entities/cedente';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
 import {
   FundoInvestimento,
@@ -94,12 +94,13 @@ export class CreditSecService {
         ? cedenteCreditConnect.debenture_serie_investidor
         : Object.values(cedenteCreditConnect.debenture_serie_investidor);
 
-      const serieInvestidor = debentureSerieInvestidor.find(
-        (deb) =>
-          deb.data_vinculo !== null &&
-          deb.status_retorno_laqus.toLowerCase() == 'aprovado' &&
-          deb.status_retorno_creditsec === null,
-      );
+      const serieInvestidor = debentureSerieInvestidor.find((deb) => {
+        if (!deb.data_vinculo) return false;
+        if (deb.status_retorno_creditsec) return false;
+        const isApproved = deb.status_retorno_laqus.toLowerCase() == 'aprovado';
+        if (!isApproved) return false;
+        return true;
+      });
       if (!serieInvestidor)
         throw new NotAcceptableException(
           'Não foi possível identificar a série do investidor',
@@ -185,9 +186,7 @@ export class CreditSecService {
     );
   }
 
-  private async buscarCedenteSigma(
-    identificador: string,
-  ): Promise<CedenteType> {
+  private async buscarCedenteSigma(identificador: string): Promise<Cedente> {
     const req = await fetch(
       `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}`,
       {
@@ -236,7 +235,7 @@ export class CreditSecService {
 
   private async montarBodySolicitarSerie(
     representanteCedente: RepresentanteFundo,
-    enderecoCedente: Endereco,
+    enderecoCedente: EnderecoCedente,
     cedenteCreditConnect: FundoInvestimento,
     usuario: Omit<Usuario, 'tipo_usuario'>,
     serieInvestidor: DebentureSerieInvestidor,
