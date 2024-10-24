@@ -12,7 +12,7 @@ import {
   formatarTelefone,
 } from 'src/utils/formatar';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
-import { TipoUsuario } from 'src/enums/TipoUsuario';
+import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { StatusGestorFundo } from 'src/enums/StatusGestorFundo';
 import {
   CriarCodigoDeVerificacaoDto,
@@ -147,7 +147,7 @@ export class PreRegistroService {
     token: string,
   ): Promise<any> {
     const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
-      TipoUsuario.INVESTIDOR_TRIAL,
+      TipoUsuarioEnum.INVESTIDOR_TRIAL,
     );
     const statusUsuario = await this.statusUsuarioRepositorio.encontrarPorNome(
       StatusUsuario.PRIMEIRO_ACESSO,
@@ -316,8 +316,8 @@ export class PreRegistroService {
   private donoAdminOuBackoffice(usuario: usuario, tokenUsuario: any) {
     if (
       usuario.id !== tokenUsuario.id &&
-      tokenUsuario.tipo_usuario.tipo !== TipoUsuario.BACKOFFICE &&
-      tokenUsuario.tipo_usuario.tipo !== TipoUsuario.ADMINISTRADOR_SISTEMAS
+      tokenUsuario.tipo_usuario.tipo !== TipoUsuarioEnum.BACKOFFICE &&
+      tokenUsuario.tipo_usuario.tipo !== TipoUsuarioEnum.ADMINISTRADOR_SISTEMAS
     ) {
       return {
         mensagem: 'Não autorizado',

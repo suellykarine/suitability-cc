@@ -1,9 +1,8 @@
-import { Prisma } from '@prisma/client';
-import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
-import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { PrismaService } from 'prisma/prisma.service';
 import { DebentureSerie } from 'src/@types/entities/debenture';
+import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
 
 @Injectable()
