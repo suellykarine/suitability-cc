@@ -90,4 +90,13 @@ export class PrismaDebentureSerieRepositorio
     });
     return seriesExistentes.map(converterCamposDecimais);
   }
+
+  async encontrarSeriesPorNumeroSerie(
+    numero_serie: number,
+  ): Promise<DebentureSerie | null> {
+    const debenture_serie = await this.prisma.debenture_serie.findFirst({
+      where: { numero_serie: numero_serie },
+    });
+    return converterCamposDecimais(debenture_serie);
+  }
 }
