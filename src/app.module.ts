@@ -7,6 +7,7 @@ import { CartaConviteModule } from './app/carta-convite/carta-convite.module';
 import { PreRegistroModule } from './app/pre-registro/pre-registro.module';
 import { AuthorizationInterceptor } from 'interceptors/authorization.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { SrmBankModule } from './app/srm-bank/srm-bank.module';
 import { AtivosModule } from './app/ativos/ativos.module';
 import { PdfModule } from './app/pdf/pdf.module';
 import { PainelModule } from './app/painel/painel.module';
@@ -23,8 +24,8 @@ import { FeedbackModule } from './app/feedback/feedback.module';
 import { BuscarArquivoModule } from './app/buscar-arquivo/buscar-arquivo.module';
 import { DebenturesModule } from './app/debentures/debentures.module';
 import { AmbimaModule } from './app/ambima/anbima.module';
+import { CreditSecModule } from './app/credit-sec/credit-sec.module';
 import { LaqusModule } from './app/laqus/laqus.module';
-import { SrmBankModule } from './app/srm-bank/srm-bank.module';
 import { LaqusController } from './app/laqus/laqus.controller';
 
 @Module({
@@ -45,6 +46,7 @@ import { LaqusController } from './app/laqus/laqus.controller';
     StatusUsuarioModule,
     EstruturacaoCarrinhoModule,
     LaqusModule,
+    CreditSecModule,
     SrmBankModule,
     AnalisePerfilModule,
     FeedbackModule,

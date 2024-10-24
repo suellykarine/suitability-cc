@@ -19,4 +19,18 @@ export abstract class DebentureSerieInvestidorRepositorio {
   abstract encontrarPorIdContaInvestidorDataEncerramento(
     idFundoInvestimento: number,
   ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract encontrarPorIdDebentureSerie(
+    idDebentureSerie: number,
+  ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract atualizaDebentureSerieInvestidor(
+    idDebentureSerieInvestidor: number,
+    status: string,
+    motivo: string | null,
+  ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract todosStatusCreditSecNull(): Promise<
+    DebentureSerieInvestidor[] | null
+  >;
 }
