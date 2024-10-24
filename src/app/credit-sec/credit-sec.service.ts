@@ -39,33 +39,41 @@ export class CreditSecService {
     private readonly debentureRepositorio: DebentureRepositorio,
   ) {}
 
-  @Cron('05 * * * * *')
+  @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoSerie() {
-    const debentureSerieInvestidor =
-      await this.debentureSerieInvestidorRepositorio.todosStatusCreditSecNull();
+    try {
+      const debentureSerieInvestidorPendentes =
+        await this.debentureSerieInvestidorRepositorio.todosStatusCreditSecNull();
 
-    debentureSerieInvestidor.map(async (ele) => {
-      const debentureSerie =
-        await this.debentureSerieRepositorio.encontrarPorId(
-          ele.id_debenture_serie,
-        );
-      const debenture = await this.debentureRepositorio.encontrarPorId(
-        debentureSerie.id_debenture,
+      const todasSeriesAtualizadas = await Promise.all(
+        debentureSerieInvestidorPendentes.map(async (ele) => {
+          const debentureSerie =
+            await this.debentureSerieRepositorio.encontrarPorId(
+              ele.id_debenture_serie,
+            );
+          const debenture = await this.debentureRepositorio.encontrarPorId(
+            debentureSerie.id_debenture,
+          );
+
+          const remittance_number = debentureSerie.numero_serie;
+          const remittance_id = debenture.numero_debenture;
+
+          const statusCreditSec = await this.buscarStatusSerieCreditSec(
+            remittance_number,
+            remittance_id,
+          );
+
+          if (statusCreditSec.status === 'PENDING') return;
+
+          const retornoCreditSec =
+            await this.registrarRetornoCreditSec(statusCreditSec);
+          return retornoCreditSec;
+        }),
       );
-
-      const remittance_number = debentureSerie.numero_serie;
-      const remittance_id = debenture.numero_debenture;
-
-      const statusCreditSec = await this.buscarStatusSerieCreditSec(
-        remittance_number,
-        remittance_id,
-      );
-
-      if (statusCreditSec.status === 'PENDING') return;
-
-      const registrarRetornoCreditSec =
-        await this.registrarRetornoCreditSec(statusCreditSec);
-    });
+      return todasSeriesAtualizadas;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async solicitarSerie(id_cedente: number) {
