@@ -4,12 +4,21 @@ import { DebentureSerie } from 'src/@types/entities/debenture';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaDebentureSerieRepositorio
   implements DebentureSerieRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
