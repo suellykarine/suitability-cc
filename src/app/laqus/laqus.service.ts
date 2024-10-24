@@ -97,14 +97,14 @@ export class LaqusService {
           throw new NotFoundException(
             'Fundo de investimento não foi encontrado',
           );
-        const atualizado =
+        const atualizados =
           await this.debentureSerieInvestidor.atualizarStatusLaqus({
             idFundoInvestimento: fundoInvestimento.id,
             status,
             justificativa,
           });
 
-        if (atualizado.count == 0)
+        if (!atualizados.count)
           throw new BadRequestException(
             'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
           );
