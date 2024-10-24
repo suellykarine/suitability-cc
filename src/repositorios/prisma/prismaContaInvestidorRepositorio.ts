@@ -30,10 +30,7 @@ export class PrismaContaInvestidorRepositorio
 
   async criarContaInvestidor(
     dados: Omit<ContaInvestidor, 'id' | 'fundo_investimento'>,
-    sessao?: Prisma.TransactionClient,
   ): Promise<ContaInvestidor> {
-    const prismaClient = sessao ?? this.prisma;
-
     const { id_fundo_investidor, debenture_serie_investidor, ...restoDados } =
       dados;
 
@@ -45,7 +42,7 @@ export class PrismaContaInvestidorRepositorio
         },
       }),
     };
-    return await prismaClient.conta_investidor.create({
+    return await this.prisma.conta_investidor.create({
       data: dadosCriacao,
     });
   }

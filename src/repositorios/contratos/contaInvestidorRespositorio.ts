@@ -5,11 +5,9 @@ export abstract class ContaInvestidorRepositorio extends Repositorio {
   abstract atualizarContaInvestidorFundoInvestimento(
     idFundoInvestimento: number,
     idContaInvestidor: number,
-    sessao?: unknown,
   ): Promise<ContaInvestidor | null>;
 
   abstract criarContaInvestidor(
     dados: Omit<ContaInvestidor, 'id'>,
-    sessao?: unknown,
   ): Promise<ContaInvestidor | null>;
 }

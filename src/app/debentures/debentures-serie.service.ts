@@ -88,10 +88,11 @@ export class DebentureSerieService {
       const vinculoEncerrado =
         await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo();
       if (vinculoEncerrado) {
-        if (
+        const valorSerieFundoIgualValorSerieVinculoEncerrado =
           fundo.valor_serie_debenture ===
-          Number(vinculoEncerrado.debenture_serie.valor_serie)
-        ) {
+          Number(vinculoEncerrado.debenture_serie.valor_serie);
+
+        if (valorSerieFundoIgualValorSerieVinculoEncerrado) {
           const vinculoEncerradoContaInvestidor =
             await this.debentureSerieInvestidorRepositorio.encontrarPorIdContaInvestidorDataDesvinculo(
               vinculoEncerrado.id_conta_investidor,
