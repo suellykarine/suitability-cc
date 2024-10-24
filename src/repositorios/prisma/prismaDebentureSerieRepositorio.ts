@@ -4,6 +4,7 @@ import { DebentureSerie } from 'src/@types/entities/debenture';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaDebentureSerieRepositorio
