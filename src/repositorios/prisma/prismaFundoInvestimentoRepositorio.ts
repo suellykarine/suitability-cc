@@ -48,4 +48,19 @@ export class PrismaFundoInvestimentoRepositorio
     });
     return converterCamposDecimais(fundo);
   }
+  async encontrarComRelacionamentos(id: number): Promise<FundoInvestimento> {
+    const fundo = await this.prisma.fundo_investimento.findUnique({
+      where: { id },
+      include: {
+        debenture_serie_investidor: {
+          include: {
+            debenture_serie: { include: { debenture: true } },
+            conta_investidor: true,
+          },
+        },
+        representante_fundo: true,
+      },
+    });
+    return converterCamposDecimais(fundo);
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "srm-credit-connect-backend",
-  "version": "0.0.14",
+  "version": "0.0.16",
   "description": "",
   "author": "",
   "private": true,
@@ -33,6 +33,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^7.3.1",
     "@prisma/client": "^5.15.0",
     "bcrypt": "^5.1.1",

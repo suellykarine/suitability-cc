@@ -8,4 +8,7 @@ export abstract class FundoInvestimentoRepositorio extends Repositorio {
   abstract encontrarPorCpfCnpj(
     cprfCnpj: string,
   ): Promise<FundoInvestimento | null>;
+  abstract encontrarComRelacionamentos(
+    id: number,
+  ): Promise<FundoInvestimento | null>;
 }

@@ -31,4 +31,17 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract atualizarStatusLaqus(
     props: AtualizarStatusRetornoLaqus,
   ): Promise<RetornoMultiplos>;
+  abstract encontrarPorIdDebentureSerie(
+    idDebentureSerie: number,
+  ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract atualizaDebentureSerieInvestidor(
+    idDebentureSerieInvestidor: number,
+    status: string,
+    motivo: string | null,
+  ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract todosStatusCreditSecNull(): Promise<
+    DebentureSerieInvestidor[] | null
+  >;
 }
