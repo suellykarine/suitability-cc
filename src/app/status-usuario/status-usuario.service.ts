@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
-import { TipoUsuario } from 'src/enums/TipoUsuario';
+import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { AtualizarStatusUsuarioDto } from './dto/atualizar-status.dto';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
@@ -45,12 +45,12 @@ export class StatusUsuarioService {
 
     if (statusUpperCase === StatusUsuario.APROVADO) {
       const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
-        TipoUsuario.INVESTIDOR_PREMIUM,
+        TipoUsuarioEnum.INVESTIDOR_PREMIUM,
       );
       idTipoUsuario = tipoUsuario?.id || null;
     } else if (statusUpperCase === StatusUsuario.RECUSADO) {
       const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
-        TipoUsuario.INVESTIDOR_TRIAL,
+        TipoUsuarioEnum.INVESTIDOR_TRIAL,
       );
       idTipoUsuario = tipoUsuario?.id || null;
     }
