@@ -446,6 +446,6 @@ model debenture_serie_investidor {
   conta_investidor           conta_investidor    @relation(fields: [id_conta_investidor], references: [id], onUpdate: NoAction, map: "fk_conta_investidor")
   debenture_serie            debenture_serie     @relation(fields: [id_debenture_serie], references: [id], onUpdate: NoAction, map: "fk_debenture_serie")
   fundo_investimento         fundo_investimento? @relation(fields: [id_fundo_investimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_fundo_investimento")
-
+  
   @@unique([id_debenture_serie, id_conta_investidor], map: "unique_debenture_serie_investidor_id_debenture_serie_id_conta_investidor")
 }

@@ -1,12 +1,17 @@
 import { DebentureSerie } from 'src/@types/entities/debenture';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
+import { Repositorio } from './repositorio';
 
-export abstract class DebentureSerieRepositorio {
+export abstract class DebentureSerieRepositorio extends Repositorio {
   abstract criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
   ): Promise<DebentureSerie>;
 
   abstract encontrarPorId(id: number): Promise<DebentureSerie | null>;
+
+  abstract encontrarSeriesPorNumeroSerie(
+    numero_serie: number,
+  ): Promise<DebentureSerie | null>;
 
   abstract encontrarTodos(
     limite: number,

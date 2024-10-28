@@ -1,16 +1,26 @@
 import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { DebentureSerieInvestidorRepositorio } from '../contratos/debentureSerieInvestidorRepositorio';
+import {
+  AtualizarStatusRetornoLaqus,
+  DebentureSerieInvestidorRepositorio,
+} from '../contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
 import { Prisma } from '@prisma/client';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { RetornoMultiplos } from 'src/utils/prisma/types';
 
 @Injectable()
 export class PrismaDebentureSerieInvestidorRepositorio
   implements DebentureSerieInvestidorRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
 
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
   async encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null> {
     const serieInvestidorData =
       await this.prisma.debenture_serie_investidor.findUnique({
@@ -69,6 +79,36 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return serieInvestidorData;
   }
 
+  async encontrarPorIdDebentureSerie(id_debenture_serie: number) {
+    const debentureSerieInvestidor =
+      await this.prisma.debenture_serie_investidor.findFirst({
+        where: { id_debenture_serie },
+      });
+    return debentureSerieInvestidor;
+  }
+  async atualizaDebentureSerieInvestidor(
+    id_debenture_serie_investidor: number,
+    status: string,
+    motivo: string,
+  ): Promise<DebentureSerieInvestidor> {
+    const atualizaDebentureSerieInvestidor =
+      await this.prisma.debenture_serie_investidor.update({
+        where: { id: id_debenture_serie_investidor },
+        data: {
+          status_retorno_creditsec: status,
+          mensagem_retorno_creditsec: motivo ?? null,
+        },
+      });
+    return atualizaDebentureSerieInvestidor;
+  }
+
+  async todosStatusCreditSecNull(): Promise<DebentureSerieInvestidor[] | null> {
+    const data = await this.prisma.debenture_serie_investidor.findMany({
+      where: { status_retorno_creditsec: null },
+    });
+    return data;
+  }
+
   private async encontrarPorCampo(
     campo: Extract<
       keyof DebentureSerieInvestidor,
@@ -102,5 +142,25 @@ export class PrismaDebentureSerieInvestidorRepositorio
       });
 
     return converterCamposDecimais(serieInvestidorData);
+  }
+
+  async atualizarStatusLaqus({
+    status,
+    justificativa,
+    idFundoInvestimento,
+  }: AtualizarStatusRetornoLaqus): Promise<RetornoMultiplos> {
+    const debentureSerieInvestidor =
+      await this.prisma.debenture_serie_investidor.updateMany({
+        where: {
+          id_fundo_investimento: idFundoInvestimento,
+          status_retorno_laqus: 'Pendente',
+        },
+        data: {
+          status_retorno_laqus: status,
+          mensagem_retorno_laqus: justificativa,
+        },
+      });
+
+    return debentureSerieInvestidor;
   }
 }

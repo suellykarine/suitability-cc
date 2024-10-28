@@ -1,17 +1,24 @@
-import { Prisma } from '@prisma/client';
-import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
-import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { PrismaService } from 'prisma/prisma.service';
 import { DebentureSerie } from 'src/@types/entities/debenture';
+import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaDebentureSerieRepositorio
   implements DebentureSerieRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async criar(
     debentureSerie: Omit<DebentureSerie, 'id'>,
@@ -82,5 +89,14 @@ export class PrismaDebentureSerieRepositorio
       orderBy: { numero_serie: 'asc' },
     });
     return seriesExistentes.map(converterCamposDecimais);
+  }
+
+  async encontrarSeriesPorNumeroSerie(
+    numero_serie: number,
+  ): Promise<DebentureSerie | null> {
+    const debenture_serie = await this.prisma.debenture_serie.findFirst({
+      where: { numero_serie: numero_serie },
+    });
+    return converterCamposDecimais(debenture_serie);
   }
 }
