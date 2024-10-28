@@ -15,8 +15,9 @@ import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto'
 import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
+import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
 
-@UseGuards(JwtAuthGuardBackoffice)
+// @UseGuards(JwtAuthGuardBackoffice)
 @ApiTags('Debentures')
 @ApiBearerAuth('access-token')
 @Controller('api/debentures')
@@ -26,16 +27,17 @@ export class DebenturesController {
     private readonly debentureService: DebentureService,
   ) {}
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Get()
   async listarDebentures() {
     return this.debentureService.listarDebentures();
   }
-
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post()
   async criarDebenture(@Body() criarDebentureDto: CriarDebentureDto) {
     return this.debentureService.criarDebenture(criarDebentureDto);
   }
-
+  @UseGuards(JwtAuthGuardBackoffice)
   @Get('/serie')
   @ApiQuery({
     name: 'pagina',
@@ -58,12 +60,12 @@ export class DebenturesController {
       Number(limite),
     );
   }
-
+  @UseGuards(JwtAuthGuardPremium)
   @Get('serie/:id')
   async encontrarPorId(@Param('id') id: string) {
     return this.debenturesSerieService.encontrarPorId(+id);
   }
-
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('serie/:id_debenture/fundo/:id_fundo_investimento')
   async createNextSeries(
     @Param('id_debenture') id_debenture: string,
@@ -74,7 +76,7 @@ export class DebenturesController {
       +id_fundo_investimento,
     );
   }
-
+  @UseGuards(JwtAuthGuardBackoffice)
   @Patch('serie/:id')
   async atualizar(
     @Param('id') id: string,
@@ -85,7 +87,7 @@ export class DebenturesController {
       atualizarDebentureSerieDto,
     );
   }
-
+  @UseGuards(JwtAuthGuardBackoffice)
   @Delete('serie/:id')
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);

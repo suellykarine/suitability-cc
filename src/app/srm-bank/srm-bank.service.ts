@@ -114,4 +114,18 @@ export class SrmBankService {
       },
     });
   }
+
+  async buscarContaInvestidor(id_fundo_investidor: number) {
+    try {
+      const conta = await this.prisma.conta_investidor.findFirst({
+        where: { id_fundo_investidor },
+      });
+      return conta || { mensagem: 'Conta não encontrada' };
+    } catch (error) {
+      throw new HttpException(
+        `Erro ao buscar conta investidor: ${error.message}`,
+        500,
+      );
+    }
+  }
 }
