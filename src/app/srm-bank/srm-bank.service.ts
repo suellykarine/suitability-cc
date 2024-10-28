@@ -1,5 +1,4 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
 import {
   RespostaCriarContaSrmBank,
   RespostaBuscarContaSrmBank,
@@ -11,7 +10,6 @@ import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInve
 @Injectable()
 export class SrmBankService {
   constructor(
-    private prisma: PrismaService,
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
   ) {}
 
@@ -118,11 +116,12 @@ export class SrmBankService {
     });
   }
 
-  async buscarContaInvestidor(id_fundo_investidor: number) {
+  async buscarContaInvestidor(idFundoInvestidor: number) {
     try {
-      const conta = await this.prisma.conta_investidor.findFirst({
-        where: { id_fundo_investidor },
-      });
+      const conta =
+        await this.contaInvestidorRepositorio.buscarContaInvestidorPorIdentificadorFundo(
+          idFundoInvestidor,
+        );
       return conta || { mensagem: 'Conta não encontrada' };
     } catch (error) {
       throw new HttpException(

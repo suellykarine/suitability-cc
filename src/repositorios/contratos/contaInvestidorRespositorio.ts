@@ -10,4 +10,8 @@ export abstract class ContaInvestidorRepositorio extends Repositorio {
   abstract criarContaInvestidor(
     dados: Omit<ContaInvestidor, 'id'>,
   ): Promise<ContaInvestidor | null>;
+
+  abstract buscarContaInvestidorPorIdentificadorFundo(
+    idenficadorFundo: number,
+  ): Promise<ContaInvestidor | null>;
 }
