@@ -8,13 +8,19 @@ import {
   AtualizarUsuarioDto,
 } from './dto/update-adm.dto';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from 'prisma/prisma.service';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { CreateUsuarioDto } from '../usuarios/dto/criar-usuario.dto';
+import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+import { StatusUsuarioRepositorio } from 'src/repositorios/contratos/statusUsuarioRepositorio';
+import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
 
 @Injectable()
 export class AdmService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly usuarioRepositorio: UsuarioRepositorio,
+    private readonly statusUsuarioRepositorio: StatusUsuarioRepositorio,
+    private readonly tipoUsuarioRepositorio: TipoUsuarioRepositorio,
+  ) {}
 
   async criarUsuario(createAdmDto: CreateUsuarioDto) {
     const statusUsuario = await this.obterStatusUsuario(StatusUsuario.APROVADO);
@@ -22,27 +28,14 @@ export class AdmService {
 
     const senhaHash = await bcrypt.hash(createAdmDto.senha, 10);
 
-    const usuario = await this.prisma.usuario.create({
-      data: {
-        nome: createAdmDto.nome,
-        email: createAdmDto.email,
-        telefone: createAdmDto.telefone,
-        senha: senhaHash,
-        cpf: createAdmDto.cpf || null,
-        id_tipo_usuario: tipoUsuario.id,
-        id_status_usuario: statusUsuario.id,
-      },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        telefone: true,
-        cpf: true,
-        id_gestor_fundo: true,
-        data_criacao: true,
-        tipo_usuario: { select: { id: true, descricao: true } },
-        status_usuario: { select: { id: true, descricao: true } },
-      },
+    const usuario = await this.usuarioRepositorio.criar({
+      nome: createAdmDto.nome,
+      email: createAdmDto.email,
+      telefone: createAdmDto.telefone,
+      senha: senhaHash,
+      cpf: createAdmDto.cpf || null,
+      tipo_usuario: tipoUsuario,
+      status_usuario: statusUsuario,
     });
 
     return {
@@ -56,29 +49,19 @@ export class AdmService {
     pagina: number,
     limite: number,
   ) {
-    const offset = pagina * limite;
+    const desvio = pagina * limite;
     const condicao = tipoUsuarioQuery
       ? { tipo_usuario: { tipo: tipoUsuarioQuery } }
       : {};
 
-    const usuarios = await this.prisma.usuario.findMany({
-      where: condicao,
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        telefone: true,
-        cpf: true,
-        id_gestor_fundo: true,
-        data_criacao: true,
-        tipo_usuario: { select: { id: true, descricao: true } },
-        status_usuario: { select: { id: true, descricao: true } },
-      },
-      skip: offset,
-      take: limite,
-    });
+    const usuarios = await this.usuarioRepositorio.encontrarTodosComCondicao(
+      condicao,
+      desvio,
+      limite,
+    );
 
-    const totalUsuarios = await this.prisma.usuario.count({ where: condicao });
+    const totalUsuarios =
+      await this.usuarioRepositorio.contarUsuarios(condicao);
     const totalPaginas = Math.ceil(totalUsuarios / limite);
 
     return {
@@ -93,30 +76,7 @@ export class AdmService {
   }
 
   async buscarUsuarioPorId(id: number) {
-    const usuario = await this.prisma.usuario.findFirst({
-      where: { id },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        telefone: true,
-        cpf: true,
-        id_gestor_fundo: true,
-        data_criacao: true,
-        tipo_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-        status_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-      },
-    });
+    const usuario = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuario) {
       throw new NotFoundException('Usuário não encontrado.');
@@ -126,9 +86,7 @@ export class AdmService {
   }
 
   async atualizarUsuario(id: number, atualizarUsuarioDto: AtualizarUsuarioDto) {
-    const usuarioExistente = await this.prisma.usuario.findUnique({
-      where: { id },
-    });
+    const usuarioExistente = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuarioExistente) {
       throw new NotFoundException('Usuário não encontrado.');
@@ -138,42 +96,13 @@ export class AdmService {
       ? await bcrypt.hash(atualizarUsuarioDto.senha, 10)
       : usuarioExistente.senha;
 
-    const tipoUsuario = atualizarUsuarioDto.tipo_usuario
-      ? await this.prisma.tipo_usuario.findUnique({
-          where: { tipo: atualizarUsuarioDto.tipo_usuario },
-        })
-      : undefined;
-
-    const usuarioAtualizado = await this.prisma.usuario.update({
-      where: { id },
-      data: {
-        email: atualizarUsuarioDto.email || usuarioExistente.email,
-        nome: atualizarUsuarioDto.nome || usuarioExistente.nome,
-        senha: senhaCriptografada,
-        cpf: atualizarUsuarioDto.cpf || null,
-        telefone: atualizarUsuarioDto.telefone || usuarioExistente.telefone,
-        id_tipo_usuario: tipoUsuario?.id || usuarioExistente.id_tipo_usuario,
-      },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        telefone: true,
-        id_gestor_fundo: true,
-        data_criacao: true,
-        tipo_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-        status_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-      },
+    const usuarioAtualizado = await this.usuarioRepositorio.atualizar(id, {
+      email: atualizarUsuarioDto.email || usuarioExistente.email,
+      nome: atualizarUsuarioDto.nome || usuarioExistente.nome,
+      senha: senhaCriptografada,
+      cpf: atualizarUsuarioDto.cpf || null,
+      telefone: atualizarUsuarioDto.telefone || usuarioExistente.telefone,
+      tipo_usuario: atualizarUsuarioDto.tipo_usuario,
     });
 
     return {
@@ -183,24 +112,19 @@ export class AdmService {
   }
 
   async excluirUsuario(id: number) {
-    const usuarioExistente = await this.prisma.usuario.findUnique({
-      where: { id },
-    });
+    const usuarioExistente = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuarioExistente) {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    await this.prisma.usuario.delete({
-      where: { id },
-    });
+    await this.usuarioRepositorio.deletar(id);
 
     return { mensagem: 'Usuário excluído com sucesso.' };
   }
   private async obterStatusUsuario(nomeStatus: string) {
-    const status = await this.prisma.status_usuario.findFirst({
-      where: { nome: nomeStatus },
-    });
+    const status =
+      await this.statusUsuarioRepositorio.encontrarPorNome(nomeStatus);
 
     if (!status) {
       throw new NotFoundException(
@@ -212,9 +136,8 @@ export class AdmService {
   }
 
   private async obterTipoUsuario(tipo: string) {
-    const tipoUsuario = await this.prisma.tipo_usuario.findUnique({
-      where: { tipo },
-    });
+    const tipoUsuario =
+      await this.tipoUsuarioRepositorio.encontrarPorTipo(tipo);
 
     if (!tipoUsuario) {
       throw new NotFoundException(`Tipo de usuário '${tipo}' não encontrado.`);
@@ -224,9 +147,9 @@ export class AdmService {
   }
 
   async alterarSenhaMaster(atualizarSenhaMasterDto: AtualizarSenhaMasterDto) {
-    const usuario = await this.prisma.usuario.findFirst({
-      where: { email: process.env.EMAIL_DIRETORIA },
-    });
+    const usuario = await this.usuarioRepositorio.encontrarPorEmail(
+      process.env.EMAIL_DIRETORIA,
+    );
 
     if (!usuario) {
       throw new NotFoundException('Usuário não encontrado');
@@ -243,30 +166,8 @@ export class AdmService {
 
     const senhaHash = await bcrypt.hash(atualizarSenhaMasterDto.nova_senha, 10);
 
-    await this.prisma.usuario.update({
-      where: { id: usuario.id },
-      data: { senha: senhaHash },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        telefone: true,
-        cpf: true,
-        id_gestor_fundo: true,
-        data_criacao: true,
-        tipo_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-        status_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
-      },
+    await this.usuarioRepositorio.atualizar(usuario.id, {
+      senha: senhaHash,
     });
 
     return {

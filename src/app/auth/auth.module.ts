@@ -10,6 +10,8 @@ import { JwtStrategyBackoffice } from './strategies/backoffice.strategy';
 import { JwtStrategyAdm } from './strategies/adm.strategy';
 import { JwtStrategyPremium } from './strategies/premium.strategy';
 import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
+import { JwtStrategyCartaConvite } from './strategies/carta-convite.strategy';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
     JwtStrategyAdm,
     JwtStrategyPremium,
     JwtStrategyPreRegister,
+    JwtStrategyCartaConvite,
+    PrismaService,
   ],
   exports: [AutenticacaoService],
 })
