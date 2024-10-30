@@ -12,6 +12,8 @@ import { JwtStrategyPremium } from './strategies/premium.strategy';
 import { JwtStrategyPreRegister } from './strategies/pre-register.strategy';
 import { JwtStrategyCartaConvite } from './strategies/carta-convite.strategy';
 import { PrismaService } from 'prisma/prisma.service';
+import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
 
 @Module({
   imports: [
@@ -32,6 +34,10 @@ import { PrismaService } from 'prisma/prisma.service';
     JwtStrategyPreRegister,
     JwtStrategyCartaConvite,
     PrismaService,
+    {
+      provide: UsuarioRepositorio,
+      useClass: PrismaUsuarioRepositorio,
+    },
   ],
   exports: [AutenticacaoService],
 })

@@ -4,13 +4,17 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConstants } from '../constants';
 import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { PrismaService } from 'prisma/prisma.service';
+import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 
 @Injectable()
 export class JwtStrategyCartaConvite extends PassportStrategy(
   Strategy,
   'cartaConvite',
 ) {
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly usuarioRepositorio: UsuarioRepositorio,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -22,14 +26,9 @@ export class JwtStrategyCartaConvite extends PassportStrategy(
     if (!payload) {
       return null;
     }
-    const usuario = await this.prisma.usuario.findFirst({
-      where: {
-        id: payload.idUsuario,
-      },
-      include: {
-        tipo_usuario: true,
-      },
-    });
+    const usuario = await this.usuarioRepositorio.encontrarPorId(
+      payload.idUsuario,
+    );
 
     if (!usuario || usuario.tipo_usuario.tipo !== TipoUsuarioEnum.BACKOFFICE) {
       throw new UnauthorizedException({

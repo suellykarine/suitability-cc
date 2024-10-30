@@ -69,6 +69,7 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         tipo_usuario: {
           select: {
             id: true,
+            tipo: true,
             descricao: true,
           },
         },
