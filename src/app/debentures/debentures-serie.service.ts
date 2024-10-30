@@ -27,6 +27,7 @@ import {
   definirContextosDeTransacao,
   removerContextosDeTransacao,
 } from 'src/utils/funcoes/repositorios';
+import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 
 @Injectable()
 export class DebentureSerieService {
@@ -47,6 +48,7 @@ export class DebentureSerieService {
   async criar(
     id_debenture: number,
     id_fundo_investimento: number,
+    criarDebentureSerieDto: CriarDebentureSerieDto,
   ): Promise<DebentureSerie> {
     return this.adaptadorDb.fazerTransacao(async (contexto) => {
       definirContextosDeTransacao({
@@ -68,14 +70,17 @@ export class DebentureSerieService {
       const fundo = await this.prismaFundoRepositorio.encontrarPorId(
         id_fundo_investimento,
       );
+
+      const valorSerie =
+        criarDebentureSerieDto.valor_serie ?? fundo.valor_serie_debenture;
       if (!fundo) {
         throw new NotFoundException(
           `Fundo de investimento com ID ${id_fundo_investimento} não encontrado`,
         );
       }
-      if (!fundo.valor_serie_debenture) {
+      if (!valorSerie) {
         throw new BadRequestException(
-          'Esse fundo de investimento não possui um valor_serie_debenture',
+          'Valor série não enviado ou fundo não possuí um valor de serie',
         );
       }
 
@@ -89,8 +94,7 @@ export class DebentureSerieService {
         await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo();
       if (vinculoEncerrado) {
         const valorSerieFundoIgualValorSerieVinculoEncerrado =
-          fundo.valor_serie_debenture ===
-          Number(vinculoEncerrado.debenture_serie.valor_serie);
+          valorSerie === Number(vinculoEncerrado.debenture_serie.valor_serie);
 
         if (valorSerieFundoIgualValorSerieVinculoEncerrado) {
           const vinculoEncerradoContaInvestidor =
@@ -124,10 +128,7 @@ export class DebentureSerieService {
           id_debenture,
         );
 
-      this.verificarLimiteDebenture(
-        seriesExistentes,
-        Number(fundo.valor_serie_debenture),
-      );
+      this.verificarLimiteDebenture(seriesExistentes, Number(valorSerie));
 
       const proximoNumeroSerie =
         this.calcularProximoNumeroSerie(seriesExistentes);
@@ -135,9 +136,10 @@ export class DebentureSerieService {
       const novaSerie = await this.debentureSerieRepositorio.criar({
         numero_serie: proximoNumeroSerie,
         id_debenture: id_debenture,
-        valor_serie: fundo.valor_serie_debenture,
+        valor_serie: criarDebentureSerieDto.valor_serie ?? valorSerie,
         valor_serie_investido: 0,
-        valor_serie_restante: fundo.valor_serie_debenture,
+        valor_serie_restante: criarDebentureSerieDto.valor_serie ?? valorSerie,
+
         data_emissao: null,
         data_vencimento: null,
       });

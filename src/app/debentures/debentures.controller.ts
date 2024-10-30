@@ -16,6 +16,7 @@ import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
 import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
+import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 
 @ApiTags('Debentures')
 @ApiBearerAuth('access-token')
@@ -66,13 +67,15 @@ export class DebenturesController {
   }
   @UseGuards(JwtAuthGuardBackoffice)
   @Post('serie/:id_debenture/fundo/:id_fundo_investimento')
-  async createNextSeries(
+  async criarNovaSerie(
     @Param('id_debenture') id_debenture: string,
     @Param('id_fundo_investimento') id_fundo_investimento: string,
+    @Body() criarDebentureSerieDto: CriarDebentureSerieDto,
   ) {
     return this.debenturesSerieService.criar(
       +id_debenture,
       +id_fundo_investimento,
+      criarDebentureSerieDto,
     );
   }
   @UseGuards(JwtAuthGuardBackoffice)
