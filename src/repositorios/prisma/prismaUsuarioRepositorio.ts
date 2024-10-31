@@ -26,11 +26,12 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     });
   }
 
-  async encontrarTodosComCondicao(
-    condicao: unknown,
+  async encontrarTodosPorTipoUsuario(
     desvio: number,
     limite: number,
+    tipoUsuario?: string,
   ): Promise<Usuario[] | null> {
+    const condicao = tipoUsuario ? { tipo_usuario: { tipo: tipoUsuario } } : {};
     return this.prisma.usuario.findMany({
       where: condicao,
       select: {
@@ -49,7 +50,9 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     });
   }
 
-  async contarUsuarios(condicao: unknown): Promise<number> {
+  async contarUsuariosPorTipo(tipoUsuario: string): Promise<number> {
+    const condicao = tipoUsuario ? { tipo_usuario: { tipo: tipoUsuario } } : {};
+
     return this.prisma.usuario.count({
       where: condicao,
     });

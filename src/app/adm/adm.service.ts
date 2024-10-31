@@ -50,18 +50,15 @@ export class AdmService {
     limite: number,
   ) {
     const desvio = pagina * limite;
-    const condicao = tipoUsuarioQuery
-      ? { tipo_usuario: { tipo: tipoUsuarioQuery } }
-      : {};
 
-    const usuarios = await this.usuarioRepositorio.encontrarTodosComCondicao(
-      condicao,
+    const usuarios = await this.usuarioRepositorio.encontrarTodosPorTipoUsuario(
       desvio,
       limite,
+      tipoUsuarioQuery,
     );
 
     const totalUsuarios =
-      await this.usuarioRepositorio.contarUsuarios(condicao);
+      await this.usuarioRepositorio.contarUsuariosPorTipo(tipoUsuarioQuery);
     const totalPaginas = Math.ceil(totalUsuarios / limite);
 
     return {

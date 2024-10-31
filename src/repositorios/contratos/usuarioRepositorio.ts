@@ -20,11 +20,11 @@ export abstract class UsuarioRepositorio extends Repositorio {
     idTipoUsuario: number | null,
   ): Promise<any>;
 
-  abstract encontrarTodosComCondicao(
-    condicao: unknown,
+  abstract encontrarTodosPorTipoUsuario(
     desvio: number,
     limite: number,
+    tipoUsuario?: string,
   ): Promise<Usuario[] | null>;
 
-  abstract contarUsuarios(condicao: unknown): Promise<number>;
+  abstract contarUsuariosPorTipo(tipoUsuario: string): Promise<number>;
 }
