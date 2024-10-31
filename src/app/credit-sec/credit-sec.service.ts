@@ -154,7 +154,6 @@ export class CreditSecService {
     }
   }
 
-  //APENAS EM RETORNO SUCCESS DA CREDIT SEC
   private async registrarDataEmissaoSerie(id_debenture_serie: number) {
     const dataAtual = new Date();
     const dataFutura = new Date();
@@ -169,7 +168,6 @@ export class CreditSecService {
     return atualizaDebentureSerie;
   }
 
-  //APENAS EM RETORNO FAILURE DA CREDIT SEC
   private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
     const desabilitaDebenture =
       await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie(
