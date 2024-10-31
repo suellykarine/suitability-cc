@@ -63,4 +63,17 @@ export class PrismaFundoInvestimentoRepositorio
     });
     return converterCamposDecimais(fundo);
   }
+
+  async atualizaAptoDebentureEvalorSerie(
+    apto_debenture: boolean,
+    valor_serie_debenture: number,
+    id_fundo: number,
+  ): Promise<FundoInvestimento> {
+    const atualizaFundo = await this.prisma.fundo_investimento.update({
+      where: { id: id_fundo },
+      data: { apto_debenture, valor_serie_debenture },
+    });
+
+    return converterCamposDecimais(atualizaFundo);
+  }
 }

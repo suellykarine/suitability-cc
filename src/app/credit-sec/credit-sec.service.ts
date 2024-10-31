@@ -39,7 +39,7 @@ export class CreditSecService {
     private readonly debentureRepositorio: DebentureRepositorio,
   ) {}
 
-  @Cron('0 0 10 * * 1-5')
+  /*  @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoSerie() {
     try {
       const debentureSerieInvestidorPendentes =
@@ -74,7 +74,7 @@ export class CreditSecService {
     } catch (error) {
       throw error;
     }
-  }
+  } */
 
   async solicitarSerie(id_cedente: number) {
     try {
@@ -138,12 +138,46 @@ export class CreditSecService {
           data.motivo,
         );
 
+      if (data.status === 'SUCCESS')
+        await this.registrarDataEmissaoSerie(debentureSerie.id);
+
+      if (data.status === 'FAILURE')
+        await this.desabilitarDebentureFundoInvestimento(
+          debentureSerieInvestidor.id_fundo_investimento,
+        );
+
       return atualizaDebentureSerieInvestidor;
     } catch (error) {
       throw new InternalServerErrorException(
         'Ocorreu um erro ao registrar os dados',
       );
     }
+  }
+
+  //APENAS EM RETORNO SUCCESS DA CREDIT SEC
+  private async registrarDataEmissaoSerie(id_debenture_serie: number) {
+    const dataAtual = new Date();
+    const dataFutura = new Date();
+    dataFutura.setMonth(dataFutura.getMonth() + 6);
+
+    const atualizaDebentureSerie =
+      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie(
+        dataAtual,
+        dataFutura,
+        id_debenture_serie,
+      );
+    return atualizaDebentureSerie;
+  }
+
+  //APENAS EM RETORNO FAILURE DA CREDIT SEC
+  private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
+    const desabilitaDebenture =
+      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie(
+        false,
+        null,
+        id_fundo,
+      );
+    return desabilitaDebenture;
   }
 
   private async buscarStatusSerieCreditSec(
