@@ -90,6 +90,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
     id_debenture_serie_investidor: number,
     status: string,
     motivo: string,
+    data_desvinculo: Date | null,
   ): Promise<DebentureSerieInvestidor> {
     const atualizaDebentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.update({
@@ -97,6 +98,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
         data: {
           status_retorno_creditsec: status,
           mensagem_retorno_creditsec: motivo ?? null,
+          data_desvinculo,
         },
       });
     return atualizaDebentureSerieInvestidor;
