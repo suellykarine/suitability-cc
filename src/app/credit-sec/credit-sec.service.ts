@@ -39,43 +39,6 @@ export class CreditSecService {
     private readonly debentureRepositorio: DebentureRepositorio,
   ) {}
 
-  /*  @Cron('0 0 10 * * 1-5')
-  async buscarStatusSolicitacaoSerie() {
-    try {
-      const debentureSerieInvestidorPendentes =
-        await this.debentureSerieInvestidorRepositorio.todosStatusCreditSecNull();
-
-      const todasSeriesAtualizadas = await Promise.all(
-        debentureSerieInvestidorPendentes.map(async (ele) => {
-          const debentureSerie =
-            await this.debentureSerieRepositorio.encontrarPorId(
-              ele.id_debenture_serie,
-            );
-          const debenture = await this.debentureRepositorio.encontrarPorId(
-            debentureSerie.id_debenture,
-          );
-
-          const remittance_number = debentureSerie.numero_serie;
-          const remittance_id = debenture.numero_debenture;
-
-          const statusCreditSec = await this.buscarStatusSerieCreditSec(
-            remittance_number,
-            remittance_id,
-          );
-
-          if (statusCreditSec.status === 'PENDING') return;
-
-          const retornoCreditSec =
-            await this.registrarRetornoCreditSec(statusCreditSec);
-          return retornoCreditSec;
-        }),
-      );
-      return todasSeriesAtualizadas;
-    } catch (error) {
-      throw error;
-    }
-  } */
-
   async solicitarSerie(id_cedente: number) {
     try {
       const usuario = await this.buscarUsuario(id_cedente);
