@@ -99,4 +99,17 @@ export class PrismaDebentureSerieRepositorio
     });
     return converterCamposDecimais(debenture_serie);
   }
+
+  async atualizaDatasDebentureSerie(
+    data_emissao: Date,
+    data_vencimento: Date,
+    id_debenture_serie: number,
+  ): Promise<DebentureSerie> {
+    const atualizaDatasDebentureSerie =
+      await this.prisma.debenture_serie.update({
+        where: { id: id_debenture_serie },
+        data: { data_emissao, data_vencimento },
+      });
+    return converterCamposDecimais(atualizaDatasDebentureSerie);
+  }
 }

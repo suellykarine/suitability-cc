@@ -32,4 +32,10 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
   abstract encontrarSeriesPorIdDebenture(
     idDebenture: number,
   ): Promise<DebentureSerie[]>;
+
+  abstract atualizaDatasDebentureSerie(
+    data_emissao: Date,
+    data_vencimento: Date,
+    id_debenture_serie: number,
+  ): Promise<DebentureSerie>;
 }

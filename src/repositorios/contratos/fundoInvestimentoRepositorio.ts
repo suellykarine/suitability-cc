@@ -11,4 +11,10 @@ export abstract class FundoInvestimentoRepositorio extends Repositorio {
   abstract encontrarComRelacionamentos(
     id: number,
   ): Promise<FundoInvestimento | null>;
+
+  abstract atualizaAptoDebentureEvalorSerie(
+    apto_debenture: boolean,
+    valor_serie_debenture: number | null,
+    id_fundo: number,
+  ): Promise<FundoInvestimento>;
 }

@@ -39,6 +39,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
     idDebentureSerieInvestidor: number,
     status: string,
     motivo: string | null,
+    data_desvinculo: Date | null,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract todosStatusCreditSecNull(): Promise<

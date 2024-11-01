@@ -55,12 +55,12 @@ export class CreditSecService {
             debentureSerie.id_debenture,
           );
 
-          const remittance_number = debentureSerie.numero_serie;
-          const remittance_id = debenture.numero_debenture;
+          const numero_emissao = debenture.numero_debenture;
+          const numero_serie = debentureSerie.numero_serie;
 
           const statusCreditSec = await this.buscarStatusSerieCreditSec(
-            remittance_number,
-            remittance_id,
+            numero_emissao,
+            numero_serie,
           );
 
           if (statusCreditSec.status === 'PENDING') return;
@@ -124,18 +124,28 @@ export class CreditSecService {
     try {
       const debentureSerie =
         await this.debentureSerieRepositorio.encontrarSeriesPorNumeroSerie(
-          data.numero_serie,
+          Number(data.numero_serie),
         );
       const debentureSerieInvestidor =
         await this.debentureSerieInvestidorRepositorio.encontrarPorIdDebentureSerie(
           debentureSerie.id,
         );
 
+      const dataDesvinculo = data.status === 'FAILURE' ? new Date() : null;
       const atualizaDebentureSerieInvestidor =
         await this.debentureSerieInvestidorRepositorio.atualizaDebentureSerieInvestidor(
           debentureSerieInvestidor.id,
           data.status,
           data.motivo,
+          dataDesvinculo,
+        );
+
+      if (data.status === 'SUCCESS')
+        await this.registrarDataEmissaoSerie(debentureSerie.id);
+
+      if (data.status === 'PENDING')
+        await this.desabilitarDebentureFundoInvestimento(
+          debentureSerieInvestidor.id_fundo_investimento,
         );
 
       return atualizaDebentureSerieInvestidor;
@@ -146,12 +156,36 @@ export class CreditSecService {
     }
   }
 
+  private async registrarDataEmissaoSerie(id_debenture_serie: number) {
+    const dataAtual = new Date();
+    const dataFutura = new Date();
+    dataFutura.setMonth(dataFutura.getMonth() + 6);
+
+    const atualizaDebentureSerie =
+      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie(
+        dataAtual,
+        dataFutura,
+        id_debenture_serie,
+      );
+    return atualizaDebentureSerie;
+  }
+
+  private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
+    const desabilitaDebenture =
+      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie(
+        false,
+        null,
+        id_fundo,
+      );
+    return desabilitaDebenture;
+  }
+
   private async buscarStatusSerieCreditSec(
-    remittance_number: number,
-    remittance_id: number,
+    numero_emissao: number,
+    numero_serie: number,
   ): Promise<BodyCallbackDto> {
     const req = await fetch(
-      `${process.env.BASE_URL_CREDIT_SEC}/serie/solicitar_emissao?remittance_id=${remittance_id}&remittance_number=${remittance_number}`,
+      `${process.env.BASE_URL_CREDIT_SEC}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
       {
         headers: {
           'Content-Type': 'application/json',
