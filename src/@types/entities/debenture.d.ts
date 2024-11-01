@@ -40,3 +40,17 @@ export type DebentureSerieInvestidor = {
   debenture_serie?: DebentureSerie;
   fundo_investimento?: FundoInvestimento;
 };
+
+export type AtualizarFundoInvestimentoAptoDebenture = {
+  apto_debenture: boolean;
+  valor_serie_debenture: number | null;
+  id_fundo: number;
+};
+
+export type AtualizarDebentureSerieInvestidor = {
+  statusRetornoLaqus: StatusRetornoLaqus;
+  mensagemRetornoLaqus: string;
+  idFundoInvestimento: number;
+  dataDesvinculo?: Date;
+};
+export type StatusRetornoLaqus = 'Pendente' | 'Reprovado' | 'Aprovado';
