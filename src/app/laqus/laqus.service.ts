@@ -67,6 +67,7 @@ export class LaqusService {
             fundoInvestimento.id,
           );
         }
+
         const atualizados =
           await this.debentureSerieInvestidorRepositorio.atualizarStatusLaqus(
             payload,
@@ -139,25 +140,12 @@ export class LaqusService {
     const result = await response.json();
     return result;
   }
-  private montarPayloadAtualizarDebentureSerieInvestidor({
-    idFundoInvestimento,
-    mensagemRetornoLaqus,
-    statusRetornoLaqus,
-    dataDesvinculo,
-  }: AtualizarDebentureSerieInvestidor) {
-    if (dataDesvinculo) {
-      return {
-        idFundoInvestimento,
-        statusRetornoLaqus,
-        mensagemRetornoLaqus,
-        dataDesvinculo,
-      };
-    }
-    return {
-      idFundoInvestimento,
-      statusRetornoLaqus,
-      mensagemRetornoLaqus,
-    };
+
+  private montarPayloadAtualizarDebentureSerieInvestidor(
+    payload: AtualizarDebentureSerieInvestidor,
+  ): AtualizarDebentureSerieInvestidor {
+    const { dataDesvinculo, ...payloadSemDataDesvinculo } = payload;
+    return dataDesvinculo ? payload : payloadSemDataDesvinculo;
   }
 
   private async desabilitarDebentureDoFundoDeInvestimento(idFundo: number) {
