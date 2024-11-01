@@ -1,32 +1,99 @@
-import {
-  BadRequestException,
-  HttpException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
-import { ConfigService } from '@nestjs/config';
-import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
-import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
+import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
+import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
+import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import { AtualizarDebentureSerieInvestidor } from 'src/@types/entities/debenture';
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
+import { ConfigService } from '@nestjs/config';
 import {
   definirContextosDeTransacao,
   removerContextosDeTransacao,
 } from 'src/utils/funcoes/repositorios';
+import {
+  BadRequestException,
+  NotFoundException,
+  HttpException,
+  Injectable,
+} from '@nestjs/common';
 
 @Injectable()
 export class LaqusService {
-  token: string;
   laqusApi: string;
+  token: string;
   constructor(
+    private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
+    private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly configService: ConfigService,
     private readonly adaptadorDb: AdaptadorDb,
-    private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
-    private readonly debentureSerieInvestidor: DebentureSerieInvestidorRepositorio,
   ) {
-    this.laqusApi = this.configService.get<string>('LAQUS_API');
     this.token = this.configService.get<string>('LAQUS_TOKEN_API');
+    this.laqusApi = this.configService.get<string>('LAQUS_API');
+  }
+
+  async AtualizarInvestidorDebenture({
+    identificadorInvestidor,
+    justificativa,
+    status,
+  }: StatusRetornoLaqusDto) {
+    try {
+      await this.adaptadorDb.fazerTransacao(async (contexto) => {
+        definirContextosDeTransacao({
+          repositorios: [
+            this.debentureSerieInvestidorRepositorio,
+            this.fundoInvestimentoRepositorio,
+          ],
+          contexto,
+        });
+
+        const fundoInvestimento =
+          await this.fundoInvestimentoRepositorio.encontrarPorCpfCnpj(
+            identificadorInvestidor,
+          );
+
+        if (!fundoInvestimento)
+          throw new NotFoundException(
+            'Fundo de investimento não foi encontrado',
+          );
+
+        const payload = this.montarPayloadAtualizarDebentureSerieInvestidor({
+          idFundoInvestimento: fundoInvestimento.id,
+          mensagemRetornoLaqus: justificativa,
+          statusRetornoLaqus: status,
+          dataDesvinculo: status === 'Reprovado' ? new Date() : undefined,
+        });
+
+        if (status === 'Reprovado') {
+          await this.desabilitarDebentureDoFundoDeInvestimento(
+            fundoInvestimento.id,
+          );
+        }
+        const atualizados =
+          await this.debentureSerieInvestidorRepositorio.atualizarStatusLaqus(
+            payload,
+          );
+
+        if (!atualizados.count)
+          throw new BadRequestException(
+            'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
+          );
+      });
+
+      removerContextosDeTransacao({
+        repositorios: [
+          this.fundoInvestimentoRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+        ],
+      });
+      return { mensagem: 'atualizado com sucesso!' };
+    } catch (error) {
+      removerContextosDeTransacao({
+        repositorios: [
+          this.fundoInvestimentoRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+        ],
+      });
+      throw error;
+    }
   }
 
   async cadastrarInvestidor(data: CriarInvestidorLaqusDto) {
@@ -72,59 +139,34 @@ export class LaqusService {
     const result = await response.json();
     return result;
   }
-
-  async AtualizarInvestidorDebenture({
-    status,
-    justificativa,
-    identificadorInvestidor,
-  }: StatusRetornoLaqusDto) {
-    try {
-      await this.adaptadorDb.fazerTransacao(async (contexto) => {
-        definirContextosDeTransacao({
-          repositorios: [
-            this.fundoInvestimentoRepositorio,
-            this.debentureSerieInvestidor,
-          ],
-          contexto,
-        });
-
-        const fundoInvestimento =
-          await this.fundoInvestimentoRepositorio.encontrarPorCpfCnpj(
-            identificadorInvestidor,
-          );
-
-        if (!fundoInvestimento)
-          throw new NotFoundException(
-            'Fundo de investimento não foi encontrado',
-          );
-        const atualizados =
-          await this.debentureSerieInvestidor.atualizarStatusLaqus({
-            idFundoInvestimento: fundoInvestimento.id,
-            status,
-            justificativa,
-          });
-
-        if (!atualizados.count)
-          throw new BadRequestException(
-            'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
-          );
-      });
-
-      removerContextosDeTransacao({
-        repositorios: [
-          this.fundoInvestimentoRepositorio,
-          this.debentureSerieInvestidor,
-        ],
-      });
-      return { mensagem: 'atualizado com sucesso!' };
-    } catch (error) {
-      removerContextosDeTransacao({
-        repositorios: [
-          this.fundoInvestimentoRepositorio,
-          this.debentureSerieInvestidor,
-        ],
-      });
-      throw error;
+  private montarPayloadAtualizarDebentureSerieInvestidor({
+    idFundoInvestimento,
+    mensagemRetornoLaqus,
+    statusRetornoLaqus,
+    dataDesvinculo,
+  }: AtualizarDebentureSerieInvestidor) {
+    if (dataDesvinculo) {
+      return {
+        idFundoInvestimento,
+        statusRetornoLaqus,
+        mensagemRetornoLaqus,
+        dataDesvinculo,
+      };
     }
+    return {
+      idFundoInvestimento,
+      statusRetornoLaqus,
+      mensagemRetornoLaqus,
+    };
+  }
+
+  private async desabilitarDebentureDoFundoDeInvestimento(idFundo: number) {
+    const desabilitarDebenture =
+      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie({
+        apto_debenture: false,
+        id_fundo: idFundo,
+        valor_serie_debenture: null,
+      });
+    return desabilitarDebenture;
   }
 }
