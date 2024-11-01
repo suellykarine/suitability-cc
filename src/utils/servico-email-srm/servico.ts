@@ -52,6 +52,7 @@ export async function servicoEmailSrm(email: ISolicitacaoEmail) {
         },
       },
     );
+
     if (!res.ok) {
       const mensagemErro = await res.json();
       return mensagemErro;

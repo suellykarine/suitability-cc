@@ -8,9 +8,8 @@ import {
   HttpCode,
   UseGuards,
   Controller,
+  Request,
 } from '@nestjs/common';
-import { Headers } from '@nestjs/common';
-import { decodificarToken } from 'src/utils/extrairId';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ReenviarCodigoDto } from './dto/resend-code.dto';
 import { CartaConviteService } from './carta-convite.service';
@@ -18,32 +17,24 @@ import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
 import { CriarCartaConviteDto } from './dto/create-invitation-letter.dto';
 import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
 import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.dto';
-import { TipoUsuario } from 'src/enums/TipoUsuario';
+import { JwtAuthGuardCartaConvite } from '../auth/guards/carta-convite.guard';
+import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
 
 @ApiTags('Carta-convite')
 @Controller('api/carta-convite')
 export class CartaConviteController {
   constructor(private readonly cartaConviteService: CartaConviteService) {}
 
+  @UseGuards(JwtAuthGuardCartaConvite)
   @Post()
   criar(
     @Body() criarCartaConviteDto: CriarCartaConviteDto,
-    @Headers() headers: any,
+    @Request() req: RequisicaoPersonalizada,
   ) {
-    const token = headers.authorization.split(' ')[1];
-    const tokenDecodificado = decodificarToken(token);
-
-    let userId: number | undefined;
-    if (tokenDecodificado) {
-      userId =
-        tokenDecodificado.tipoUsuario<TipoUsuario> === 'BACKOFFICE'
-          ? tokenDecodificado.idUsuario
-          : undefined;
-    }
-
+    const idUsuario = req.user ? req.user.idUsuario : undefined;
     return this.cartaConviteService.criarCartaConvite(
       criarCartaConviteDto,
-      userId,
+      idUsuario,
     );
   }
 
