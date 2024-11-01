@@ -19,7 +19,6 @@ import {
   CriarUsuarioDto,
 } from './dto/criar-pre-registro.dto';
 import * as bcrypt from 'bcrypt';
-import { StatusCartaConvite } from 'src/enums/StatusCartaConvite';
 import { customAlphabet } from 'nanoid';
 import { servicoEmailSrm } from 'src/utils/servico-email-srm/servico';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
@@ -30,12 +29,12 @@ import { CartaConviteRepositorio } from 'src/repositorios/contratos/cartaConvite
 import { StatusGestorFundoRepositorio } from 'src/repositorios/contratos/statusGestorFundoRepositorio';
 import { TokenUsadoRepositorio } from 'src/repositorios/contratos/tokenUsadoRepositorio';
 import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
-import { PrismaService } from 'prisma/prisma.service';
 import {
   definirContextosDeTransacao,
   removerContextosDeTransacao,
 } from 'src/utils/funcoes/repositorios';
 import { CodigoVerificacaoRepositorio } from 'src/repositorios/contratos/codigoDeVerificacaoRepositorio';
+import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 
 @Injectable()
 export class PreRegistroService {
@@ -47,7 +46,7 @@ export class PreRegistroService {
     private readonly cartaConviteRepositorio: CartaConviteRepositorio,
     private readonly statusGestorFundoRepositorio: StatusGestorFundoRepositorio,
     private readonly tokenUsadoRepositorio: TokenUsadoRepositorio,
-    private readonly prisma: PrismaService,
+    private readonly adaptadorDb: AdaptadorDb,
     private readonly codigoVerificacaoRepositorio: CodigoVerificacaoRepositorio,
   ) {}
 
@@ -159,7 +158,7 @@ export class PreRegistroService {
 
     const senhaEmHash = await bcrypt.hash(criarUsuarioDto.senha, 10);
 
-    const usuarioSalvo = await this.prisma.$transaction(
+    const usuarioSalvo = await this.adaptadorDb.fazerTransacao(
       async (prisma: Prisma.TransactionClient) => {
         definirContextosDeTransacao({
           repositorios: [
@@ -180,26 +179,7 @@ export class PreRegistroService {
           });
         }
 
-        async function buscarOuCriarGestor(
-          cnpj: string,
-          nomeFantasia: string,
-          statusGestorId: number,
-        ) {
-          const gestorSalvo =
-            await this.gestorFundoRepositorio.encontrarPorCnpj(cnpj);
-
-          return gestorSalvo
-            ? gestorSalvo
-            : await this.gestorFundoRepositorio.criar({
-                cnpj,
-                nome_fantasia: nomeFantasia,
-                status_gestor_fundo: {
-                  connect: { id: statusGestorId },
-                },
-              });
-        }
-
-        const gestorSalvo = await buscarOuCriarGestor(
+        const gestorSalvo = await this.buscarOuCriarGestor(
           encontrarCartaConvite.cnpj,
           encontrarCartaConvite.empresa,
           statusGestor.id,
@@ -211,15 +191,9 @@ export class PreRegistroService {
           telefone: encontrarCartaConvite.telefone,
           email: encontrarCartaConvite.email,
           senha: senhaEmHash,
-          tipo_usuario: {
-            connect: { id: tipoUsuario.id },
-          },
-          status_usuario: {
-            connect: { id: statusUsuario.id },
-          },
-          gestor_fundo: {
-            connect: { id: gestorSalvo.id },
-          },
+          tipo_usuario: tipoUsuario,
+          status_usuario: statusUsuario,
+          gestor_fundo: gestorSalvo,
         });
 
         await this.tokenUsadoRepositorio.criar(
@@ -323,5 +297,24 @@ export class PreRegistroService {
         mensagem: 'Não autorizado',
       };
     }
+  }
+
+  private async buscarOuCriarGestor(
+    cnpj: string,
+    nomeFantasia: string,
+    statusGestorId: number,
+  ) {
+    const gestorSalvo =
+      await this.gestorFundoRepositorio.encontrarPorCnpj(cnpj);
+
+    return gestorSalvo
+      ? gestorSalvo
+      : await this.gestorFundoRepositorio.criar({
+          cnpj,
+          nome_fantasia: nomeFantasia,
+          status_gestor_fundo: {
+            connect: { id: statusGestorId },
+          },
+        });
   }
 }
