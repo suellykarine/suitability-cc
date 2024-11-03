@@ -62,7 +62,6 @@ import { PrismaService } from 'prisma/prisma.service';
       provide: APP_INTERCEPTOR,
       useClass: AuthorizationInterceptor,
     },
-    PrismaService,
   ],
 })
 export class AppModule {}
