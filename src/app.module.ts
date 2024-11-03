@@ -26,6 +26,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppService } from './app.service';
 import { Module } from '@nestjs/common';
 import { LaqusModule } from './app/laqus/laqus.module';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { LaqusModule } from './app/laqus/laqus.module';
       provide: APP_INTERCEPTOR,
       useClass: AuthorizationInterceptor,
     },
+    PrismaService,
   ],
 })
 export class AppModule {}

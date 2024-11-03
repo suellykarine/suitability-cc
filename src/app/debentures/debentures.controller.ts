@@ -17,6 +17,8 @@ import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
 import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
+import { PagamentoOperacaoService } from './pagamento-operacao.service';
+import { CodigoOperacaoDto } from './dto/codigo-operacao.dto';
 
 @ApiTags('Debentures')
 @ApiBearerAuth('access-token')
@@ -25,6 +27,7 @@ export class DebenturesController {
   constructor(
     private readonly debenturesSerieService: DebentureSerieService,
     private readonly debentureService: DebentureService,
+    private readonly pagamentoOperacaoService: PagamentoOperacaoService,
   ) {}
 
   @UseGuards(JwtAuthGuardBackoffice)
@@ -93,5 +96,16 @@ export class DebenturesController {
   @Delete('serie/:id')
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
+  }
+
+  @Post('pagamento/:id_conta_investidor')
+  incluirPagamentoPix(
+    @Body() codigoOperacaoDto: CodigoOperacaoDto,
+    @Param('id_conta_investidor') idContaInvestidor: string,
+  ) {
+    return this.pagamentoOperacaoService.incluirPagamento(
+      codigoOperacaoDto.codigoOperacao,
+      +idContaInvestidor,
+    );
   }
 }
