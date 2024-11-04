@@ -91,7 +91,7 @@ export class PrismaDebentureSerieRepositorio
     return seriesExistentes.map(converterCamposDecimais);
   }
 
-  async encontrarSeriesPorNumeroSerie(
+  async encontrarSeriePorNumeroSerie(
     numero_serie: number,
   ): Promise<DebentureSerie | null> {
     const debenture_serie = await this.prisma.debenture_serie.findFirst({

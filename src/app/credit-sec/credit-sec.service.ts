@@ -123,7 +123,7 @@ export class CreditSecService {
   async registrarRetornoCreditSec(data: BodyCallbackDto) {
     try {
       const debentureSerie =
-        await this.debentureSerieRepositorio.encontrarSeriesPorNumeroSerie(
+        await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
           Number(data.numero_serie),
         );
       const debentureSerieInvestidor =
@@ -132,6 +132,7 @@ export class CreditSecService {
         );
 
       const dataDesvinculo = data.status === 'FAILURE' ? new Date() : null;
+      // TO-DO: Alterar a propriedade para receber um objeto
       const atualizaDebentureSerieInvestidor =
         await this.debentureSerieInvestidorRepositorio.atualizaDebentureSerieInvestidor(
           debentureSerieInvestidor.id,
@@ -143,7 +144,7 @@ export class CreditSecService {
       if (data.status === 'SUCCESS')
         await this.registrarDataEmissaoSerie(debentureSerie.id);
 
-      if (data.status === 'PENDING')
+      if (data.status === 'FAILURE')
         await this.desabilitarDebentureFundoInvestimento(
           debentureSerieInvestidor.id_fundo_investimento,
         );
@@ -161,6 +162,7 @@ export class CreditSecService {
     const dataFutura = new Date();
     dataFutura.setMonth(dataFutura.getMonth() + 6);
 
+    // TO-DO: Alterar a propriedade para receber um objeto
     const atualizaDebentureSerie =
       await this.debentureSerieRepositorio.atualizaDatasDebentureSerie(
         dataAtual,
@@ -171,6 +173,7 @@ export class CreditSecService {
   }
 
   private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
+    // TO-DO: Alterar a propriedade para receber um objeto
     const desabilitaDebenture =
       await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie(
         false,

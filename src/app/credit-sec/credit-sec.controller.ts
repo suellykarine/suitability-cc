@@ -22,7 +22,7 @@ export class CreditSecControler {
   callbackCrediSec(@Body() body: BodyCallbackDto) {
     return this.CreditSecService.registrarRetornoCreditSec(body);
   }
-  //@UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post(':id_cedente')
   @HttpCode(204)
   solicitarSerie(@Param('id_cedente') id_cedente: string) {
