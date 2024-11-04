@@ -12,8 +12,8 @@ import { Response } from 'express';
 import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@UseGuards(JwtAuthGuardPremium)
-@ApiBearerAuth('access-token')
+//@UseGuards(JwtAuthGuardPremium)
+//@ApiBearerAuth('access-token')
 @ApiTags('CCB')
 @Controller('api/ccb')
 export class CcbController {

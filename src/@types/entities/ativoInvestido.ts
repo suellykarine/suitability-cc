@@ -22,3 +22,32 @@ export type AtivoInvestido = {
   data_criacao?: Date;
   carteira_investimento?: CarteiraInvestimento;
 };
+
+type Recebiveis = {
+  codigoRecebivel: number;
+  valorOriginal: number;
+  valorPresente: number;
+  valorFuturo: number;
+  dataVencimento: string;
+};
+type Cedente = {
+  identificador: string;
+  nome: string;
+};
+export type AtivosInvest = {
+  codigoAtivo: number;
+  tipoAtivo: string;
+  dataEmissaoAtivo: string;
+  valorPresente: number;
+  valorFuturo: number;
+  spread: number;
+  tir: number;
+  tirAnual: number;
+  cdiInvestPercentual: number;
+  codigoCedulaCreditoBancario: string;
+  cedente: Cedente;
+  sacado: {
+    identificador: string;
+  };
+  recebiveis: Recebiveis[];
+};

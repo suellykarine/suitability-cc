@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { CreditSecService } from './credit-sec.service';
+import { CriacaoSerieService } from './criacao-de-serie.service';
+import { CriacaoRemessaService } from './criacao-de-remessa.service';
 import { CreditSecControler } from './credit-sec.controller';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { PrismaDebentureSerieRepositorio } from 'src/repositorios/prisma/prismaDebentureSerieRepositorio';
@@ -22,7 +23,8 @@ import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebent
   imports: [ScheduleModule.forRoot()],
   controllers: [CreditSecControler],
   providers: [
-    CreditSecService,
+    CriacaoSerieService,
+    CriacaoRemessaService,
     PrismaService,
     {
       provide: DebentureRepositorio,
