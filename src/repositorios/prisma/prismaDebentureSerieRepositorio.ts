@@ -99,4 +99,9 @@ export class PrismaDebentureSerieRepositorio
     });
     return converterCamposDecimais(debenture_serie);
   }
+
+  // async listarDebentureSerieInvestidor(): Promise<DebentureSerieInvestidor[]> {
+  //     const seriesInvestidor = await this.prisma.debenture_serie_investidor.findMany();
+  //     return seriesInvestidor.map(converterCamposDecimais);
+  //   }
 }

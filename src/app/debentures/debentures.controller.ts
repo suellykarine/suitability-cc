@@ -37,7 +37,7 @@ export class DebenturesController {
   async criarDebenture(@Body() criarDebentureDto: CriarDebentureDto) {
     return this.debentureService.criarDebenture(criarDebentureDto);
   }
-  @UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardPremium)
   @Get('/serie')
   @ApiQuery({
     name: 'pagina',
@@ -94,4 +94,9 @@ export class DebenturesController {
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
   }
+
+  //  @Get('serie-investidor')
+  // async listarDebentureSerieInvestidor(): Promise<DebentureSerieInvestidor[]> {
+  //   return await this.debentureService.listarDebentureSerieInvestidor();
+  // }
 }
