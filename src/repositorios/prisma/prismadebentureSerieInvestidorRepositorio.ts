@@ -1,10 +1,10 @@
 import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { DebentureSerieInvestidorRepositorio } from '../contratos/debentureSerieInvestidorRepositorio';
 import {
-  AtualizarStatusRetornoLaqus,
-  DebentureSerieInvestidorRepositorio,
-} from '../contratos/debentureSerieInvestidorRepositorio';
-import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
+  AtualizarDebentureSerieInvestidor,
+  DebentureSerieInvestidor,
+} from 'src/@types/entities/debenture';
 import { Prisma } from '@prisma/client';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { RetornoMultiplos } from 'src/utils/prisma/types';
@@ -147,10 +147,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
   }
 
   async atualizarStatusLaqus({
-    status,
-    justificativa,
+    mensagemRetornoLaqus,
+    statusRetornoLaqus,
     idFundoInvestimento,
-  }: AtualizarStatusRetornoLaqus): Promise<RetornoMultiplos> {
+    dataDesvinculo,
+  }: AtualizarDebentureSerieInvestidor): Promise<RetornoMultiplos> {
     const debentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.updateMany({
         where: {
@@ -158,8 +159,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
           status_retorno_laqus: 'Pendente',
         },
         data: {
-          status_retorno_laqus: status,
-          mensagem_retorno_laqus: justificativa,
+          status_retorno_laqus: statusRetornoLaqus,
+          mensagem_retorno_laqus: mensagemRetornoLaqus,
+          ...(dataDesvinculo !== undefined && {
+            data_desvinculo: dataDesvinculo,
+          }),
         },
       });
 

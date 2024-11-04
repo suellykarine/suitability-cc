@@ -4,6 +4,7 @@ import { FundoInvestimentoRepositorio } from '../contratos/fundoInvestimentoRepo
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { FundoInvestimento } from 'src/@types/entities/fundos';
 import { Prisma } from '@prisma/client';
+import { AtualizarFundoInvestimentoAptoDebenture } from 'src/@types/entities/debenture';
 
 @Injectable()
 export class PrismaFundoInvestimentoRepositorio
@@ -64,11 +65,11 @@ export class PrismaFundoInvestimentoRepositorio
     return converterCamposDecimais(fundo);
   }
 
-  async atualizaAptoDebentureEvalorSerie(
-    apto_debenture: boolean,
-    valor_serie_debenture: number,
-    id_fundo: number,
-  ): Promise<FundoInvestimento> {
+  async atualizaAptoDebentureEvalorSerie({
+    apto_debenture,
+    valor_serie_debenture,
+    id_fundo,
+  }: AtualizarFundoInvestimentoAptoDebenture): Promise<FundoInvestimento> {
     const atualizaFundo = await this.prisma.fundo_investimento.update({
       where: { id: id_fundo },
       data: { apto_debenture, valor_serie_debenture },

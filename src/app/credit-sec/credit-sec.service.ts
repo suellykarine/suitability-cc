@@ -1,11 +1,9 @@
 import {
-  HttpCode,
   HttpException,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
 } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
 import { Cedente } from 'src/@types/entities/cedente';
 import { EnderecoCedente } from 'src/@types/entities/cedente';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
@@ -175,11 +173,11 @@ export class CreditSecService {
   private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
     // TO-DO: Alterar a propriedade para receber um objeto
     const desabilitaDebenture =
-      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie(
-        false,
-        null,
-        id_fundo,
-      );
+      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie({
+        apto_debenture: false,
+        id_fundo: id_fundo,
+        valor_serie_debenture: null,
+      });
     return desabilitaDebenture;
   }
 

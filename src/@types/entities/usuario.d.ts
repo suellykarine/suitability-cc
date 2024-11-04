@@ -13,7 +13,7 @@ export type Usuario = {
   senha?: string;
   cpf?: string;
   data_nascimento?: Date;
-  id_tipo_usuario: number;
+  id_tipo_usuario?: number;
   id_endereco?: number;
   id_gestor_fundo?: number;
   id_status_usuario?: number;
@@ -41,16 +41,16 @@ export type UsuarioFundoInvestimento = {
 };
 
 export type TipoUsuario = {
-  id: number;
-  tipo: string;
-  descricao: string;
+  id?: number;
+  tipo?: string;
+  descricao?: string;
   usuario?: Usuario[];
 };
 
 export type StatusUsuario = {
-  id: number;
-  nome: string;
-  descricao: string;
+  id?: number;
+  nome?: string;
+  descricao?: string;
   usuario?: Usuario[];
 };
 
