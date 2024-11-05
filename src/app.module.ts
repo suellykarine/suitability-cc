@@ -27,6 +27,7 @@ import { AppService } from './app.service';
 import { Module } from '@nestjs/common';
 import { LaqusModule } from './app/laqus/laqus.module';
 import { PrismaService } from 'prisma/prisma.service';
+import { SigmaModule } from './app/sigma/sigma.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { PrismaService } from 'prisma/prisma.service';
     CcbModule,
     PdfModule,
     AdmModule,
+    SigmaModule,
   ],
   controllers: [AppController],
   providers: [
