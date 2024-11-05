@@ -12,7 +12,7 @@ import {
 import { AtivosInvest } from 'src/@types/entities/ativoInvestido';
 
 @Injectable()
-export class CriacaoRemessaService {
+export class CreditSecRemessaService {
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,

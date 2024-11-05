@@ -26,7 +26,7 @@ import { Cron } from '@nestjs/schedule';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 
 @Injectable()
-export class CriacaoSerieService {
+export class CreditSecSerieService {
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
