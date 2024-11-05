@@ -1,18 +1,8 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-  NotAcceptableException,
-} from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { sigmaHeaders } from 'src/app/auth/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
-import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoGestorFundoRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
-import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
-import { Cron } from '@nestjs/schedule';
-import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { BodyCriacaoRemessaDto } from './dto/body-callback.dto';
 import {
   NumerosSolicitarRemessa,
@@ -25,12 +15,8 @@ import { AtivosInvest } from 'src/@types/entities/ativoInvestido';
 export class CriacaoRemessaService {
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
-    private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
-    private readonly usuarioFundoInvestimentoRepositorio: UsuarioFundoInvestimentoRepositorio,
-    private readonly usuarioRepositorio: UsuarioRepositorio,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
-    private readonly debentureRepositorio: DebentureRepositorio,
   ) {}
 
   async solicitarRemessa(data: BodyCriacaoRemessaDto) {
@@ -60,6 +46,7 @@ export class CriacaoRemessaService {
               numero_emissao: data.numero_debenture,
               numero_serie: data.numero_serie,
               numero_remessa: String(operacao.codigoOperacao),
+              data_operacao: operacao.dataOperacao,
             },
             operacao.ativosInvest,
           );
@@ -155,7 +142,12 @@ export class CriacaoRemessaService {
   }
 
   private montarBodySolicitarRemessa(
-    { numero_remessa, numero_emissao, numero_serie }: NumerosSolicitarRemessa,
+    {
+      numero_remessa,
+      numero_emissao,
+      numero_serie,
+      data_operacao,
+    }: NumerosSolicitarRemessa,
     dadosAtivo: AtivosInvest[],
   ): SolicitarRemessaType {
     const ativos = dadosAtivo.map((ativo) => {
@@ -164,12 +156,11 @@ export class CriacaoRemessaService {
         taxa_cessao: ativo.tir,
         tipo: ativo.tipoAtivo,
         sacado: {
-          cnpj: ativo.cedente.identificador,
-          razao_social: ativo.cedente.nome,
+          cnpj: ativo.sacado.identificador,
+          razao_social: ativo.sacado.nome,
           nome_fantasia: null,
         },
-        //pendente
-        data_emissao: '2024-10-25',
+        data_emissao: data_operacao,
         //pendente
         lastro: {
           url: 'https://drive.google.com/file/d/1RGaQcxpmaa5tGUHcyglWRj1iDnQ_unK5/view?usp=drive_link',

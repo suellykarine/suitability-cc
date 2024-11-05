@@ -48,6 +48,7 @@ export type AtivosInvest = {
   cedente: Cedente;
   sacado: {
     identificador: string;
+    nome: string;
   };
   recebiveis: Recebiveis[];
 };
