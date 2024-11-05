@@ -54,3 +54,8 @@ export type AtualizarDebentureSerieInvestidor = {
   dataDesvinculo?: Date;
 };
 export type StatusRetornoLaqus = 'Pendente' | 'Reprovado' | 'Aprovado';
+
+type AtualizarValorSerie = {
+  idDebentureSerie: number;
+  valorSerie: number;
+};
