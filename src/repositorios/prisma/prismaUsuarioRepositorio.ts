@@ -4,6 +4,7 @@ import { Prisma, usuario } from '@prisma/client';
 import { UsuarioRepositorio } from '../contratos/usuarioRepositorio';
 import { PrismaService } from 'prisma/prisma.service';
 import { UsuarioComStatusETipo } from 'src/@types/entities/usuarioComStatusETipo';
+import { Usuario } from 'src/@types/entities/usuario';
 @Injectable()
 export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
   constructor(private prisma: PrismaService) {}
@@ -25,12 +26,62 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     });
   }
 
-  async encontrarPorId(id: number): Promise<UsuarioComStatusETipo | null> {
+  async encontrarTodosPorTipoUsuario(
+    desvio: number,
+    limite: number,
+    tipoUsuario?: string,
+  ): Promise<Usuario[] | null> {
+    const condicao = tipoUsuario ? { tipo_usuario: { tipo: tipoUsuario } } : {};
+    return this.prisma.usuario.findMany({
+      where: condicao,
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        telefone: true,
+        cpf: true,
+        id_gestor_fundo: true,
+        data_criacao: true,
+        tipo_usuario: { select: { id: true, descricao: true } },
+        status_usuario: { select: { id: true, descricao: true } },
+      },
+      skip: desvio,
+      take: limite,
+    });
+  }
+
+  async contarUsuariosPorTipo(tipoUsuario: string): Promise<number> {
+    const condicao = tipoUsuario ? { tipo_usuario: { tipo: tipoUsuario } } : {};
+
+    return this.prisma.usuario.count({
+      where: condicao,
+    });
+  }
+
+  async encontrarPorId(id: number): Promise<Usuario | null> {
     return this.prisma.usuario.findUnique({
       where: { id },
-      include: {
-        tipo_usuario: true,
-        status_usuario: true,
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        telefone: true,
+        cpf: true,
+        id_gestor_fundo: true,
+        data_criacao: true,
+        tipo_usuario: {
+          select: {
+            id: true,
+            tipo: true,
+            descricao: true,
+          },
+        },
+        status_usuario: {
+          select: {
+            id: true,
+            descricao: true,
+          },
+        },
       },
     });
   }
@@ -48,39 +99,57 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     });
   }
 
-  async criar(data: any): Promise<usuario> {
+  async criar(
+    dados: Omit<Usuario, 'id' | 'id_tipo_usuario' | 'id_status_usuario'>,
+  ): Promise<usuario> {
     return await this.prisma.usuario.create({
-      data,
+      data: {
+        ...dados,
+        ...(dados.tipo_usuario && {
+          tipo_usuario: {
+            connect: { id: dados.tipo_usuario.id },
+          },
+        }),
+        ...(dados.status_usuario && {
+          status_usuario: {
+            connect: { id: dados.status_usuario.id },
+          },
+        }),
+        ...(dados.gestor_fundo && {
+          gestor_fundo: {
+            connect: { id: dados.gestor_fundo.id },
+          },
+        }),
+      } as Prisma.usuarioCreateInput,
     });
   }
 
-  async atualizar(id: number, data: AtualizarUsuarioDto): Promise<usuario> {
-    const tipoUsuario = await this.prisma.tipo_usuario.findFirst({
-      where: {
-        tipo: data.tipo_usuario,
-      },
-    });
+  async atualizar(id: number, dados: AtualizarUsuarioDto): Promise<Usuario> {
+    const tipoUsuario = dados.tipo_usuario
+      ? await this.prisma.tipo_usuario.findFirst({
+          where: { tipo: dados.tipo_usuario },
+        })
+      : null;
 
-    const dataParaAtualizar: any = {
-      nome: data.nome,
-      email: data.email,
-      senha: data.senha,
-      telefone: data.telefone,
-      cpf: data.cpf,
-      tipo_usuario: {
-        connect: {
-          id: tipoUsuario.id,
+    const { tipo_usuario, ...dadosSemTipoUsuario } = dados;
+
+    const dadosParAtualziar: Prisma.usuarioUpdateInput = {
+      ...dadosSemTipoUsuario,
+      ...(dados.id_status_usuario !== undefined && {
+        id_status_usuario: dados.id_status_usuario,
+      }),
+      ...(tipoUsuario && {
+        tipo_usuario: {
+          connect: {
+            id: tipoUsuario.id,
+          },
         },
-      },
+      }),
     };
-
-    if (data.id_status_usuario) {
-      dataParaAtualizar.id_status_usuario = data.id_status_usuario;
-    }
 
     return this.prisma.usuario.update({
       where: { id },
-      data: dataParaAtualizar,
+      data: dadosParAtualziar,
     });
   }
 

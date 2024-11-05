@@ -1,4 +1,7 @@
-import { DebentureSerie } from 'src/@types/entities/debenture';
+import {
+  atualizarDatasDebentureSerie,
+  DebentureSerie,
+} from 'src/@types/entities/debenture';
 import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
 import { Repositorio } from './repositorio';
 
@@ -9,7 +12,7 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
 
   abstract encontrarPorId(id: number): Promise<DebentureSerie | null>;
 
-  abstract encontrarSeriesPorNumeroSerie(
+  abstract encontrarSeriePorNumeroSerie(
     numero_serie: number,
   ): Promise<DebentureSerie | null>;
 
@@ -32,4 +35,8 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
   abstract encontrarSeriesPorIdDebenture(
     idDebenture: number,
   ): Promise<DebentureSerie[]>;
+
+  abstract atualizaDatasDebentureSerie(
+    data: atualizarDatasDebentureSerie,
+  ): Promise<DebentureSerie>;
 }

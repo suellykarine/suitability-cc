@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { FundoInvestimento } from 'src/@types/entities/fundos';
 import { Repositorio } from './repositorio';
+import { FundoInvestimento } from 'src/@types/entities/fundos';
+import { AtualizarFundoInvestimentoAptoDebenture } from 'src/@types/entities/debenture';
 
 @Injectable()
 export abstract class FundoInvestimentoRepositorio extends Repositorio {
@@ -11,4 +12,8 @@ export abstract class FundoInvestimentoRepositorio extends Repositorio {
   abstract encontrarComRelacionamentos(
     id: number,
   ): Promise<FundoInvestimento | null>;
+
+  abstract atualizaAptoDebentureEvalorSerie(
+    props: AtualizarFundoInvestimentoAptoDebenture,
+  ): Promise<FundoInvestimento>;
 }

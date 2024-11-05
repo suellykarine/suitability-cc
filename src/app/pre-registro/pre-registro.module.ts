@@ -18,6 +18,8 @@ import { StatusGestorFundoRepositorio } from 'src/repositorios/contratos/statusG
 import { PrismaStatusGestorFundoRepositorio } from 'src/repositorios/prisma/prismaStatusGestorFundoRepositorio';
 import { CodigoVerificacaoRepositorio } from 'src/repositorios/contratos/codigoDeVerificacaoRepositorio';
 import { PrismaCodigoVerificacaoRepositorio } from 'src/repositorios/prisma/prismaCodigoDeVerificacaoRepositorio';
+import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
 
 @Module({
   controllers: [PreRegistroController],
@@ -55,6 +57,10 @@ import { PrismaCodigoVerificacaoRepositorio } from 'src/repositorios/prisma/pris
     {
       provide: CodigoVerificacaoRepositorio,
       useClass: PrismaCodigoVerificacaoRepositorio,
+    },
+    {
+      provide: AdaptadorDb,
+      useClass: PrismaAdaptadorDb,
     },
   ],
 })
