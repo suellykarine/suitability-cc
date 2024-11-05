@@ -1,7 +1,7 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { AnbimaService } from './anbima.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('Anbima')

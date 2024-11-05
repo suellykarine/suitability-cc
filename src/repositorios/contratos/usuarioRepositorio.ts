@@ -27,4 +27,11 @@ export abstract class UsuarioRepositorio extends Repositorio {
   ): Promise<Usuario[] | null>;
 
   abstract contarUsuariosPorTipo(tipoUsuario: string): Promise<number>;
+
+  abstract adicionarTokenUsuario(
+    token: string,
+    idUsuario: number,
+  ): Promise<Pick<Usuario, 'token_renovacao'>>;
+
+  abstract logout(idUsuario: number): Promise<void>;
 }

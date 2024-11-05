@@ -12,10 +12,10 @@ import {
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
 import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
-import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
+import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 
 @ApiTags('Debentures')

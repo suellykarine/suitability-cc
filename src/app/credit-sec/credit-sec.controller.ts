@@ -8,7 +8,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { CreditSecService } from './credit-sec.service';
-import { JwtAuthGuardBackoffice } from 'src/app/auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from 'src/app/autenticacao/guards/backoffice-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BodyCallbackDto } from './dto/body-callback.dto';
 

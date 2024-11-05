@@ -29,6 +29,7 @@ export type Usuario = {
   status_usuario?: StatusUsuario;
   tipo_usuario?: TipoUsuario;
   usuario_fundo_investimento?: UsuarioFundoInvestimento[];
+  token_renovacao?: string;
 };
 
 export type UsuarioFundoInvestimento = {

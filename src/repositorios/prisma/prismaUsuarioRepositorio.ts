@@ -69,6 +69,7 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         cpf: true,
         id_gestor_fundo: true,
         data_criacao: true,
+        token_renovacao: true,
         tipo_usuario: {
           select: {
             id: true,
@@ -181,6 +182,31 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         id_gestor_fundo: true,
         id_endereco: true,
         data_criacao: true,
+      },
+    });
+  }
+
+  async adicionarTokenUsuario(
+    token: string,
+    idUsuario: number,
+  ): Promise<Pick<Usuario, 'token_renovacao'>> {
+    const usuario = await this.prisma.usuario.update({
+      where: {
+        id: idUsuario,
+      },
+      data: {
+        token_renovacao: token,
+      },
+    });
+
+    return { token_renovacao: usuario.token_renovacao };
+  }
+
+  async logout(idUsuario: number): Promise<void> {
+    await this.prisma.usuario.update({
+      where: { id: idUsuario },
+      data: {
+        token_renovacao: null,
       },
     });
   }

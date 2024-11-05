@@ -15,9 +15,9 @@ import { ReenviarCodigoDto } from './dto/resend-code.dto';
 import { CartaConviteService } from './carta-convite.service';
 import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
 import { CriarCartaConviteDto } from './dto/create-invitation-letter.dto';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { VerificarCodigoCartaConviteDto } from './dto/verify-invitation-letter.dto';
-import { JwtAuthGuardCartaConvite } from '../auth/guards/carta-convite.guard';
+import { JwtAuthGuardCartaConvite } from '../autenticacao/guards/carta-convite.guard';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
 
 @ApiTags('Carta-convite')
