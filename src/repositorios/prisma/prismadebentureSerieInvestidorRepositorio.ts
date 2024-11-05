@@ -1,10 +1,11 @@
 import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { DebentureSerieInvestidorRepositorio } from '../contratos/debentureSerieInvestidorRepositorio';
 import {
-  AtualizarStatusRetornoLaqus,
-  DebentureSerieInvestidorRepositorio,
-} from '../contratos/debentureSerieInvestidorRepositorio';
-import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
+  AtualizaDebentureSerieInvestidorCreditSec,
+  AtualizarDebentureSerieInvestidorLaqus,
+  DebentureSerieInvestidor,
+} from 'src/@types/entities/debenture';
 import { Prisma } from '@prisma/client';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { RetornoMultiplos } from 'src/utils/prisma/types';
@@ -87,18 +88,15 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return debentureSerieInvestidor;
   }
   async atualizaDebentureSerieInvestidor(
-    id_debenture_serie_investidor: number,
-    status: string,
-    motivo: string,
-    data_desvinculo: Date | null,
+    data: AtualizaDebentureSerieInvestidorCreditSec,
   ): Promise<DebentureSerieInvestidor> {
     const atualizaDebentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.update({
-        where: { id: id_debenture_serie_investidor },
+        where: { id: data.id_debenture_serie_investidor },
         data: {
-          status_retorno_creditsec: status,
-          mensagem_retorno_creditsec: motivo ?? null,
-          data_desvinculo,
+          status_retorno_creditsec: data.status,
+          mensagem_retorno_creditsec: data.motivo ?? null,
+          data_desvinculo: data.data_desvinculo,
         },
       });
     return atualizaDebentureSerieInvestidor;
@@ -147,10 +145,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
   }
 
   async atualizarStatusLaqus({
-    status,
-    justificativa,
+    mensagemRetornoLaqus,
+    statusRetornoLaqus,
     idFundoInvestimento,
-  }: AtualizarStatusRetornoLaqus): Promise<RetornoMultiplos> {
+    dataDesvinculo,
+  }: AtualizarDebentureSerieInvestidorLaqus): Promise<RetornoMultiplos> {
     const debentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.updateMany({
         where: {
@@ -158,8 +157,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
           status_retorno_laqus: 'Pendente',
         },
         data: {
-          status_retorno_laqus: status,
-          mensagem_retorno_laqus: justificativa,
+          status_retorno_laqus: statusRetornoLaqus,
+          mensagem_retorno_laqus: mensagemRetornoLaqus,
+          ...(dataDesvinculo !== undefined && {
+            data_desvinculo: dataDesvinculo,
+          }),
         },
       });
 

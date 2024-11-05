@@ -7,25 +7,30 @@ import {
   Get,
   HttpCode,
 } from '@nestjs/common';
-import { CreditSecService } from './credit-sec.service';
+import { CreditSecSerieService } from './credit-sec-serie.service';
 import { JwtAuthGuardBackoffice } from 'src/app/autenticacao/guards/backoffice-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { BodyCallbackDto } from './dto/body-callback.dto';
+import {
+  BodyCriacaoRemessaDto,
+  BodyRetornoCriacaoSerieDto,
+} from './dto/body-callback.dto';
+import { CreditSecRemessaService } from './credit-sec-remessa.service';
 
 @ApiTags('CREDIT-SEC')
 @ApiBearerAuth('access-token')
-@Controller('api/credit-sec/solicitar-serie')
+@Controller('api/credit-sec')
 export class CreditSecControler {
-  constructor(private readonly CreditSecService: CreditSecService) {}
+  constructor(
+    private readonly CreditSecSerieService: CreditSecSerieService,
+    private readonly CreditSecRemessaService: CreditSecRemessaService,
+  ) {}
 
-  @Post('/callback')
-  callbackCrediSec(@Body() body: BodyCallbackDto) {
-    return this.CreditSecService.registrarRetornoCreditSec(body);
+  @Post('/solicitar-serie/retorno/criacao-serie')
+  callbackCrediSec(@Body() body: BodyRetornoCriacaoSerieDto) {
+    return this.CreditSecSerieService.registrarRetornoCreditSec(body);
   }
-  //@UseGuards(JwtAuthGuardBackoffice)
-  @Post(':id_cedente')
-  @HttpCode(204)
-  solicitarSerie(@Param('id_cedente') id_cedente: string) {
-    return this.CreditSecService.solicitarSerie(Number(id_cedente));
+  @Post('/solicitar-remessa')
+  solicitarRemessa(@Body() body: BodyCriacaoRemessaDto) {
+    return this.CreditSecRemessaService.solicitarRemessa(body);
   }
 }

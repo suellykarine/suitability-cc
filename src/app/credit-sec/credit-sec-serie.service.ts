@@ -1,11 +1,9 @@
 import {
-  HttpCode,
   HttpException,
   Injectable,
   InternalServerErrorException,
   NotAcceptableException,
 } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
 import { Cedente } from 'src/@types/entities/cedente';
 import { EnderecoCedente } from 'src/@types/entities/cedente';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
@@ -22,13 +20,13 @@ import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contra
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
-import { BodyCallbackDto } from './dto/body-callback.dto';
+import { BodyRetornoCriacaoSerieDto } from './dto/body-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 
 @Injectable()
-export class CreditSecService {
+export class CreditSecSerieService {
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
@@ -120,10 +118,10 @@ export class CreditSecService {
       throw error;
     }
   }
-  async registrarRetornoCreditSec(data: BodyCallbackDto) {
+  async registrarRetornoCreditSec(data: BodyRetornoCriacaoSerieDto) {
     try {
       const debentureSerie =
-        await this.debentureSerieRepositorio.encontrarSeriesPorNumeroSerie(
+        await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
           Number(data.numero_serie),
         );
       const debentureSerieInvestidor =
@@ -134,16 +132,18 @@ export class CreditSecService {
       const dataDesvinculo = data.status === 'FAILURE' ? new Date() : null;
       const atualizaDebentureSerieInvestidor =
         await this.debentureSerieInvestidorRepositorio.atualizaDebentureSerieInvestidor(
-          debentureSerieInvestidor.id,
-          data.status,
-          data.motivo,
-          dataDesvinculo,
+          {
+            data_desvinculo: dataDesvinculo,
+            id_debenture_serie_investidor: debentureSerieInvestidor.id,
+            motivo: data.motivo,
+            status: data.status,
+          },
         );
 
       if (data.status === 'SUCCESS')
         await this.registrarDataEmissaoSerie(debentureSerie.id);
 
-      if (data.status === 'PENDING')
+      if (data.status === 'FAILURE')
         await this.desabilitarDebentureFundoInvestimento(
           debentureSerieInvestidor.id_fundo_investimento,
         );
@@ -162,34 +162,34 @@ export class CreditSecService {
     dataFutura.setMonth(dataFutura.getMonth() + 6);
 
     const atualizaDebentureSerie =
-      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie(
-        dataAtual,
-        dataFutura,
+      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie({
+        data_emissao: dataAtual,
+        data_vencimento: dataFutura,
         id_debenture_serie,
-      );
+      });
     return atualizaDebentureSerie;
   }
 
   private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
     const desabilitaDebenture =
-      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie(
-        false,
-        null,
-        id_fundo,
-      );
+      await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie({
+        apto_debenture: false,
+        id_fundo: id_fundo,
+        valor_serie_debenture: null,
+      });
     return desabilitaDebenture;
   }
 
   private async buscarStatusSerieCreditSec(
     numero_emissao: number,
     numero_serie: number,
-  ): Promise<BodyCallbackDto> {
+  ): Promise<BodyRetornoCriacaoSerieDto> {
     const req = await fetch(
-      `${process.env.BASE_URL_CREDIT_SEC}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
+      `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_SERIE}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC}`,
+          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC_SOLICITAR_SERIE}`,
         },
       },
     );
@@ -202,13 +202,13 @@ export class CreditSecService {
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
     const req = await fetch(
-      `${process.env.BASE_URL_CREDIT_SEC}/serie/solicitar_emissao`,
+      `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_SERIE}/serie/solicitar_emissao`,
       {
         method: 'POST',
         body: JSON.stringify(body),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC}`,
+          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC_SOLICITAR_SERIE}`,
         },
       },
     );
@@ -278,7 +278,7 @@ export class CreditSecService {
       numero_emissao:
         serieInvestidor.debenture_serie.debenture.numero_debenture,
       numero_serie: serieInvestidor.debenture_serie.numero_serie,
-      callback_url: `${process.env.BASE_URL}api/credit-sec/solicitar-serie/callback`,
+      callback_url: `${process.env.BASE_URL}api/credit-sec/solicitar-serie/retorno/criacao-serie`,
       conta_serie: {
         banco: '533',
         agencia: serieInvestidor.conta_investidor.agencia,

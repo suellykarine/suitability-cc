@@ -1,13 +1,11 @@
-import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
+import {
+  AtualizaDebentureSerieInvestidorCreditSec,
+  AtualizarDebentureSerieInvestidorLaqus,
+  DebentureSerieInvestidor,
+} from 'src/@types/entities/debenture';
 import { RetornoMultiplos } from 'src/utils/prisma/types';
 import { Repositorio } from './repositorio';
 
-export type AtualizarStatusRetornoLaqus = {
-  status: StatusRetornoLaqus;
-  justificativa: string;
-  idFundoInvestimento: number;
-};
-export type StatusRetornoLaqus = 'Pendente' | 'Reprovado' | 'Aprovado';
 export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null>;
@@ -29,17 +27,14 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract atualizarStatusLaqus(
-    props: AtualizarStatusRetornoLaqus,
+    props: AtualizarDebentureSerieInvestidorLaqus,
   ): Promise<RetornoMultiplos>;
   abstract encontrarPorIdDebentureSerie(
     idDebentureSerie: number,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract atualizaDebentureSerieInvestidor(
-    idDebentureSerieInvestidor: number,
-    status: string,
-    motivo: string | null,
-    data_desvinculo: Date | null,
+    data: AtualizaDebentureSerieInvestidorCreditSec,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract todosStatusCreditSecNull(): Promise<
