@@ -42,12 +42,4 @@ export class DebentureService {
     }
     return debentures;
   }
-
-  // async listarDebentureSerieInvestidor(): Promise<DebentureSerieInvestidor[]> {
-  //   const debentures = await this.debentureRepositorio.listarDebentureSerieInvestidor();
-  //   if (!debentures || debentures.length === 0) {
-  //     throw new NotFoundException('Nenhuma debênture encontrada.');
-  //   }
-  //   return debentures;
-  // }
 }

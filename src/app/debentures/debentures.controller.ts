@@ -94,9 +94,4 @@ export class DebenturesController {
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
   }
-
-  //  @Get('serie-investidor')
-  // async listarDebentureSerieInvestidor(): Promise<DebentureSerieInvestidor[]> {
-  //   return await this.debentureService.listarDebentureSerieInvestidor();
-  // }
 }
