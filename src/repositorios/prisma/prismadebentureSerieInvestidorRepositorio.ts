@@ -1,6 +1,9 @@
 import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { DebentureSerieInvestidorRepositorio } from '../contratos/debentureSerieInvestidorRepositorio';
+import {
+  AtualizarProps,
+  DebentureSerieInvestidorRepositorio,
+} from '../contratos/debentureSerieInvestidorRepositorio';
 import {
   AtualizarDebentureSerieInvestidor,
   DebentureSerieInvestidor,
@@ -74,6 +77,19 @@ export class PrismaDebentureSerieInvestidorRepositorio
           debenture_serie: { connect: { id: id_debenture_serie } },
           fundo_investimento: { connect: { id: id_fundo_investimento } },
         },
+      });
+
+    return serieInvestidorData;
+  }
+
+  async atualizar({
+    id,
+    ...props
+  }: AtualizarProps): Promise<DebentureSerieInvestidor> {
+    const serieInvestidorData =
+      await this.prisma.debenture_serie_investidor.update({
+        where: { id },
+        data: props,
       });
 
     return serieInvestidorData;

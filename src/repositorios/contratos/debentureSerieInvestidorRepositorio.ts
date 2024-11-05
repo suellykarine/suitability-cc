@@ -5,6 +5,11 @@ import {
 import { RetornoMultiplos } from 'src/utils/prisma/types';
 import { Repositorio } from './repositorio';
 
+export type AtualizarProps = Omit<
+  Partial<DebentureSerieInvestidor> & { id: number },
+  'fundo_investimento' | 'debenture_serie' | 'conta_investidor'
+>;
+
 export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null>;
@@ -23,6 +28,10 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
 
   abstract encontrarPorIdContaInvestidorDataEncerramento(
     idFundoInvestimento: number,
+  ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract atualizar(
+    props: AtualizarProps,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract atualizarStatusLaqus(
