@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -35,7 +36,7 @@ export class DebentureSerieService {
 
   constructor(
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
-    private readonly prismaFundoRepositorio: FundoInvestimentoRepositorio,
+    private readonly prismaFundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly debentureRespositorio: DebentureRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
@@ -60,16 +61,17 @@ export class DebentureSerieService {
         contexto,
       });
       const debenture =
-        await this.debentureRespositorio.encontrarPorId(id_debenture);
+        await this.debentureRespositorio.encontrarPorId(id_debenture); // TO-DO: Encontrar uma forma de capturar a debenture sem um id_debenture específico
 
       if (!debenture) {
         throw new NotFoundException(
           `Debenture com ID ${id_debenture} não encontrada`,
         );
-      }
-      const fundo = await this.prismaFundoRepositorio.encontrarPorId(
-        id_fundo_investimento,
-      );
+      } // TO-DO: alterar a mensagem de erro
+      const fundo =
+        await this.prismaFundoInvestimentoRepositorio.encontrarPorId(
+          id_fundo_investimento,
+        );
 
       const valorSerie =
         criarDebentureSerieDto.valor_serie ?? fundo.valor_serie_debenture;
@@ -108,7 +110,6 @@ export class DebentureSerieService {
               vinculoEncerrado.id_conta_investidor,
               id_fundo_investimento,
             );
-            // await this.montarDados(fundo, vinculoEncerrado);
             return vinculoEncerrado.debenture_serie;
           }
         }
@@ -153,13 +154,34 @@ export class DebentureSerieService {
             serieLiquidada.id_conta_investidor,
           );
         if (!serieLiquidadaContaInvestidor) {
-          // await this.montarDados(fundo, serieLiquidada);
-
           await this.reutilizarDebentureSerieInvestidor(
             novaSerie.id,
             serieLiquidada.id_conta_investidor,
             id_fundo_investimento,
           );
+          const { identificadorLaqus } = await this.chamarLaqus(
+            fundo,
+            serieLiquidada,
+          );
+
+          if (!identificadorLaqus) {
+            throw new InternalServerErrorException(
+              'O identificador Laqus não foi retornado',
+            );
+          }
+
+          const atualizadoComIdentificadorLaqus =
+            await this.debentureSerieInvestidorRepositorio.atualizar({
+              id: serieLiquidada.id,
+              status_retorno_laqus: 'Pendente',
+            });
+
+          if (!atualizadoComIdentificadorLaqus) {
+            throw new InternalServerErrorException(
+              'Não foi possível atualizar o status do retorno Laqus',
+            );
+          }
+
           return novaSerie;
         }
       }
@@ -170,12 +192,35 @@ export class DebentureSerieService {
           id_cedente: String(fundo.id),
         });
 
-      const novaDeventureSerieInvestidor =
+      const novaDebentureSerieInvestidor =
         await this.criarDebentureSerieInvestidor(
           novaSerie.id,
           novaContaInvestidor.conta_investidor.id,
           fundo.id,
         );
+
+      const { identificadorLaqus } = await this.chamarLaqus(
+        fundo,
+        novaDebentureSerieInvestidor,
+      );
+
+      if (!identificadorLaqus) {
+        throw new InternalServerErrorException(
+          'O identificador Laqus não foi retornado',
+        );
+      }
+
+      const atualizadoComIdentificadorLaqus =
+        await this.debentureSerieInvestidorRepositorio.atualizar({
+          id: novaDebentureSerieInvestidor.id,
+          status_retorno_laqus: 'Pendente',
+        });
+
+      if (!atualizadoComIdentificadorLaqus) {
+        throw new InternalServerErrorException(
+          'Não foi possível atualizar o status do retorno Laqus',
+        );
+      }
 
       removerContextosDeTransacao({
         repositorios: [
@@ -303,11 +348,11 @@ export class DebentureSerieService {
     }, 1);
   }
 
-  private async montarDados(
+  private async chamarLaqus(
     fundo: FundoInvestimento,
     serie: DebentureSerieInvestidor,
-  ) {
-    await this.laqusService.cadastrarInvestidor({
+  ): Promise<{ identificadorLaqus: string }> {
+    return await this.laqusService.cadastrarInvestidor({
       tipoDeEmpresa: TipoDeEmpresa.Limitada,
       tipoPessoa: TipoPessoa.Juridica,
       funcao: Funcao.Investidor,
