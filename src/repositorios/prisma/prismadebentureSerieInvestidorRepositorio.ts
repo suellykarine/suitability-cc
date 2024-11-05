@@ -5,7 +5,8 @@ import {
   DebentureSerieInvestidorRepositorio,
 } from '../contratos/debentureSerieInvestidorRepositorio';
 import {
-  AtualizarDebentureSerieInvestidor,
+  AtualizaDebentureSerieInvestidorCreditSec,
+  AtualizarDebentureSerieInvestidorLaqus,
   DebentureSerieInvestidor,
 } from 'src/@types/entities/debenture';
 import { Prisma } from '@prisma/client';
@@ -103,18 +104,15 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return debentureSerieInvestidor;
   }
   async atualizaDebentureSerieInvestidor(
-    id_debenture_serie_investidor: number,
-    status: string,
-    motivo: string,
-    data_desvinculo: Date | null,
+    data: AtualizaDebentureSerieInvestidorCreditSec,
   ): Promise<DebentureSerieInvestidor> {
     const atualizaDebentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.update({
-        where: { id: id_debenture_serie_investidor },
+        where: { id: data.id_debenture_serie_investidor },
         data: {
-          status_retorno_creditsec: status,
-          mensagem_retorno_creditsec: motivo ?? null,
-          data_desvinculo,
+          status_retorno_creditsec: data.status,
+          mensagem_retorno_creditsec: data.motivo ?? null,
+          data_desvinculo: data.data_desvinculo,
         },
       });
     return atualizaDebentureSerieInvestidor;
@@ -167,7 +165,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
     statusRetornoLaqus,
     idFundoInvestimento,
     dataDesvinculo,
-  }: AtualizarDebentureSerieInvestidor): Promise<RetornoMultiplos> {
+  }: AtualizarDebentureSerieInvestidorLaqus): Promise<RetornoMultiplos> {
     const debentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.updateMany({
         where: {
