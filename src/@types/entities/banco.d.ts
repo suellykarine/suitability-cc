@@ -28,3 +28,22 @@ export type DadosBancarios = {
   ativo: boolean;
   historico: Historico;
 };
+
+type Banco = {
+  codigo: 363;
+  nome: string;
+};
+type Fundo = {
+  sigla: string;
+  identificador: string;
+};
+export type Conta = {
+  id: number;
+  agencia: string;
+  agenciaDigito: string;
+  conta: string;
+  contaDigito: string;
+  nomeCorrentista: string;
+  banco: Banco;
+  fundo: Fundo;
+};
