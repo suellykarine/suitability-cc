@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AutenticacaoService } from './auth.service';
+import { AutenticacaoService } from './autenticacao.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LoginDto } from 'src/app/autenticacao/dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { LocalAuthGuard } from './app/autenticacao/guards/local-auth.guard';
-import { AutenticacaoService } from './app/autenticacao/auth.service';
+import { AutenticacaoService } from './app/autenticacao/autenticacao.service';
 import { LoginDto } from './app/autenticacao/dto/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
