@@ -2,7 +2,7 @@ import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
-import { AtualizarDebentureSerieInvestidor } from 'src/@types/entities/debenture';
+import { AtualizarDebentureSerieInvestidorLaqus } from 'src/@types/entities/debenture';
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -142,8 +142,8 @@ export class LaqusService {
   }
 
   private montarPayloadAtualizarDebentureSerieInvestidor(
-    payload: AtualizarDebentureSerieInvestidor,
-  ): AtualizarDebentureSerieInvestidor {
+    payload: AtualizarDebentureSerieInvestidorLaqus,
+  ): AtualizarDebentureSerieInvestidorLaqus {
     const { dataDesvinculo, ...payloadSemDataDesvinculo } = payload;
     return dataDesvinculo ? payload : payloadSemDataDesvinculo;
   }

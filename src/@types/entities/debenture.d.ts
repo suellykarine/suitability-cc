@@ -46,12 +46,24 @@ export type AtualizarFundoInvestimentoAptoDebenture = {
   valor_serie_debenture: number | null;
   id_fundo: number;
 };
+export type AtualizaDebentureSerieInvestidorCreditSec = {
+  id_debenture_serie_investidor: number;
+  status: string;
+  motivo: string | null;
+  data_desvinculo: Date | null;
+};
 
-export type AtualizarDebentureSerieInvestidor = {
+export type AtualizarDebentureSerieInvestidorLaqus = {
   statusRetornoLaqus: StatusRetornoLaqus;
   mensagemRetornoLaqus: string;
   idFundoInvestimento: number;
   dataDesvinculo?: Date;
+};
+
+export type atualizarDatasDebentureSerie = {
+  data_emissao: Date;
+  data_vencimento: Date;
+  id_debenture_serie: number;
 };
 export type StatusRetornoLaqus = 'Pendente' | 'Reprovado' | 'Aprovado';
 
