@@ -17,7 +17,6 @@ import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
 import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
-import { CodigoOperacaoDto } from './dto/codigo-operacao.dto';
 
 @ApiTags('Debentures')
 @ApiBearerAuth('access-token')
