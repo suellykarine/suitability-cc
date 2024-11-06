@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class BodyCallbackDto {
+export class BodyRetornoCriacaoSerieDto {
   @ApiProperty({
     description: 'Número de emissão',
     example: 1,
@@ -32,4 +32,21 @@ export class BodyCallbackDto {
   })
   @IsOptional()
   motivo: string;
+}
+
+export class BodyCriacaoRemessaDto {
+  @ApiProperty({
+    description: 'Número debênture',
+    example: 1,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  numero_debenture: number;
+  @ApiProperty({
+    description: 'Número série',
+    example: 1,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  numero_serie: number;
 }
