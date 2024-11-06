@@ -11,7 +11,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
-import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto';
+import {
+  AtualizarDebentureSerieDto,
+  AtualizarValorDaSerieDto,
+} from './dto/atualizar-debenture-serie.dto';
 import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
@@ -60,11 +63,13 @@ export class DebenturesController {
       Number(limite),
     );
   }
+
   @UseGuards(JwtAuthGuardPremium)
   @Get('serie/:id')
   async encontrarPorId(@Param('id') id: string) {
     return this.debenturesSerieService.encontrarPorId(+id);
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Post('serie/:id_debenture/fundo/:id_fundo_investimento')
   async criarNovaSerie(
@@ -78,6 +83,7 @@ export class DebenturesController {
       criarDebentureSerieDto,
     );
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Patch('serie/:id')
   async atualizar(
@@ -89,6 +95,22 @@ export class DebenturesController {
       atualizarDebentureSerieDto,
     );
   }
+
+  @UseGuards(JwtAuthGuardPremium)
+  @Patch('serie/valor/:id')
+  async atualizarValorDaSerie(
+    @Param('id') id: string,
+    @Body() atualizarValorDaSerieDto: AtualizarValorDaSerieDto,
+  ) {
+    const { valorSerie } = atualizarValorDaSerieDto;
+    const idDebentureSerie = Number(id);
+    const data = {
+      idDebentureSerie,
+      valorSerie,
+    };
+    return this.debenturesSerieService.atualizarValorDaSerie(data);
+  }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Delete('serie/:id')
   async deletar(@Param('id') id: string) {

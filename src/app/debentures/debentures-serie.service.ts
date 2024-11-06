@@ -9,6 +9,7 @@ import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debentures
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto';
 import {
+  AtualizarValorSerie,
   DebentureSerie,
   DebentureSerieInvestidor,
 } from 'src/@types/entities/debenture';
@@ -312,6 +313,27 @@ export class DebentureSerieService {
       );
     }
     return this.debentureSerieRepositorio.atualizar(id, data);
+  }
+
+  async atualizarValorDaSerie({
+    idDebentureSerie,
+    valorSerie,
+  }: AtualizarValorSerie): Promise<DebentureSerie> | null {
+    const debentureSerie = await this.encontrarPorId(idDebentureSerie);
+
+    if (!debentureSerie)
+      throw new NotFoundException('Debenture série não encontrada');
+
+    if (debentureSerie.data_vencimento < new Date())
+      throw new BadRequestException('Debenture serie expirada');
+
+    const data = { valor_serie: valorSerie };
+    const atualizado = await this.atualizar(idDebentureSerie, data);
+    if (!atualizado)
+      throw new InternalServerErrorException(
+        'Não foi possível atualizar a debenture série',
+      );
+    return atualizado;
   }
 
   async deletar(id: number): Promise<void> {
