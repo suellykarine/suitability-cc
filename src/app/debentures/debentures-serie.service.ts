@@ -138,8 +138,6 @@ export class DebentureSerieService {
         id_debenture: id_debenture,
         valor_serie: criarDebentureSerieDto.valor_serie ?? valorSerie,
         valor_serie_investido: 0,
-        valor_serie_restante: criarDebentureSerieDto.valor_serie ?? valorSerie,
-
         data_emissao: null,
         data_vencimento: null,
       });
