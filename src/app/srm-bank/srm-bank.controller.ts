@@ -34,7 +34,7 @@ export class SrmBankController {
 
   @UseGuards(JwtAuthGuardPremium)
   @Get('saldo/:numeroConta')
-  async buscarSaldoContaInvestidor(numeroConta: string) {
+  async buscarSaldoContaInvestidor(@Param('numeroConta') numeroConta: string) {
     return this.SrmBankService.buscarSaldoContaInvestidor(Number(numeroConta));
   }
 }
