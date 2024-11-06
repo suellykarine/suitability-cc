@@ -12,6 +12,4 @@ export abstract class DebentureRepositorio {
   abstract buscarPorNome(nome: string): Promise<Debenture>;
 
   abstract buscarPorNumero(numero: number): Promise<Debenture>;
-
-  //  abstract listarDebentureSerieInvestidor(): Promise<DebentureSerieInvestidor[]>;
 }

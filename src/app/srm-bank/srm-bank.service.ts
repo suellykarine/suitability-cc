@@ -1,4 +1,9 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   RespostaCriarContaSrmBank,
   RespostaBuscarContaSrmBank,
@@ -151,18 +156,16 @@ export class SrmBankService {
       });
 
       if (!req.ok) {
-        throw new HttpException(
-          `Erro ao buscar saldo: ${req.status} ${req.statusText}`,
-          req.status,
+        throw new InternalServerErrorException(
+          'Ocorreu um erro ao buscar o saldo',
         );
       }
 
       const result = await req.json();
       return { saldoEmConta: result.saldoEmConta };
     } catch (error) {
-      throw new HttpException(
-        `Erro ao buscar saldo do investidor: ${error.message}`,
-        500,
+      throw new InternalServerErrorException(
+        'Ocorreu um erro ao buscar o saldo',
       );
     }
   }
