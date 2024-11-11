@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   AtualizarProps,
   DebentureSerieInvestidorRepositorio,
+  EncontrarPorDesvinculoProps,
 } from '../contratos/debentureSerieInvestidorRepositorio';
 import {
   AtualizaDebentureSerieInvestidorCreditSec,
@@ -13,6 +14,14 @@ import { Prisma } from '@prisma/client';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { RetornoMultiplos } from 'src/utils/prisma/types';
 
+type EncontrarPorCampo = {
+  campo: Extract<
+    keyof DebentureSerieInvestidor,
+    'data_encerramento' | 'data_desvinculo'
+  >;
+  idDebenture: number;
+  valorMinimoSerie?: number;
+};
 @Injectable()
 export class PrismaDebentureSerieInvestidorRepositorio
   implements DebentureSerieInvestidorRepositorio
@@ -35,12 +44,35 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return converterCamposDecimais(serieInvestidorData);
   }
 
-  async encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null> {
-    return this.encontrarPorCampo('data_desvinculo');
+  async encontrarPorIdFundoInvestimento({
+    id_fundo_investimento,
+  }: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>) {
+    const serieInvestidorData =
+      await this.prisma.debenture_serie_investidor.findMany({
+        where: { id_fundo_investimento },
+      });
+
+    return serieInvestidorData.map(converterCamposDecimais);
   }
 
-  async encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null> {
-    return this.encontrarPorCampo('data_encerramento');
+  async encontrarPorDesvinculo({
+    idDebenture,
+    valorMinimoSerie,
+  }: EncontrarPorDesvinculoProps): Promise<DebentureSerieInvestidor | null> {
+    return this.encontrarPorCampo({
+      campo: 'data_desvinculo',
+      idDebenture,
+      valorMinimoSerie,
+    });
+  }
+
+  async encontrarPorEncerramento(
+    idDebenture: number,
+  ): Promise<DebentureSerieInvestidor | null> {
+    return this.encontrarPorCampo({
+      campo: 'data_encerramento',
+      idDebenture,
+    });
   }
 
   async encontrarPorIdContaInvestidorDataEncerramento(
@@ -125,17 +157,27 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return data;
   }
 
-  private async encontrarPorCampo(
-    campo: Extract<
-      keyof DebentureSerieInvestidor,
-      'data_encerramento' | 'data_desvinculo'
-    >,
-  ): Promise<DebentureSerieInvestidor | null> {
+  private async encontrarPorCampo({
+    campo,
+    idDebenture,
+    valorMinimoSerie = 0,
+  }: EncontrarPorCampo): Promise<DebentureSerieInvestidor | null> {
     const serieInvestidorData =
       await this.prisma.debenture_serie_investidor.findFirst({
         where: {
           [campo]: {
             not: null,
+          },
+          debenture_serie: {
+            id_debenture: idDebenture,
+            valor_serie: {
+              gte: valorMinimoSerie,
+            },
+          },
+        },
+        orderBy: {
+          debenture_serie: {
+            valor_serie: 'desc',
           },
         },
         include: { debenture_serie: true, conta_investidor: true },

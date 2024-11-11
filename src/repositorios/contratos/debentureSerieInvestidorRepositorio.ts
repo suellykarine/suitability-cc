@@ -11,10 +11,19 @@ export type AtualizarProps = Omit<
   'fundo_investimento' | 'debenture_serie' | 'conta_investidor'
 >;
 
+export type EncontrarPorDesvinculoProps = {
+  idDebenture: number;
+  valorMinimoSerie?: number;
+};
+
 export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
-  abstract encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null>;
-  abstract encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null>;
+  abstract encontrarPorDesvinculo(
+    props: EncontrarPorDesvinculoProps,
+  ): Promise<DebentureSerieInvestidor | null>;
+  abstract encontrarPorEncerramento(
+    idDebenture: number,
+  ): Promise<DebentureSerieInvestidor | null>;
   abstract criar(
     data: Partial<DebentureSerieInvestidor>,
   ): Promise<DebentureSerieInvestidor>;
@@ -22,6 +31,10 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorIdContaInvestidorDataDesvinculo(
     idFundoInvestimento: number,
   ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract encontrarPorIdFundoInvestimento(
+    props: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>,
+  ): Promise<Omit<DebentureSerieInvestidor, 'debenture_serie'>[] | null>;
 
   abstract encontrarPorIdContaInvestidorDataEncerramento(
     idFundoInvestimento: number,
