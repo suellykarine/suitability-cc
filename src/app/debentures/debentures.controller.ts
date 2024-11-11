@@ -77,8 +77,7 @@ export class DebenturesController {
     @Param('id_fundo_investimento') id_fundo_investimento: string,
     @Body() criarDebentureSerieDto: CriarDebentureSerieDto,
   ) {
-    return this.debenturesSerieService.criar(
-      +id_debenture,
+    return this.debenturesSerieService.solicitarSerie(
       +id_fundo_investimento,
       criarDebentureSerieDto,
     );
