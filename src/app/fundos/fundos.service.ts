@@ -25,10 +25,14 @@ import { CriarFactoringDto } from './dto/criar-factoring.dto';
 import { CriarSecuritizadoraDto } from './dto/criar-securitizaroda.dto copy';
 import { AtualizarFundoDto } from './dto/atualizar-fundo.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 
 @Injectable()
 export class FundosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
+  ) {}
 
   async criarFundo(id: number, criarFundoDto: CriarFundoDto[]) {
     const usuario = await this.obterUsuario(id);
@@ -1099,6 +1103,23 @@ export class FundosService {
         });
       }
     });
+  }
+  async buscarEstaAptoADebenture(id: number) {
+    const estaApto =
+      await this.fundoInvestimentoRepositorio.buscarEstaAptoADebentureRepositorio(
+        id,
+      );
+    if (!estaApto) {
+      return {
+        mensagem:
+          'fundo de investimento não está apto ao investimento por debenture',
+        data: estaApto,
+      };
+    }
+    return {
+      mensagem: 'fundo de investimento está apto ao investimento por debenture',
+      data: estaApto,
+    };
   }
 }
 
