@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -58,11 +58,12 @@ export class AnbimaService {
       );
     });
 
-    if (!fundoSelecionado && pagina < totalPaginas) {
+    if (!fundoSelecionado && pagina < totalPaginas)
       return this.buscarFundosPorCnpj(cnpj, pagina + 1);
-    }
 
-    return fundoSelecionado || null;
+    if (!fundoSelecionado) throw new NotFoundException('Fundo não encontrado');
+
+    return fundoSelecionado;
   }
 
   async buscarDetalhesFundoPorCodigoAnbima(codigoAnbima: string): Promise<any> {
