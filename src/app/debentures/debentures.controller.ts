@@ -94,4 +94,15 @@ export class DebenturesController {
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
   }
+
+  @Get('serie-investidor/:id')
+  async testee(@Param('id') id: string) {
+    const valorEntrada = 1200000000;
+    const service = await this.debenturesSerieService.estaAptoAEstruturar(
+      Number(id),
+      valorEntrada,
+    );
+    return service;
+  }
 }
+//TO-DO HENRIQUE LEMBRAR DE RETIRAR O CONTROLER SE NAO FOR UTILIZAR

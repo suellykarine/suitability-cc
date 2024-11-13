@@ -106,4 +106,8 @@ export class FundosController {
       req.user.idUsuario,
     );
   }
+  @Get('esta-apto/:id')
+  estaApto(@Param('id') id: string) {
+    return this.fundosService.buscarEstaAptoADebenture(Number(id));
+  }
 }
