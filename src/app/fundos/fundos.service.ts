@@ -897,7 +897,7 @@ export class FundosService {
             },
           });
           await prisma.endereco.delete({
-            where: { id: procurador?.id_endereco! },
+            where: { id: procurador?.id_endereco },
           });
         }
       }
