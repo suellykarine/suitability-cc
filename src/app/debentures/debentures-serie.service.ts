@@ -47,10 +47,10 @@ export class DebentureSerieService {
     private readonly adaptadorDb: AdaptadorDb,
   ) {}
 
-  async solicitarSerie(
-    id_fundo_investimento: number,
-    { valorEntrada }: CriarDebentureSerieDto,
-  ): Promise<DebentureSerie> {
+  async solicitarSerie({
+    valorEntrada,
+    identificadorFundo,
+  }: CriarDebentureSerieDto): Promise<DebentureSerie> {
     return this.adaptadorDb.fazerTransacao(async (contexto) => {
       definirContextosDeTransacao({
         repositorios: [
@@ -70,12 +70,12 @@ export class DebentureSerieService {
 
       const fundo =
         await this.prismaFundoInvestimentoRepositorio.encontrarPorId(
-          id_fundo_investimento,
+          identificadorFundo,
         );
 
       if (!fundo) {
         throw new NotFoundException(
-          `Fundo de investimento com ID ${id_fundo_investimento} não encontrado`,
+          `Fundo de investimento com ID ${identificadorFundo} não encontrado`,
         );
       }
 
@@ -111,7 +111,7 @@ export class DebentureSerieService {
 
       const debentureSerieInvestidorEncontradosPeloFundo =
         await this.debentureSerieInvestidorRepositorio.encontrarPorIdFundoInvestimento(
-          { id_fundo_investimento },
+          { id_fundo_investimento: identificadorFundo },
         );
 
       const DebentureSerieInvestidorPeloFundoOrdenados =
@@ -163,7 +163,7 @@ export class DebentureSerieService {
               debentureSerieInvestidorDesvinculado.id_debenture_serie,
             idContaInvestidor:
               debentureSerieInvestidorDesvinculado.id_conta_investidor,
-            idFundoInvestimento: id_fundo_investimento,
+            idFundoInvestimento: identificadorFundo,
             idLaqus: codigo_investidor_laqus,
             statusLaqus: status_retorno_laqus,
           },
@@ -196,7 +196,7 @@ export class DebentureSerieService {
           {
             idDebentureSerie: novaSerie.id,
             idContaInvestidor,
-            idFundoInvestimento: id_fundo_investimento,
+            idFundoInvestimento: identificadorFundo,
             idLaqus: codigo_investidor_laqus,
             statusLaqus: status_retorno_laqus,
           },

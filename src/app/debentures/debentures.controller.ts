@@ -71,16 +71,9 @@ export class DebenturesController {
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
-  @Post('serie/:id_debenture/fundo/:id_fundo_investimento')
-  async criarNovaSerie(
-    @Param('id_debenture') id_debenture: string,
-    @Param('id_fundo_investimento') id_fundo_investimento: string,
-    @Body() criarDebentureSerieDto: CriarDebentureSerieDto,
-  ) {
-    return this.debenturesSerieService.solicitarSerie(
-      +id_fundo_investimento,
-      criarDebentureSerieDto,
-    );
+  @Post('serie')
+  async solicitarSerie(@Body() payload: CriarDebentureSerieDto) {
+    return this.debenturesSerieService.solicitarSerie(payload);
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
