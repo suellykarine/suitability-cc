@@ -28,7 +28,18 @@ import {
   removerContextosDeTransacao,
 } from 'src/utils/funcoes/repositorios';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
-
+import {
+  calcularDataDeCorte,
+  ehValidaPorData,
+  encontrarSerieComValorAproximado,
+  filtrarSeriesPorValor,
+  pertenceADebentureAtual,
+} from './utils/estaAptoAEstruturar';
+type FiltrarSeriesValidasProps = {
+  seriesId: number[];
+  debentureId: number;
+  dataDeCorte: Date;
+};
 @Injectable()
 export class DebentureSerieService {
   private readonly limiteDebenture = 50000000;
@@ -39,6 +50,7 @@ export class DebentureSerieService {
     private readonly debentureRespositorio: DebentureRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+    private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly laqusService: LaqusService,
     private readonly srmBankService: SrmBankService,
     private readonly configService: ConfigService,
@@ -169,7 +181,6 @@ export class DebentureSerieService {
           identificador: identificador,
           id_cedente: String(fundo.id),
         });
-
       const novaDeventureSerieInvestidor =
         await this.criarDebentureSerieInvestidor(
           novaSerie.id,
@@ -271,6 +282,83 @@ export class DebentureSerieService {
 
   async deletar(id: number): Promise<void> {
     await this.debentureSerieRepositorio.deletar(id);
+  }
+  async estaAptoAEstruturar(
+    idInvestidor: number,
+    valorEntrada: number,
+  ): Promise<any> {
+    const estaApto =
+      await this.fundoInvestimentoRepositorio.buscarEstaAptoADebentureRepositorio(
+        idInvestidor,
+      );
+
+    if (!estaApto) {
+      throw new BadRequestException(
+        'O investidor não está apto a investir por debenture',
+      );
+    }
+
+    const seriesValidasDoInvestidor =
+      await this.debentureSerieInvestidorRepositorio.buscarTodasDebentureSerieValidas(
+        idInvestidor,
+      );
+
+    if (seriesValidasDoInvestidor.length === 0) {
+      throw new BadRequestException('Não foram encontradas séries válidas');
+    }
+
+    const debentureAtual = await this.debentureRespositorio.buscarAtiva();
+
+    const dataDeCorte = calcularDataDeCorte(6);
+
+    const seriesValidasEComSaldoNaDebentureAtual =
+      await this.filtrarSeriesValidas({
+        seriesId: seriesValidasDoInvestidor,
+        debentureId: debentureAtual.id,
+        dataDeCorte,
+      });
+
+    if (seriesValidasEComSaldoNaDebentureAtual.length === 0) {
+      throw new BadRequestException(
+        'Não foram encontradas séries válidas  e com saldo na debenture atual',
+      );
+    }
+
+    const seriesComSaldoSuficiente = filtrarSeriesPorValor({
+      series: seriesValidasEComSaldoNaDebentureAtual,
+      valorEntrada,
+    });
+
+    if (seriesComSaldoSuficiente.length > 0) {
+      const serieMaisApropriada = encontrarSerieComValorAproximado({
+        series: seriesComSaldoSuficiente,
+        valorEntrada,
+      });
+
+      return {
+        mensagem: 'Série válida encontrada',
+        data: serieMaisApropriada,
+      };
+    }
+    return 'ops';
+  }
+
+  private async filtrarSeriesValidas({
+    seriesId,
+    debentureId,
+    dataDeCorte,
+  }: FiltrarSeriesValidasProps): Promise<DebentureSerie[]> {
+    const seriesValidas = await Promise.all(
+      seriesId.map(async (serieId) => {
+        const serie =
+          await this.debentureSerieRepositorio.encontrarPorId(serieId);
+        const atendeCriteriosBasicos =
+          pertenceADebentureAtual({ serie, debentureId }) &&
+          ehValidaPorData({ serie, dataDeCorte });
+        return atendeCriteriosBasicos ? serie : null;
+      }),
+    );
+    return seriesValidas.filter((serie) => serie !== null);
   }
 
   private verificarLimiteDebenture(
