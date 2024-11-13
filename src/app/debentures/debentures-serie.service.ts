@@ -116,15 +116,16 @@ export class DebentureSerieService {
 
       const DebentureSerieInvestidorPeloFundoOrdenados =
         debentureSerieInvestidorEncontradosPeloFundo?.sort((a, b) => {
-          if (a.data_vinculo < b.data_vinculo) return -1;
-          if (a.data_vinculo > b.data_vinculo) return 1;
+          if (a.data_vinculo > b.data_vinculo) return -1;
+          if (a.data_vinculo < b.data_vinculo) return 1;
           return 0;
         });
 
-      const ultimoVinculoFundo = DebentureSerieInvestidorPeloFundoOrdenados[0];
+      const ultimoVinculoFundo =
+        DebentureSerieInvestidorPeloFundoOrdenados?.[0];
 
       const { status_retorno_laqus, codigo_investidor_laqus } =
-        ultimoVinculoFundo;
+        ultimoVinculoFundo ?? {};
 
       const fundoReprovadoLaqus =
         status_retorno_laqus.toLocaleLowerCase() === 'reprovado';
