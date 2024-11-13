@@ -11,10 +11,12 @@ import {
   UseGuards,
   Query,
   Request,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { DocumentosService } from './documentos.service';
-import { EnviarDocumentoDto } from './dto/create-documento.dto';
-import { AtualizarDocumentoDto } from './dto/update-documento.dto';
+import { EnviarDocumentoDto } from './dto/criar-documento.dto';
+import { AtualizarDocumentoStatusDto } from './dto/atualizar-documento.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -38,13 +40,46 @@ export class DocumentosController {
   @Post(':id')
   enviarDocumento(
     @Body() enviarDocumentoDto: EnviarDocumentoDto,
-    @UploadedFile() arquivo: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'pdf',
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        }),
+    )
+    arquivo: Express.Multer.File,
     @Param('id') id: string,
   ) {
     return this.documentosService.enviarDocumento(
       enviarDocumentoDto,
       arquivo,
       +id,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('arquivo'))
+  @Patch(':id')
+  atualizarDocumento(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'pdf',
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.BAD_REQUEST,
+        }),
+    )
+    arquivo: Express.Multer.File,
+    @Param('id') id: string,
+    @Request() req: RequisicaoPersonalizada,
+  ) {
+    return this.documentosService.atualizarDocumento(
+      +id,
+      arquivo,
+      req.user.idUsuario,
     );
   }
 
@@ -64,14 +99,14 @@ export class DocumentosController {
 
   @UseGuards(JwtAuthGuardBackoffice)
   @Patch('analisar/:id')
-  atualizarDocumento(
+  atualizarStatusDocumento(
     @Param('id') id: string,
-    @Body() atualizarDocumentoDto: AtualizarDocumentoDto,
+    @Body() atualizarDocumentoStatusDto: AtualizarDocumentoStatusDto,
     @Request() req: RequisicaoPersonalizada,
   ) {
-    return this.documentosService.atualizarDocumento(
+    return this.documentosService.atualizarStatusDocumento(
       +id,
-      atualizarDocumentoDto,
+      atualizarDocumentoStatusDto,
       req.user.idUsuario,
     );
   }

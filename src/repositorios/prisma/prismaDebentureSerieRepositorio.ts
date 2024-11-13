@@ -74,12 +74,6 @@ export class PrismaDebentureSerieRepositorio
     });
   }
 
-  async contarSeries(idDebenture: number): Promise<number> {
-    return await this.prisma.debenture_serie.count({
-      where: { id_debenture: idDebenture },
-    });
-  }
-
   async contarSeriesTotal(): Promise<number> {
     return await this.prisma.debenture_serie.count();
   }

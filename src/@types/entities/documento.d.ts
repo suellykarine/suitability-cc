@@ -3,7 +3,7 @@ import { FundoInvestimento, GestorFundo } from './fundos';
 import { Usuario } from './usuario';
 
 export type Documento = {
-  id: number;
+  id?: number;
   data_referencia?: Date;
   data_upload?: Date;
   extensao?: string;
