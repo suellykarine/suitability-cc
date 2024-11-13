@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
@@ -35,11 +36,13 @@ export class DebenturesController {
   async listarDebentures() {
     return this.debentureService.listarDebentures();
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Post()
   async criarDebenture(@Body() criarDebentureDto: CriarDebentureDto) {
     return this.debentureService.criarDebenture(criarDebentureDto);
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Get('/serie')
   @ApiQuery({
@@ -109,14 +112,20 @@ export class DebenturesController {
     return this.debenturesSerieService.deletar(+id);
   }
 
-  @Get('serie-investidor/:id')
-  async testee(@Param('id') id: string) {
-    const valorEntrada = 1200000000;
+  @Get('serie-investidor/:id/:valor')
+  async temDebentureSerieComSaldo(
+    @Param('id') id: string,
+    @Param('valor') valor: string,
+  ) {
+    const valorEntrada = Number(valor);
+    const idInvestidor = Number(id);
+    if (!valorEntrada) throw new BadRequestException('valor inválido');
+    if (!idInvestidor) throw new BadRequestException('id inválido');
+
     const service = await this.debenturesSerieService.estaAptoAEstruturar(
-      Number(id),
+      idInvestidor,
       valorEntrada,
     );
     return service;
   }
 }
-//TO-DO HENRIQUE LEMBRAR DE RETIRAR O CONTROLER SE NAO FOR UTILIZAR
