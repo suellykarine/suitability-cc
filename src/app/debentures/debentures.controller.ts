@@ -27,7 +27,7 @@ export class DebenturesController {
     private readonly debentureService: DebentureService,
   ) {}
 
-  @UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardPremium)
   @Get()
   async listarDebentures() {
     return this.debentureService.listarDebentures();

@@ -45,7 +45,17 @@ export class PrismaDebentureRepositorio implements DebentureRepositorio {
 
   async listarDebentures(): Promise<Debenture[]> {
     const debentures = await this.prisma.debenture.findMany({
-      include: { debenture_serie: true },
+      include: {
+        debenture_serie: {
+          include: {
+            debenture_serie_investidor: {
+              include: {
+                conta_investidor: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return debentures.map(converterCamposDecimais);
