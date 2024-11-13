@@ -14,14 +14,6 @@ import { Prisma } from '@prisma/client';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { RetornoMultiplos } from 'src/utils/prisma/types';
 
-type EncontrarPorCampo = {
-  campo: Extract<
-    keyof DebentureSerieInvestidor,
-    'data_encerramento' | 'data_desvinculo'
-  >;
-  idDebenture: number;
-  valorMinimoSerie?: number;
-};
 @Injectable()
 export class PrismaDebentureSerieInvestidorRepositorio
   implements DebentureSerieInvestidorRepositorio
@@ -57,22 +49,84 @@ export class PrismaDebentureSerieInvestidorRepositorio
 
   async encontrarPorDesvinculo({
     idDebenture,
-    valorMinimoSerie,
+    valorMinimoSerie = 0,
   }: EncontrarPorDesvinculoProps): Promise<DebentureSerieInvestidor | null> {
-    return this.encontrarPorCampo({
-      campo: 'data_desvinculo',
-      idDebenture,
-      valorMinimoSerie,
-    });
+    const debentureSerie =
+      await this.prisma.debenture_serie_investidor.findFirst({
+        where: {
+          data_desvinculo: {
+            not: null,
+          },
+          debenture_serie: {
+            data_emissao: null,
+            debenture_serie_investidor: {
+              every: {
+                OR: [
+                  {
+                    data_desvinculo: {
+                      not: null,
+                    },
+                  },
+                  {
+                    data_encerramento: {
+                      not: null,
+                    },
+                  },
+                ],
+              },
+            },
+            id_debenture: idDebenture,
+            valor_serie: {
+              gte: valorMinimoSerie,
+            },
+          },
+        },
+        orderBy: {
+          debenture_serie: {
+            valor_serie: 'desc',
+          },
+        },
+        include: { debenture_serie: true, conta_investidor: true },
+      });
+
+    return converterCamposDecimais(debentureSerie);
   }
 
-  async encontrarPorEncerramento(
-    idDebenture: number,
-  ): Promise<DebentureSerieInvestidor | null> {
-    return this.encontrarPorCampo({
-      campo: 'data_encerramento',
-      idDebenture,
-    });
+  async encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null> {
+    const debentureSerie =
+      await this.prisma.debenture_serie_investidor.findFirst({
+        where: {
+          data_encerramento: {
+            not: null,
+          },
+          conta_investidor: {
+            debenture_serie_investidor: {
+              every: {
+                OR: [
+                  {
+                    data_encerramento: {
+                      not: null,
+                    },
+                  },
+                  {
+                    data_desvinculo: {
+                      not: null,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        orderBy: {
+          debenture_serie: {
+            valor_serie: 'desc',
+          },
+        },
+        include: { debenture_serie: true, conta_investidor: true },
+      });
+
+    return converterCamposDecimais(debentureSerie);
   }
 
   async encontrarPorIdContaInvestidorDataEncerramento(
@@ -155,35 +209,6 @@ export class PrismaDebentureSerieInvestidorRepositorio
       where: { status_retorno_creditsec: null },
     });
     return data;
-  }
-
-  private async encontrarPorCampo({
-    campo,
-    idDebenture,
-    valorMinimoSerie = 0,
-  }: EncontrarPorCampo): Promise<DebentureSerieInvestidor | null> {
-    const serieInvestidorData =
-      await this.prisma.debenture_serie_investidor.findFirst({
-        where: {
-          [campo]: {
-            not: null,
-          },
-          debenture_serie: {
-            id_debenture: idDebenture,
-            valor_serie: {
-              gte: valorMinimoSerie,
-            },
-          },
-        },
-        orderBy: {
-          debenture_serie: {
-            valor_serie: 'desc',
-          },
-        },
-        include: { debenture_serie: true, conta_investidor: true },
-      });
-
-    return converterCamposDecimais(serieInvestidorData);
   }
 
   private async encontrarPorIdContaInvestidor(

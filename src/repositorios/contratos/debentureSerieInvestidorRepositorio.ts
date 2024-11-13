@@ -21,9 +21,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorDesvinculo(
     props: EncontrarPorDesvinculoProps,
   ): Promise<DebentureSerieInvestidor | null>;
-  abstract encontrarPorEncerramento(
-    idDebenture: number,
-  ): Promise<DebentureSerieInvestidor | null>;
+  abstract encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null>;
   abstract criar(
     data: Partial<DebentureSerieInvestidor>,
   ): Promise<DebentureSerieInvestidor>;
