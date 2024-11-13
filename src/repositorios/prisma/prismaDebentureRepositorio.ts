@@ -50,4 +50,13 @@ export class PrismaDebentureRepositorio implements DebentureRepositorio {
 
     return debentures.map(converterCamposDecimais);
   }
+
+  async buscarAtiva(): Promise<Debenture | null> {
+    const debenture = await this.prisma.debenture.findFirst({
+      orderBy: { data_emissao: 'desc' },
+      where: { data_vencimento: { gt: new Date() } },
+      include: { debenture_serie: true },
+    });
+    return converterCamposDecimais(debenture);
+  }
 }
