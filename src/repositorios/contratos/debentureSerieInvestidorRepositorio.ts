@@ -5,7 +5,6 @@ import {
 } from 'src/@types/entities/debenture';
 import { RetornoMultiplos } from 'src/utils/prisma/types';
 import { Repositorio } from './repositorio';
-
 export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null>;
@@ -40,4 +39,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract todosStatusCreditSecNull(): Promise<
     DebentureSerieInvestidor[] | null
   >;
+  abstract buscarTodasDebentureSerieValidas(
+    idFundoInvestimento: number,
+  ): Promise<number[]>;
 }
