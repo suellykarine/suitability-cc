@@ -15,6 +15,10 @@ lerna-debug.log*
 # OS
 .DS_Store
 
+# locks
+package-lock.json
+yarn.lock
+
 # Tests
 /coverage
 /.nyc_output

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsDateString, IsDecimal } from 'class-validator';
+import { IsOptional, IsNumber, IsDateString } from 'class-validator';
 
 export class AtualizarDebentureSerieDto {
   @ApiProperty({ example: 1, description: 'Número da série' })
@@ -32,4 +32,10 @@ export class AtualizarDebentureSerieDto {
   @IsOptional()
   @IsDateString()
   data_vencimento?: string;
+}
+export class AtualizarValorDaSerieDto {
+  @ApiProperty({ example: 1000000.0, description: 'Valor da série' })
+  @IsOptional()
+  @IsNumber()
+  valorSerie: number;
 }
