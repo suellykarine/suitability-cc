@@ -28,8 +28,6 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
 
   abstract deletar(id: number): Promise<void>;
 
-  abstract contarSeries(idDebenture: number): Promise<number>;
-
   abstract contarSeriesTotal(): Promise<number>;
 
   abstract encontrarSeriesPorIdDebenture(

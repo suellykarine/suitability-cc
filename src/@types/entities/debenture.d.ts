@@ -66,3 +66,8 @@ export type atualizarDatasDebentureSerie = {
   id_debenture_serie: number;
 };
 export type StatusRetornoLaqus = 'Pendente' | 'Reprovado' | 'Aprovado';
+
+type AtualizarValorSerie = {
+  idDebentureSerie: number;
+  valorSerie: number;
+};
