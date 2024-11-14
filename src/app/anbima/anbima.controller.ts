@@ -11,21 +11,7 @@ export class AnbimaController {
   constructor(private readonly anbimaService: AnbimaService) {}
 
   @Get('fundos/:cnpj')
-  async obterFundoPorCnpj(@Param('cnpj') cnpj: string) {
-    return await this.anbimaService.buscarFundosPorCnpj(cnpj);
-  }
-
-  @Get('fundos/detalhe/:codigoAnbima')
-  async obterDetalhesFundo(@Param('codigoAnbima') codigoAnbima: string) {
-    return await this.anbimaService.buscarDetalhesFundoPorCodigoAnbima(
-      codigoAnbima,
-    );
-  }
-
-  @Get('fundos/serie-historica/:codigoClasse')
-  async obterSerieHistorica(@Param('codigoClasse') codigoClasse: string) {
-    return await this.anbimaService.buscarSerieHistoricaPorCodigoClasse(
-      codigoClasse,
-    );
+  async integracaoAnbima(@Param('cnpj') cnpj: string) {
+    return await this.anbimaService.integracaoAnbima(cnpj);
   }
 }
