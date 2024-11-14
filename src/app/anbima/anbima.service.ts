@@ -59,13 +59,13 @@ export class AnbimaService {
       );
 
       const dadosFundo = {
-        nome_fantasia_do_fundo: fundo.nome_comercial_fundo,
-        codigo_anbima: fundo.codigo_fundo,
-        razao_social_do_fundo: fundo.razao_social_fundo,
-        cnpj_fundo: fundo.identificador_fundo,
-        classe_anbima: fundo.classes[0].nivel1_categoria,
+        nomeFantasia: fundo.nome_comercial_fundo,
+        codigoAnbima: fundo.codigo_fundo,
+        razaoSocial: fundo.razao_social_fundo,
+        cnpj: fundo.identificador_fundo,
+        classeAnbima: fundo.classes[0].nivel1_categoria,
         urlRegulation: regulamento?.url,
-        patrimonio_liquido: String(patrimonioLiquido),
+        patrimonioLiquido: String(patrimonioLiquido),
       };
       return dadosFundo;
     } catch (err) {
