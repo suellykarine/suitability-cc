@@ -79,6 +79,10 @@ export class LaqusService {
           );
       });
 
+      if (status === 'Aprovado') {
+        // TO-DO: Chamar cred-sec
+      }
+
       removerContextosDeTransacao({
         repositorios: [
           this.fundoInvestimentoRepositorio,
