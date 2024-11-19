@@ -40,6 +40,6 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
 
   abstract buscarPorNumeroSerie(
     idDebenture: number,
-    numeroSerie,
+    numeroSerie: number,
   ): Promise<DebentureSerie | null>;
 }
