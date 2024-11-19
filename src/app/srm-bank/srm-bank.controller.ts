@@ -11,7 +11,7 @@ import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
 export class SrmBankController {
   constructor(private readonly SrmBankService: SrmBankService) {}
 
-  @UseGuards(JwtAuthGuardBackoffice)
+  //@UseGuards(JwtAuthGuardBackoffice)
   @Post(':id_cedente')
   criarContaSrmBank(
     @Body() criarConta: CriarContaSrmBankDto,

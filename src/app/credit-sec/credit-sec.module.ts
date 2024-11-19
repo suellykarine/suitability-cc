@@ -19,6 +19,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
 import { ConfigService } from '@nestjs/config';
+import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -55,6 +57,10 @@ import { ConfigService } from '@nestjs/config';
     {
       provide: UsuarioRepositorio,
       useClass: PrismaUsuarioRepositorio,
+    },
+    {
+      provide: OperacaoDebentureRepositorio,
+      useClass: PrismaOperacaoDebentureRepositorio,
     },
   ],
 })

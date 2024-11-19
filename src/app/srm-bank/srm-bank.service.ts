@@ -18,11 +18,7 @@ export class SrmBankService {
     id_cedente: string;
   }) {
     try {
-      function esperar(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-      }
       const criarConta = await this.CriarContaSRMBank(dados.identificador);
-      await esperar(500);
       const buscarConta = await this.buscarContaSrmBank(
         dados.identificador,
         criarConta.conta.slice(0, 9),
@@ -106,7 +102,7 @@ export class SrmBankService {
     );
 
     if (!findConta) {
-      throw new NotFoundException('Conta não encontrada');
+      return await this.buscarContaSrmBank(identificador, numeroConta);
     }
     return findConta;
   }
