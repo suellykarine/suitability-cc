@@ -111,7 +111,7 @@ export class DebenturesController {
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
   }
-
+  @UseGuards(JwtAuthGuardPremium)
   @Get('serie-investidor/:id/:valor')
   async temDebentureSerieComSaldo(
     @Param('id') id: string,

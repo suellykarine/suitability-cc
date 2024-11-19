@@ -106,6 +106,7 @@ export class FundosController {
       req.user.idUsuario,
     );
   }
+  @UseGuards(JwtAuthGuardPremium)
   @Get('esta-apto/:id')
   estaApto(@Param('id') id: string) {
     return this.fundosService.buscarEstaAptoADebenture(Number(id));
