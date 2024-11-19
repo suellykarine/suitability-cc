@@ -110,4 +110,17 @@ export class PrismaDebentureSerieRepositorio
       });
     return converterCamposDecimais(atualizaDatasDebentureSerie);
   }
+
+  async buscarPorNumeroSerie(
+    idDebenture: number,
+    numeroSerie: any,
+  ): Promise<DebentureSerie> {
+    const debentureSerie = await this.prisma.debenture_serie.findFirst({
+      where: {
+        id_debenture: idDebenture,
+        numero_serie: numeroSerie,
+      },
+    });
+    return converterCamposDecimais(debentureSerie);
+  }
 }
