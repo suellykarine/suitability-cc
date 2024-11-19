@@ -18,12 +18,14 @@ import { PrismaService } from 'prisma/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
   controllers: [CreditSecControler],
   providers: [
     CreditSecSerieService,
+    ConfigService,
     CreditSecRemessaService,
     PrismaService,
     {
