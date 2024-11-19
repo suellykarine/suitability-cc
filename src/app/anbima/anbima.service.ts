@@ -1,5 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Fundo } from 'src/@types/entities/anbima';
+import { GetSerieHistoricaData } from './types/returnData';
 
 @Injectable()
 export class AnbimaService {
@@ -33,7 +39,41 @@ export class AnbimaService {
     }
   }
 
-  async buscarFundosPorCnpj(cnpj: string, pagina = 0): Promise<any | null> {
+  async integracaoAnbima(cnpj: string) {
+    try {
+      await this.autenticarAnbima();
+      const fundo = await this.buscarFundosPorCnpj(cnpj);
+      if (!fundo) return null;
+      const serieHistorica = await this.buscarSerieHistoricaPorCodigoClasse(
+        fundo.classes[0].codigo_classe,
+      );
+      const detalhesFundo = await this.buscarDetalhesFundoPorCodigoAnbima(
+        fundo.codigo_fundo,
+      );
+      const patrimonioLiquido =
+        serieHistorica?.content?.[0].valor_patrimonio_liquido ?? 1;
+
+      if (!detalhesFundo) return null;
+      const regulamento = detalhesFundo.documentos?.find(
+        (doc: any) => doc.tipo_documento == 'Regulamento',
+      );
+
+      const dadosFundo = {
+        nomeFantasia: fundo.nome_comercial_fundo,
+        codigoAnbima: fundo.codigo_fundo,
+        razaoSocial: fundo.razao_social_fundo,
+        cnpj: fundo.identificador_fundo,
+        classeAnbima: fundo.classes[0].nivel1_categoria,
+        urlRegulation: regulamento?.url,
+        patrimonioLiquido: String(patrimonioLiquido),
+      };
+      return dadosFundo;
+    } catch (err) {
+      throw new InternalServerErrorException('Ocorreu um erro inesperado');
+    }
+  }
+
+  async buscarFundosPorCnpj(cnpj: string, pagina = 0): Promise<Fundo | null> {
     await this.autenticarAnbima();
 
     const url = `${this.configService.get('ANBIMA_BASE_URL')}/feed/fundos/v2/fundos?page=${pagina}`;
@@ -58,11 +98,12 @@ export class AnbimaService {
       );
     });
 
-    if (!fundoSelecionado && pagina < totalPaginas) {
+    if (!fundoSelecionado && pagina < totalPaginas)
       return this.buscarFundosPorCnpj(cnpj, pagina + 1);
-    }
 
-    return fundoSelecionado || null;
+    if (!fundoSelecionado) throw new NotFoundException('Fundo não encontrado');
+
+    return fundoSelecionado;
   }
 
   async buscarDetalhesFundoPorCodigoAnbima(codigoAnbima: string): Promise<any> {
@@ -82,7 +123,7 @@ export class AnbimaService {
 
   async buscarSerieHistoricaPorCodigoClasse(
     codigoClasse: string,
-  ): Promise<any> {
+  ): Promise<GetSerieHistoricaData> {
     await this.autenticarAnbima();
 
     const url = `${this.configService.get('ANBIMA_BASE_URL')}/feed/fundos/v2/fundos/${codigoClasse}/serie-historica`;
