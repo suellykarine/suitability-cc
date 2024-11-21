@@ -1,14 +1,9 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Param,
-  Get,
-  HttpCode,
-} from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { CreditSecSerieService } from './credit-sec-serie.service';
+<<<<<<< HEAD
 import { JwtAuthGuardBackoffice } from 'src/app/autenticacao/guards/backoffice-auth.guard';
+=======
+>>>>>>> a2921bfa11228c94e84736e92625e516034b3f4e
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   BodyCriacaoRemessaDto,
@@ -21,16 +16,16 @@ import { CreditSecRemessaService } from './credit-sec-remessa.service';
 @Controller('api/credit-sec')
 export class CreditSecControler {
   constructor(
-    private readonly CreditSecSerieService: CreditSecSerieService,
-    private readonly CreditSecRemessaService: CreditSecRemessaService,
+    private readonly creditSecSerieService: CreditSecSerieService,
+    private readonly creditSecRemessaService: CreditSecRemessaService,
   ) {}
 
   @Post('/solicitar-serie/retorno/criacao-serie')
   callbackCrediSec(@Body() body: BodyRetornoCriacaoSerieDto) {
-    return this.CreditSecSerieService.registrarRetornoCreditSec(body);
+    return this.creditSecSerieService.registrarRetornoCreditSec(body);
   }
   @Post('/solicitar-remessa')
   solicitarRemessa(@Body() body: BodyCriacaoRemessaDto) {
-    return this.CreditSecRemessaService.solicitarRemessa(body);
+    return this.creditSecRemessaService.solicitarRemessa(body);
   }
 }

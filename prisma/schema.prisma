@@ -309,9 +309,9 @@ model usuario {
   id                                 Int                          @id(map: "pk_usuario_id") @default(autoincrement())
   nome                               String?                      @CreditConnect.NVarChar(255)
   email                              String?                      @unique(map: "unique_usuario_email") @CreditConnect.NVarChar(255)
-  telefone                           String?                      @CreditConnect.NVarChar(50)
+  telefone                           String?                      @unique(map: "unique_usuario_telefone") @CreditConnect.NVarChar(50)
   senha                              String?                      @CreditConnect.NVarChar(255)
-  cpf                                String?                      @CreditConnect.NVarChar(50)
+  cpf                                String?                      @unique(map: "unique_usuario_cpf") @CreditConnect.NVarChar(50)
   data_nascimento                    DateTime?                    @CreditConnect.DateTime
   id_tipo_usuario                    Int
   id_endereco                        Int?

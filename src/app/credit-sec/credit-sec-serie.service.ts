@@ -24,9 +24,14 @@ import { BodyRetornoCriacaoSerieDto } from './dto/body-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CreditSecSerieService {
+  private baseUrl: string;
+  private tokenCreditSecSolicitarSerie: string;
+  private baseUrlCreditSecSolicitarSerie: string;
+  private baseUrlCadastroSigma: string;
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
@@ -35,7 +40,19 @@ export class CreditSecSerieService {
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly debentureRepositorio: DebentureRepositorio,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.baseUrl = this.configService.get('BASE_URL');
+    this.tokenCreditSecSolicitarSerie = this.configService.get(
+      'TOKEN_CREDIT_SEC_SOLICITAR_SERIE',
+    );
+    this.baseUrlCreditSecSolicitarSerie = this.configService.get(
+      'BASE_URL_CREDIT_SEC_SOLICITAR_SERIE',
+    );
+    this.baseUrlCadastroSigma = this.configService.get(
+      'BASE_URL_CADASTRO_CEDENTE_SIGMA',
+    );
+  }
 
   @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoSerie() {
@@ -122,7 +139,7 @@ export class CreditSecSerieService {
     try {
       const debentureSerie =
         await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
-          Number(data.numero_serie),
+          +data.numero_serie,
         );
       const debentureSerieInvestidor =
         await this.debentureSerieInvestidorRepositorio.encontrarPorIdDebentureSerie(
@@ -185,11 +202,11 @@ export class CreditSecSerieService {
     numero_serie: number,
   ): Promise<BodyRetornoCriacaoSerieDto> {
     const req = await fetch(
-      `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_SERIE}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
+      `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC_SOLICITAR_SERIE}`,
+          Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
         },
       },
     );
@@ -202,13 +219,13 @@ export class CreditSecSerieService {
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
     const req = await fetch(
-      `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_SERIE}/serie/solicitar_emissao`,
+      `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`,
       {
         method: 'POST',
         body: JSON.stringify(body),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.TOKEN_CREDIT_SEC_SOLICITAR_SERIE}`,
+          Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
         },
       },
     );
@@ -221,15 +238,12 @@ export class CreditSecSerieService {
   }
 
   private async buscarCedenteSigma(identificador: string): Promise<Cedente> {
-    const req = await fetch(
-      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': sigmaHeaders['X-API-KEY'],
-        },
+    const req = await fetch(`${this.baseUrlCadastroSigma}/${identificador}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': sigmaHeaders['X-API-KEY'],
       },
-    );
+    });
     const response = await req.json();
 
     if (req.ok) return response;
@@ -278,7 +292,7 @@ export class CreditSecSerieService {
       numero_emissao:
         serieInvestidor.debenture_serie.debenture.numero_debenture,
       numero_serie: serieInvestidor.debenture_serie.numero_serie,
-      callback_url: `${process.env.BASE_URL}api/credit-sec/solicitar-serie/retorno/criacao-serie`,
+      callback_url: `${this.baseUrl}api/credit-sec/solicitar-serie/retorno/criacao-serie`,
       conta_serie: {
         banco: '533',
         agencia: serieInvestidor.conta_investidor.agencia,
@@ -312,9 +326,7 @@ export class CreditSecSerieService {
           telefone: representanteCedente.telefone,
         },
       ],
-      valor_total_integralizado: Number(
-        serieInvestidor.debenture_serie.valor_serie,
-      ),
+      valor_total_integralizado: +serieInvestidor.debenture_serie.valor_serie,
     };
     return objSolicitarSerie;
   }
