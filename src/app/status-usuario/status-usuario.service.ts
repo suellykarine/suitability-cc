@@ -5,7 +5,6 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { AtualizarStatusUsuarioDto } from './dto/atualizar-status.dto';
@@ -38,7 +37,6 @@ export class StatusUsuarioService {
     ) {
       throw new ConflictException('Este usuário já foi analisado');
     }
-
     let idTipoUsuario: number | null = null;
     let idStatusUsuario: number | null = null;
     const statusUpperCase = atualizarStatusUsuarioDto.status.toUpperCase();

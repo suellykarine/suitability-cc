@@ -1,9 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { CreditSecSerieService } from './credit-sec-serie.service';
-<<<<<<< HEAD
-import { JwtAuthGuardBackoffice } from 'src/app/autenticacao/guards/backoffice-auth.guard';
-=======
->>>>>>> a2921bfa11228c94e84736e92625e516034b3f4e
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   BodyCriacaoRemessaDto,
