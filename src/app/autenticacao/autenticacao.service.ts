@@ -1,21 +1,22 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Usuario, UsuarioService } from '../usuarios/usuario.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { jwtConstants } from './constants';
+import { Usuario } from 'src/@types/entities/usuario';
+import { JwtPayload } from 'src/@types/entities/jwt';
+import { fazerNada } from 'src/utils/funcoes/geral';
 
 @Injectable()
 export class AutenticacaoService {
   constructor(
-    private usuarioService: UsuarioService,
     private jwtService: JwtService,
     private usuarioRepositorio: UsuarioRepositorio,
   ) {}
 
-  async validarUsuario(email: string, senha: string): Promise<any> {
-    const usuario = await this.usuarioService.encontrarUsuario(email);
+  async validarUsuario(email: string, senha: string): Promise<Usuario | null> {
+    const usuario = await this.usuarioRepositorio.encontrarPorEmail(email);
 
     if (!usuario) {
       return null;
@@ -26,26 +27,32 @@ export class AutenticacaoService {
       });
     }
 
-    const comparacaoSenha = await bcrypt.compare(senha, usuario.senha);
-
-    const usuarioMaster = await this.usuarioService.encontrarUsuario(
+    const usuarioMaster = await this.usuarioRepositorio.encontrarPorEmail(
       process.env.EMAIL_DIRETORIA,
     );
 
-    let comparacaoSenhaUsuarioMaster;
+    const usuarioMasterComSenha =
+      await this.usuarioRepositorio.encontrarPorIdComSenha(usuarioMaster.id);
 
-    if (usuarioMaster) {
-      comparacaoSenhaUsuarioMaster = await bcrypt.compare(
-        senha,
-        usuarioMaster.senha,
-      );
+    const senhaMasterValida = usuarioMasterComSenha
+      ? await bcrypt.compare(senha, usuarioMasterComSenha.senha)
+      : false;
+
+    if (senhaMasterValida) {
+      return usuario;
     }
 
-    if (comparacaoSenha || comparacaoSenhaUsuarioMaster) {
-      const { sen, ...resultado } = usuario;
-      return resultado;
-    }
-    return null;
+    const usuarioComSenha =
+      await this.usuarioRepositorio.encontrarPorIdComSenha(usuario.id);
+
+    const senhaUsuarioValida = await bcrypt.compare(
+      senha,
+      usuarioComSenha.senha,
+    );
+
+    if (!senhaUsuarioValida) return null;
+
+    return usuario;
   }
 
   async login(user: Usuario) {
@@ -54,24 +61,13 @@ export class AutenticacaoService {
       idUsuario: user.id,
       tipoUsuario: user.tipo_usuario.tipo,
     };
-    const { senha, ...usuarioSemSenha } = user;
 
-    const token = this.gerarTokenAcesso(payload);
+    const { token, tokenRenovacao } = await this.gerarTokens(payload);
 
-    const tokenDeAtualizacao = this.jwtService.sign(payload, {
-      secret: jwtConstants.secretTokenAtualizacao,
-      expiresIn: '7d',
-    });
-
-    await this.usuarioRepositorio.adicionarTokenUsuario(
-      tokenDeAtualizacao,
-      user.id,
-    );
-
-    usuarioSemSenha.token_renovacao = tokenDeAtualizacao;
     return {
-      data: usuarioSemSenha,
-      token: token,
+      data: user,
+      tokenRenovacao,
+      token,
     };
   }
 
@@ -86,34 +82,51 @@ export class AutenticacaoService {
     const usuario = await this.usuarioRepositorio.encontrarPorId(
       payload.idUsuario,
     );
-    if (!usuario || usuario.token_renovacao !== tokenRenovacao) {
+    if (!usuario) {
+      throw new UnauthorizedException({
+        mensagem: 'Usuário não encontrado',
+      });
+    }
+    const atualTokenRenovacao =
+      await this.usuarioRepositorio.buscarTokenRenovacao(payload.idUsuario);
+
+    if (atualTokenRenovacao !== tokenRenovacao) {
       throw new UnauthorizedException(
         'Token de renovação inválido ou expirado',
       );
     }
 
-    const novoTokenAcesso = await this.gerarTokenAcesso({
-      idUsuario: usuario.id,
-      email: usuario.email,
-      tipoUsuario: usuario.id_tipo_usuario,
-    });
+    const tokens = await this.gerarTokens(payload);
 
-    return { tokenAcesso: novoTokenAcesso };
+    return { data: usuario, ...tokens };
   }
 
-  private gerarTokenAcesso(payload: any) {
-    return this.jwtService.sign(payload, {
+  private async gerarTokens({ exp, iat, ...payload }: JwtPayload) {
+    fazerNada([exp, iat]);
+    const token = this.jwtService.sign(payload, {
       secret: jwtConstants.secret,
-      expiresIn: '15m',
+      expiresIn: '30s',
     });
+
+    const tokenRenovacao = this.jwtService.sign(payload, {
+      secret: jwtConstants.secretTokenAtualizacao,
+      expiresIn: '7d',
+    });
+
+    await this.usuarioRepositorio.adicionarTokenUsuario(
+      tokenRenovacao,
+      payload.idUsuario,
+    );
+
+    return { token, tokenRenovacao };
   }
 
   private verificarTokenRenovacao(token: string) {
     try {
-      const tokenVerificado = this.jwtService.verify(token, {
+      const payload = this.jwtService.verify<JwtPayload>(token, {
         secret: jwtConstants.secretTokenAtualizacao,
       });
-      return tokenVerificado;
+      return payload;
     } catch {
       throw new UnauthorizedException({
         mensagem: 'Token expirado ou inválido',
