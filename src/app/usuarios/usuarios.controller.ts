@@ -8,7 +8,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 import { UsuarioService } from './usuario.service';
 import { AtualizarSenhaDto } from './dto/atualizar-senha.dto';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';

@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { sigmaHeaders } from '../auth/constants';
+import { sigmaHeaders } from '../autenticacao/constants';
 import { AprovarDocumentoDto } from './dto/aprovar-documento.dto';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { File } from 'buffer';

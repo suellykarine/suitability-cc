@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { FundosService } from './fundos.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
-import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
+import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
 import { CriarFundosDto } from './dto/criar-fundo.dto';
 import { CriarFactoringsDto } from './dto/criar-factoring.dto';

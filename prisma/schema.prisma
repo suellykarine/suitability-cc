@@ -318,6 +318,7 @@ model usuario {
   id_gestor_fundo                    Int?
   id_status_usuario                  Int?
   data_criacao                       DateTime?                    @CreditConnect.DateTime
+  token_renovacao                    String?                      @CreditConnect.VarChar(255)
   acesso_usuario                     acesso_usuario[]
   carta_convite                      carta_convite[]
   documento                          documento[]

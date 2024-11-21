@@ -17,10 +17,10 @@ import { EnviarDocumentoDto } from './dto/create-documento.dto';
 import { AtualizarDocumentoDto } from './dto/update-documento.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 import { TipoIdsDocumentos } from 'src/enums/TipoIdsDocumentos';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 
 @ApiTags('Documentos')
 @ApiBearerAuth('access-token')

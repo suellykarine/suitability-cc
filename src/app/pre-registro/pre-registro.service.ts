@@ -5,7 +5,6 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma, usuario } from '@prisma/client';
 import {
   formatarCPF,
   formatarCNPJ,
@@ -35,6 +34,7 @@ import {
 } from 'src/utils/funcoes/repositorios';
 import { CodigoVerificacaoRepositorio } from 'src/repositorios/contratos/codigoDeVerificacaoRepositorio';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import { Usuario } from 'src/@types/entities/usuario';
 
 @Injectable()
 export class PreRegistroService {
@@ -52,13 +52,9 @@ export class PreRegistroService {
 
   async encontrarTodosUsuarios() {
     const usuarios = await this.usuarioRepositorio.encontrarTodos();
-    const usuariosSemSenha = usuarios.map((usuario) => {
-      const { senha, ...usuariosSemSenha } = usuario;
-      return usuariosSemSenha;
-    });
     return {
       mensagem: 'sucesso',
-      usuarios: usuariosSemSenha.map((usuario: any) => {
+      usuarios: usuarios.map((usuario: any) => {
         return {
           ...usuario,
           cpf: formatarCPF(usuario.cpf),
@@ -95,13 +91,12 @@ export class PreRegistroService {
       throw new UnauthorizedException(donoAdminOuBackoffice);
     }
 
-    const { senha, ...usuarioSemSenha } = usuario;
     return {
       mensagem: 'sucesso',
       usuario: {
-        ...usuarioSemSenha,
-        cpf: formatarCPF(usuarioSemSenha.cpf!),
-        telefone: formatarTelefone(usuarioSemSenha.telefone!),
+        ...usuario,
+        cpf: formatarCPF(usuario.cpf!),
+        telefone: formatarTelefone(usuario.telefone!),
       },
     };
   }
@@ -159,7 +154,7 @@ export class PreRegistroService {
     const senhaEmHash = await bcrypt.hash(criarUsuarioDto.senha, 10);
 
     const usuarioSalvo = await this.adaptadorDb.fazerTransacao(
-      async (prisma: Prisma.TransactionClient) => {
+      async (prisma) => {
         definirContextosDeTransacao({
           repositorios: [
             this.gestorFundoRepositorio,
@@ -191,9 +186,9 @@ export class PreRegistroService {
           telefone: encontrarCartaConvite.telefone,
           email: encontrarCartaConvite.email,
           senha: senhaEmHash,
-          tipo_usuario: tipoUsuario,
-          status_usuario: statusUsuario,
-          gestor_fundo: gestorSalvo,
+          id_status_usuario: statusUsuario.id,
+          id_tipo_usuario: tipoUsuario.id,
+          id_gestor_fundo: gestorSalvo.id,
         });
 
         await this.tokenUsadoRepositorio.criar(
@@ -212,10 +207,9 @@ export class PreRegistroService {
       },
     );
 
-    const { senha: _, ...usuarioSemSenha } = usuarioSalvo;
     return {
       mensagem: 'Criado',
-      usuario: usuarioSemSenha,
+      usuario: usuarioSalvo,
     };
   }
 
@@ -287,7 +281,7 @@ export class PreRegistroService {
 
     return { mensagem: 'Código de verificação enviado com sucesso.' };
   }
-  private donoAdminOuBackoffice(usuario: usuario, tokenUsuario: any) {
+  private donoAdminOuBackoffice(usuario: Usuario, tokenUsuario: any) {
     if (
       usuario.id !== tokenUsuario.id &&
       tokenUsuario.tipo_usuario.tipo !== TipoUsuarioEnum.BACKOFFICE &&
