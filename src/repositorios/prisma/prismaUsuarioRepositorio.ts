@@ -1,13 +1,51 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { AtualizarUsuarioDto } from 'src/app/adm/dto/update-adm.dto';
-import { Prisma, usuario } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma, usuario as PrismaUsuario } from '@prisma/client';
 import { UsuarioRepositorio } from '../contratos/usuarioRepositorio';
 import { PrismaService } from 'prisma/prisma.service';
-import { UsuarioComStatusETipo } from 'src/@types/entities/usuarioComStatusETipo';
-import { Usuario } from 'src/@types/entities/usuario';
+import {
+  Usuario,
+  UsuarioComSenha,
+  UsuarioSemVinculos,
+  UsuarioSemVinculosComSenha,
+} from 'src/@types/entities/usuario';
+import { fazerNada } from 'src/utils/funcoes/geral';
 @Injectable()
 export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
   constructor(private prisma: PrismaService) {}
+
+  private removerTokenRenovacaoDeUsuarios(
+    usuario: Omit<PrismaUsuario, 'senha'>[],
+  ): Usuario[] {
+    const usuariosSemToken = usuario?.map((usuario) => {
+      const { token_renovacao, ...restoUsuario } = usuario;
+      fazerNada(token_renovacao);
+      return restoUsuario;
+    });
+
+    return usuariosSemToken;
+  }
+  private removerTokenRenovacaoDeUsuario(
+    usuario: Omit<PrismaUsuario, 'senha'>,
+  ): Usuario {
+    const { token_renovacao, ...restoUsuario } = usuario;
+    fazerNada(token_renovacao);
+    return restoUsuario;
+  }
+
+  private removerTokenRenovacaoDeUsuarioComSenha(
+    usuario: PrismaUsuario,
+  ): UsuarioComSenha {
+    const { token_renovacao, ...restoUsuario } = usuario;
+    fazerNada(token_renovacao);
+    return restoUsuario;
+  }
+  private removerSenhaDePrismaUsuario(
+    usuario: PrismaUsuario,
+  ): Omit<PrismaUsuario, 'senha'> {
+    const { senha, ...restoUsuario } = usuario;
+    fazerNada(senha);
+    return restoUsuario;
+  }
 
   definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
     this.prisma = contexto as PrismaService;
@@ -16,14 +54,16 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
   removerContextoDaTransacao(): void {
     this.prisma = new PrismaService();
   }
-  async encontrarTodos(): Promise<usuario[]> {
-    return this.prisma.usuario.findMany({
+  async encontrarTodos(): Promise<Usuario[]> {
+    const usuariosEncontrados = await this.prisma.usuario.findMany({
       include: {
         tipo_usuario: true,
         gestor_fundo: true,
         status_usuario: true,
       },
     });
+
+    return this.removerTokenRenovacaoDeUsuarios(usuariosEncontrados);
   }
 
   async encontrarTodosPorTipoUsuario(
@@ -32,7 +72,7 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     tipoUsuario?: string,
   ): Promise<Usuario[] | null> {
     const condicao = tipoUsuario ? { tipo_usuario: { tipo: tipoUsuario } } : {};
-    return this.prisma.usuario.findMany({
+    const usuariosEncontrados = await this.prisma.usuario.findMany({
       where: condicao,
       select: {
         id: true,
@@ -48,6 +88,8 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
       skip: desvio,
       take: limite,
     });
+
+    return usuariosEncontrados;
   }
 
   async contarUsuariosPorTipo(tipoUsuario: string): Promise<number> {
@@ -59,36 +101,21 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
   }
 
   async encontrarPorId(id: number): Promise<Usuario | null> {
-    return this.prisma.usuario.findUnique({
+    const usuario = await this.prisma.usuario.findUnique({
       where: { id },
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        telefone: true,
-        cpf: true,
-        id_gestor_fundo: true,
-        data_criacao: true,
-        token_renovacao: true,
-        tipo_usuario: {
-          select: {
-            id: true,
-            tipo: true,
-            descricao: true,
-          },
-        },
-        status_usuario: {
-          select: {
-            id: true,
-            descricao: true,
-          },
-        },
+      include: {
+        gestor_fundo: true,
+        status_usuario: true,
+        tipo_usuario: true,
+        transacao_carteira: true,
       },
     });
+    const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuario);
+    return this.removerTokenRenovacaoDeUsuario(usuarioSemSenha);
   }
 
-  async encontrarPorEmail(email: string): Promise<usuario | null> {
-    return this.prisma.usuario.findUnique({
+  async encontrarPorEmail(email: string): Promise<Usuario | null> {
+    const usuario = await this.prisma.usuario.findUnique({
       where: { email },
       include: {
         gestor_fundo: true,
@@ -97,60 +124,79 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         transacao_carteira: true,
       },
     });
+    const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuario);
+    return this.removerTokenRenovacaoDeUsuario(usuarioSemSenha);
   }
 
-  async criar(
-    dados: Omit<Usuario, 'id' | 'id_tipo_usuario' | 'id_status_usuario'>,
-  ): Promise<usuario> {
-    return await this.prisma.usuario.create({
+  async encontrarPorIdComSenha(id: number): Promise<UsuarioComSenha | null> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id },
+    });
+
+    return this.removerTokenRenovacaoDeUsuarioComSenha(usuario);
+  }
+
+  async criar({
+    id_endereco,
+    id_gestor_fundo,
+    id_status_usuario,
+    id_tipo_usuario,
+    ...dados
+  }: Omit<UsuarioSemVinculosComSenha, 'id'>): Promise<Usuario> {
+    const usuarioCriado = await this.prisma.usuario.create({
       data: {
         ...dados,
-        ...(dados.tipo_usuario && {
-          tipo_usuario: {
-            connect: { id: dados.tipo_usuario.id },
-          },
+        ...(id_tipo_usuario && {
+          tipo_usuario: { connect: { id: id_tipo_usuario } },
         }),
-        ...(dados.status_usuario && {
-          status_usuario: {
-            connect: { id: dados.status_usuario.id },
-          },
+        ...(id_endereco && {
+          endereco: { connect: { id: id_endereco } },
         }),
-        ...(dados.gestor_fundo && {
-          gestor_fundo: {
-            connect: { id: dados.gestor_fundo.id },
-          },
+        ...(id_gestor_fundo && {
+          gestor_fundo: { connect: { id: id_gestor_fundo } },
         }),
-      } as Prisma.usuarioCreateInput,
+        ...(id_status_usuario && {
+          status_usuario: { connect: { id: id_status_usuario } },
+        }),
+      },
     });
+
+    const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuarioCriado);
+    return this.removerTokenRenovacaoDeUsuario(usuarioSemSenha);
   }
 
-  async atualizar(id: number, dados: AtualizarUsuarioDto): Promise<Usuario> {
-    const tipoUsuario = dados.tipo_usuario
-      ? await this.prisma.tipo_usuario.findFirst({
-          where: { tipo: dados.tipo_usuario },
-        })
-      : null;
-
-    const { tipo_usuario, ...dadosSemTipoUsuario } = dados;
-
-    const dadosParAtualziar: Prisma.usuarioUpdateInput = {
-      ...dadosSemTipoUsuario,
-      ...(dados.id_status_usuario !== undefined && {
-        id_status_usuario: dados.id_status_usuario,
-      }),
-      ...(tipoUsuario && {
-        tipo_usuario: {
-          connect: {
-            id: tipoUsuario.id,
-          },
-        },
-      }),
-    };
-
-    return this.prisma.usuario.update({
-      where: { id },
-      data: dadosParAtualziar,
+  async atualizar(
+    id: number,
+    {
+      id_tipo_usuario,
+      id_endereco,
+      id_gestor_fundo,
+      id_status_usuario,
+      ...dados
+    }: Partial<Omit<UsuarioSemVinculos, 'id'>>,
+  ): Promise<Usuario> {
+    const usuarioAtualizado = await this.prisma.usuario.update({
+      where: {
+        id: id,
+      },
+      data: {
+        ...dados,
+        ...(id_tipo_usuario && {
+          tipo_usuario: { connect: { id: id_tipo_usuario } },
+        }),
+        ...(id_endereco && {
+          endereco: { connect: { id: id_endereco } },
+        }),
+        ...(id_gestor_fundo && {
+          gestor_fundo: { connect: { id: id_gestor_fundo } },
+        }),
+        ...(id_status_usuario && {
+          status_usuario: { connect: { id: id_status_usuario } },
+        }),
+      },
     });
+    const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuarioAtualizado);
+    return this.removerTokenRenovacaoDeUsuario(usuarioSemSenha);
   }
 
   async deletar(id: number): Promise<void> {
@@ -163,8 +209,8 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
     id: number,
     idStatusUsuario: number | null,
     idTipoUsuario: number | null,
-  ): Promise<any> {
-    return this.prisma.usuario.update({
+  ): Promise<Usuario> {
+    const usuarioAtualizado = await this.prisma.usuario.update({
       where: { id },
       data: {
         id_status_usuario: idStatusUsuario,
@@ -184,22 +230,37 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         data_criacao: true,
       },
     });
+    return usuarioAtualizado;
   }
 
   async adicionarTokenUsuario(
     token: string,
     idUsuario: number,
-  ): Promise<Pick<Usuario, 'token_renovacao'>> {
-    const usuario = await this.prisma.usuario.update({
+  ): Promise<{ tokenRenovacao: string }> {
+    const { token_renovacao } = await this.prisma.usuario.update({
       where: {
         id: idUsuario,
       },
       data: {
         token_renovacao: token,
       },
+      select: {
+        token_renovacao: true,
+      },
     });
 
-    return { token_renovacao: usuario.token_renovacao };
+    return { tokenRenovacao: token_renovacao };
+  }
+
+  async buscarTokenRenovacao(idUsuario: number): Promise<string | null> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: idUsuario },
+      select: {
+        token_renovacao: true,
+      },
+    });
+
+    return usuario?.token_renovacao || null;
   }
 
   async logout(idUsuario: number): Promise<void> {
