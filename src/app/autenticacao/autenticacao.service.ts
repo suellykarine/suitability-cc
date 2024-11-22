@@ -105,7 +105,7 @@ export class AutenticacaoService {
     fazerNada([exp, iat]);
     const token = this.jwtService.sign(payload, {
       secret: jwtConstants.secret,
-      expiresIn: '30s',
+      expiresIn: '45m',
     });
 
     const tokenRenovacao = this.jwtService.sign(payload, {
