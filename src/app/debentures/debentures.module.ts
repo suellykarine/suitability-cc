@@ -53,5 +53,6 @@ import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
       useClass: PrismaAdaptadorDb,
     },
   ],
+  exports: [DebentureService, DebentureSerieService],
 })
 export class DebenturesModule {}
