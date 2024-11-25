@@ -18,7 +18,7 @@ import { CedenteService } from './cedente.service';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CadastroCedenteService } from './cedenteCadastro.service';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { CreateContaCorrenteDto } from './dto/create-conta-corrente.dto';
 import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';

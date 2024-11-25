@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { CcbService } from './ccb.service';
 import { Response } from 'express';
-import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
+import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuardPremium)

@@ -2,7 +2,7 @@ import { Controller, Patch, Param, Body, UseGuards } from '@nestjs/common';
 import { StatusUsuarioService } from './status-usuario.service';
 import { AtualizarStatusUsuarioDto } from './dto/atualizar-status.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 
 @ApiTags('Status-usuario')
 @ApiBearerAuth('access-token')
