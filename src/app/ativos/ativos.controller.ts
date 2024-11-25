@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AtivosService } from './ativos.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { QueryDto } from './dto/query-ativos.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 
 @ApiTags('Ativos')
 @ApiBearerAuth('access-token')

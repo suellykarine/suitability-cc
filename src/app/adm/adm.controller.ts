@@ -16,20 +16,19 @@ import {
   AtualizarUsuarioDto,
 } from './dto/update-adm.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuardAdm } from '../auth/guards/adm-auth.guard';
+import { JwtAuthGuardAdm } from '../autenticacao/guards/adm-auth.guard';
 
 @ApiTags('Administrador')
 @ApiBearerAuth('access-token')
 @Controller('api/adm')
+@UseGuards(JwtAuthGuardAdm)
 export class AdmController {
   constructor(private readonly admService: AdmService) {}
-  @UseGuards(JwtAuthGuardAdm)
   @Post()
   async criarUsuario(@Body() createAdmDto: CreateUsuarioDto) {
     return await this.admService.criarUsuario(createAdmDto);
   }
 
-  @UseGuards(JwtAuthGuardAdm)
   @Get()
   async buscarUsuarios(
     @Query('tipo_usuario') tipoUsuarioQuery: string,

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { QueryDto } from './dto/query-ativos.dto';
 import { Ativo } from './entities/ativo.entity';
-import { sigmaHeaders } from '../auth/constants';
+import { sigmaHeaders } from '../autenticacao/constants';
 
 @Injectable()
 export class AtivosService {

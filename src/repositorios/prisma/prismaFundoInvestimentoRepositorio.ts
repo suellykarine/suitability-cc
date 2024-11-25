@@ -77,4 +77,27 @@ export class PrismaFundoInvestimentoRepositorio
 
     return converterCamposDecimais(atualizaFundo);
   }
+  async buscarEstaAptoADebentureRepositorio(id: number): Promise<boolean> {
+    const investidor = await this.prisma.fundo_investimento.findUnique({
+      where: { id },
+      select: {
+        apto_debenture: true,
+        valor_serie_debenture: true,
+      },
+    });
+
+    if (!investidor) {
+      return false;
+    }
+
+    if (!investidor.apto_debenture) {
+      return false;
+    }
+
+    if (!investidor.valor_serie_debenture) {
+      return false;
+    }
+
+    return true;
+  }
 }

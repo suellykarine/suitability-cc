@@ -12,8 +12,8 @@ export abstract class FundoInvestimentoRepositorio extends Repositorio {
   abstract encontrarComRelacionamentos(
     id: number,
   ): Promise<FundoInvestimento | null>;
-
   abstract atualizaAptoDebentureEvalorSerie(
     props: AtualizarFundoInvestimentoAptoDebenture,
   ): Promise<FundoInvestimento>;
+  abstract buscarEstaAptoADebentureRepositorio(id: number): Promise<boolean>;
 }

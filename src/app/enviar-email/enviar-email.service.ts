@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { EnviarEmailDto } from './dto/create-enviar-email.dto';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
-import { jwtConstants } from '../auth/constants';
+import { jwtConstants } from '../autenticacao/constants';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'prisma/prisma.service';
 
