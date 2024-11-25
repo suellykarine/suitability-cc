@@ -21,6 +21,7 @@ import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebent
 import { ConfigService } from '@nestjs/config';
 import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+import { SigmaService } from '../sigma/sigma.service';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -30,6 +31,7 @@ import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operaca
     ConfigService,
     CreditSecRemessaService,
     PrismaService,
+    SigmaService,
     {
       provide: DebentureRepositorio,
       useClass: PrismaDebentureRepositorio,

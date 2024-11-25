@@ -1,5 +1,8 @@
-
-import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -19,6 +22,7 @@ import { Cron } from '@nestjs/schedule';
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 import { CriarOperacaoDebenture } from 'src/@types/entities/operacaoDebenture';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
+import { SigmaService } from '../sigma/sigma.service';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -28,6 +32,7 @@ export class CreditSecRemessaService {
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
+    private readonly sigma: SigmaService,
   ) {}
   @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoRemessa() {
@@ -164,7 +169,11 @@ export class CreditSecRemessaService {
           bodyAtualizarOperacao,
           operacaoPendente.id,
         );
-        await this.excluirOperacaoDebentureSigma(data.numero_remessa);
+        await this.sigma.excluirOperacaoDebentureSigma({
+          codigoOperacao: data.numero_remessa,
+          complementoStatusOperacao:
+            'A emissão da Remessa foi Recusada pela CreditSec',
+        });
         return;
       }
       return;
@@ -308,32 +317,6 @@ export class CreditSecRemessaService {
     if (!req.ok)
       throw new HttpException(
         `Erro ao destravar operação no sigma: ${req.status} ${req.statusText}`,
-        req.status,
-      );
-
-    const res = { sucesso: true, codigoOperacao };
-    return res;
-  }
-
-  private async excluirOperacaoDebentureSigma(codigoOperacao: string) {
-    const body = {
-      complementoStatusOperacao:
-        'A emissão da Remessa foi Recusada pela CreditSec',
-    };
-    const req = await fetch(
-      `${process.env.BASE_URL_OPERACOES_INVEST}fluxo-operacional/v1/operacoes-invest/${codigoOperacao}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': sigmaHeaders['X-API-KEY'],
-        },
-        body: JSON.stringify(body),
-      },
-    );
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao excluir operação no sigma: ${req.status} ${req.statusText}`,
         req.status,
       );
 
