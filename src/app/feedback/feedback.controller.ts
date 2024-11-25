@@ -3,7 +3,7 @@ import { FeedbackService } from './feedback.service';
 import { CriarFeedbackDto } from './dto/criar-feedback.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 
 @ApiTags('Feedback')
 @Controller('api/feedback')

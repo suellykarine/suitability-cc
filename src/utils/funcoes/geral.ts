@@ -1,6 +1,5 @@
-export function fazNada(variavel?: unknown) {
+export function fazerNada(variavel: unknown) {
   if (variavel) {
     // fazNada
   }
-  // aindaNaoFazNada
 }

@@ -5,12 +5,11 @@ import { FeedbackBackoffice } from './backoffice';
 import { FundoInvestimentoGestorFundo, GestorFundo } from './fundos';
 import { TransacaoCarteira } from './transacaoCarteira';
 
-export type Usuario = {
+export type UsuarioSemVinculos = {
   id: number;
   nome?: string;
   email?: string;
   telefone?: string;
-  senha?: string;
   cpf?: string;
   data_nascimento?: Date;
   id_tipo_usuario?: number;
@@ -18,6 +17,9 @@ export type Usuario = {
   id_gestor_fundo?: number;
   id_status_usuario?: number;
   data_criacao?: Date;
+};
+
+export type Usuario = UsuarioSemVinculos & {
   acesso_usuario?: AcessoUsuario[];
   carta_convite?: CartaConvite[];
   documento?: Documento[];
@@ -30,6 +32,9 @@ export type Usuario = {
   tipo_usuario?: TipoUsuario;
   usuario_fundo_investimento?: UsuarioFundoInvestimento[];
 };
+
+export type UsuarioComSenha = Usuario & { senha: string };
+export type UsuarioSemVinculosComSenha = UsuarioSemVinculos & { senha: string };
 
 export type UsuarioFundoInvestimento = {
   id: number;

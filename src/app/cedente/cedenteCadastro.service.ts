@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
 import { ConfigService } from '@nestjs/config';
-import { sigmaHeaders } from '../auth/constants';
+import { sigmaHeaders } from '../autenticacao/constants';
 import { CreateContaCorrenteDto } from './dto/create-conta-corrente.dto';
 import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
