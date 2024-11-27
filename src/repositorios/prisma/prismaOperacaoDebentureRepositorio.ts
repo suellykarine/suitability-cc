@@ -10,11 +10,17 @@ export class PrismaOperacaoDebentureRepositorio
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async buscarPorFundoInvestimento(id: number): Promise<OperacaoDebenture[]> {
+  async buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]> {
     const operacoes = await this.prisma.operacao_debenture.findMany({
       where: {
         debenture_serie_investidor: {
-          id_fundo_investimento: id,
+          fundo_investimento: {
+            fundo_investimento_gestor_fundo: {
+              some: {
+                id_gestor_fundo: id,
+              },
+            },
+          },
         },
       },
       include: {

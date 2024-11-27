@@ -646,11 +646,9 @@ export class DebentureSerieService {
     return retornoLaqus;
   }
 
-  async listarOperacoesPorFundoInvestimento(id: number) {
+  async listarOperacoesPorGestorFundo(id: number) {
     try {
-      return await this.operacaoDebentureRepositorio.buscarPorFundoInvestimento(
-        id,
-      );
+      return await this.operacaoDebentureRepositorio.buscarPorGestorFundo(id);
     } catch (error) {
       throw new InternalServerErrorException(
         'Falha ao tentar buscar operações',
