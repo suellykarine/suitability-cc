@@ -38,6 +38,8 @@ import {
   pertenceADebentureAtual,
 } from './utils/estaAptoAEstruturar';
 
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+
 type FiltrarSeriesValidasProps = {
   seriesId: number[];
   debentureId: number;
@@ -62,6 +64,7 @@ export class DebentureSerieService {
     private readonly srmBankService: SrmBankService,
     private readonly configService: ConfigService,
     private readonly adaptadorDb: AdaptadorDb,
+    private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {}
 
   async solicitarSerie({
@@ -641,5 +644,17 @@ export class DebentureSerieService {
       );
     }
     return retornoLaqus;
+  }
+
+  async listarOperacoesPorFundoInvestimento(id: number) {
+    try {
+      return await this.operacaoDebentureRepositorio.buscarPorFundoInvestimento(
+        id,
+      );
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Falha ao tentar buscar operações',
+      );
+    }
   }
 }
