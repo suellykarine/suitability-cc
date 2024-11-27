@@ -1,4 +1,3 @@
-import { debenture_serie_investidor } from '@prisma/client';
 import { ContaInvestidor } from './contaInvestidor';
 import { FundoInvestimento } from './fundos';
 
