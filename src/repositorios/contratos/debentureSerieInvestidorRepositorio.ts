@@ -15,7 +15,6 @@ export type EncontrarPorDesvinculoProps = {
   idDebenture: number;
   valorMinimoSerie?: number;
 };
-
 export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorDesvinculo(
@@ -60,4 +59,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract todosStatusCreditSecNull(): Promise<
     DebentureSerieInvestidor[] | null
   >;
+  abstract buscarTodasDebentureSerieValidas(
+    idFundoInvestimento: number,
+  ): Promise<number[]>;
 }

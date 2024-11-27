@@ -5,6 +5,7 @@ import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { formatarCPF, formatarTelefone } from 'src/utils/formatar';
 import { FundosService } from '../fundos/fundos.service';
 import { usuario } from '@prisma/client';
+import { fazerNada } from 'src/utils/funcoes/geral';
 
 @Injectable()
 export class AnalisePerfilService {
@@ -104,6 +105,7 @@ export class AnalisePerfilService {
 
   private usuarioSemSenha(user: usuario) {
     const { senha, ...usuarioSemSenha } = user;
+    fazerNada(senha);
     return usuarioSemSenha;
   }
 
