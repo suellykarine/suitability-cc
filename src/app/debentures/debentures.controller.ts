@@ -8,14 +8,18 @@ import {
   Delete,
   UseGuards,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
-import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import {
+  AtualizarDebentureSerieDto,
+  AtualizarValorDaSerieDto,
+} from './dto/atualizar-debenture-serie.dto';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
-import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
+import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 
 @ApiTags('Debentures')
@@ -32,6 +36,7 @@ export class DebenturesController {
   async listarDebentures() {
     return this.debentureService.listarDebentures();
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Post()
   async criarDebenture(@Body() criarDebentureDto: CriarDebentureDto) {
@@ -60,24 +65,19 @@ export class DebenturesController {
       Number(limite),
     );
   }
+
   @UseGuards(JwtAuthGuardPremium)
   @Get('serie/:id')
   async encontrarPorId(@Param('id') id: string) {
     return this.debenturesSerieService.encontrarPorId(+id);
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
-  @Post('serie/:id_debenture/fundo/:id_fundo_investimento')
-  async criarNovaSerie(
-    @Param('id_debenture') id_debenture: string,
-    @Param('id_fundo_investimento') id_fundo_investimento: string,
-    @Body() criarDebentureSerieDto: CriarDebentureSerieDto,
-  ) {
-    return this.debenturesSerieService.criar(
-      +id_debenture,
-      +id_fundo_investimento,
-      criarDebentureSerieDto,
-    );
+  @Post('serie')
+  async solicitarSerie(@Body() payload: CriarDebentureSerieDto) {
+    return this.debenturesSerieService.solicitarSerie(payload);
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Patch('serie/:id')
   async atualizar(
@@ -89,6 +89,22 @@ export class DebenturesController {
       atualizarDebentureSerieDto,
     );
   }
+
+  @UseGuards(JwtAuthGuardPremium)
+  @Patch('serie/valor/:id')
+  async atualizarValorDaSerie(
+    @Param('id') id: string,
+    @Body() atualizarValorDaSerieDto: AtualizarValorDaSerieDto,
+  ) {
+    const { valorSerie } = atualizarValorDaSerieDto;
+    const idDebentureSerie = Number(id);
+    const data = {
+      idDebentureSerie,
+      valorSerie,
+    };
+    return this.debenturesSerieService.atualizarValorDaSerie(data);
+  }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Delete('serie/:id')
   async deletar(@Param('id') id: string) {
@@ -100,5 +116,21 @@ export class DebenturesController {
     return await this.debenturesSerieService.listarOperacoesPorFundoInvestimento(
       Number(id),
     );
+  }
+  @Get('serie-investidor/:id/:valor')
+  async temDebentureSerieComSaldo(
+    @Param('id') id: string,
+    @Param('valor') valor: string,
+  ) {
+    const valorEntrada = Number(valor);
+    const idInvestidor = Number(id);
+    if (!valorEntrada) throw new BadRequestException('valor inválido');
+    if (!idInvestidor) throw new BadRequestException('id inválido');
+
+    const service = await this.debenturesSerieService.estaAptoAEstruturar(
+      idInvestidor,
+      valorEntrada,
+    );
+    return service;
   }
 }

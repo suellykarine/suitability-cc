@@ -9,7 +9,7 @@ import {
   RespostaBuscarContaSrmBank,
   RegistrarContaNoCC,
 } from './interface/interface';
-import { sigmaHeaders } from 'src/app/auth/constants';
+import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 
 @Injectable()

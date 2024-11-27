@@ -6,9 +6,20 @@ import {
 import { RetornoMultiplos } from 'src/utils/prisma/types';
 import { Repositorio } from './repositorio';
 
+export type AtualizarProps = Omit<
+  Partial<DebentureSerieInvestidor> & { id: number },
+  'fundo_investimento' | 'debenture_serie' | 'conta_investidor'
+>;
+
+export type EncontrarPorDesvinculoProps = {
+  idDebenture: number;
+  valorMinimoSerie?: number;
+};
 export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract encontrarPorId(id: number): Promise<DebentureSerieInvestidor | null>;
-  abstract encontrarPorDesvinculo(): Promise<DebentureSerieInvestidor | null>;
+  abstract encontrarPorDesvinculo(
+    props: EncontrarPorDesvinculoProps,
+  ): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null>;
   abstract criar(
     data: Partial<DebentureSerieInvestidor>,
@@ -18,12 +29,20 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
     idFundoInvestimento: number,
   ): Promise<DebentureSerieInvestidor | null>;
 
+  abstract encontrarPorIdFundoInvestimento(
+    props: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>,
+  ): Promise<Omit<DebentureSerieInvestidor, 'debenture_serie'>[] | null>;
+
   abstract encontrarPorIdContaInvestidorDataEncerramento(
     idFundoInvestimento: number,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract encontrarPorIdContaInvestidorDataEncerramento(
     idFundoInvestimento: number,
+  ): Promise<DebentureSerieInvestidor | null>;
+
+  abstract atualizar(
+    props: AtualizarProps,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract atualizarStatusLaqus(
@@ -40,4 +59,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract todosStatusCreditSecNull(): Promise<
     DebentureSerieInvestidor[] | null
   >;
+  abstract buscarTodasDebentureSerieValidas(
+    idFundoInvestimento: number,
+  ): Promise<number[]>;
 }

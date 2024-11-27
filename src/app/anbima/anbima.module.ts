@@ -7,4 +7,4 @@ import { ConfigService } from '@nestjs/config';
   controllers: [AnbimaController],
   providers: [AnbimaService, ConfigService],
 })
-export class AmbimaModule {}
+export class AnbimaModule {}

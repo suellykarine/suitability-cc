@@ -13,7 +13,7 @@ import { CreateEstruturacaoCarrinhoDto } from './dto/create-estruturacao-carrinh
 import { FormalizarCarteiraDto } from './dto/formalizar-carteira.dto';
 import { ExcluirCarteiraDto } from './dto/excluir-carteira.dto';
 import { IntroduzirAtivoCarteiraDto } from './dto/introduzir-ativo-carteira.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)

@@ -15,9 +15,9 @@ import { SrmBankModule } from './app/srm-bank/srm-bank.module';
 import { CedenteModule } from './app/cedente/cedente.module';
 import { AtivosModule } from './app/ativos/ativos.module';
 import { PainelModule } from './app/painel/painel.module';
-import { AmbimaModule } from './app/ambima/anbima.module';
+import { AnbimaModule } from './app/anbima/anbima.module';
 import { FundosModule } from './app/fundos/fundos.module';
-import { AuthModule } from './app/auth/auth.module';
+import { AuthModule } from './app/autenticacao/autenticacao.module';
 import { CcbModule } from './app/ccb/ccb.module';
 import { AppController } from './app.controller';
 import { AdmModule } from './app/adm/adm.module';
@@ -47,7 +47,7 @@ import { LaqusModule } from './app/laqus/laqus.module';
     AtivosModule,
     PainelModule,
     FundosModule,
-    AmbimaModule,
+    AnbimaModule,
     LaqusModule,
     AuthModule,
     CcbModule,
