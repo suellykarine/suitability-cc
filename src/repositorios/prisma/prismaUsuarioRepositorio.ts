@@ -122,6 +122,7 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         status_usuario: true,
         tipo_usuario: true,
         transacao_carteira: true,
+        usuario_fundo_investimento: true,
       },
     });
     const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuario);
