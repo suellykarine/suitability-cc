@@ -346,9 +346,17 @@ export class CreditSecRemessaService {
     dadosAtivo: AtivosInvest[],
   ): SolicitarRemessaType {
     const ativos = dadosAtivo.map((ativo) => {
+      const taxa_cessao =
+        ativo.taxaAtivo === 'PRÉ'
+          ? { tipo: 'prefixada', valor: ativo.tir }
+          : {
+              tipo: 'posfixada',
+              valor: ativo.cdiInvestPercentual,
+              indice: 'cdi',
+            };
       return {
         numero: String(ativo.codigoAtivo),
-        taxa_cessao: ativo.tir,
+        taxa_cessao,
         tipo: ativo.tipoAtivo,
         sacado: {
           cnpj: ativo.sacado.identificador,

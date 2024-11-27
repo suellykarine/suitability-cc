@@ -43,6 +43,7 @@ export type AtivosInvest = {
   spread: number;
   tir: number;
   tirAnual: number;
+  taxaAtivo: string;
   cdiInvestPercentual: number;
   codigoCedulaCreditoBancario: string;
   cedente: Cedente;
