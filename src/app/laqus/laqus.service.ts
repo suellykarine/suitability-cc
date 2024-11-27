@@ -1,6 +1,5 @@
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { CriarInvestidorLaqusDto } from './dto/criarInvestidorLaqus.dto';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { AtualizarDebentureSerieInvestidorLaqus } from 'src/@types/entities/debenture';
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
@@ -15,6 +14,7 @@ import {
   HttpException,
   Injectable,
 } from '@nestjs/common';
+import { CadastrarLaqusPayload } from './types';
 
 @Injectable()
 export class LaqusService {
@@ -101,16 +101,23 @@ export class LaqusService {
     }
   }
 
-  async cadastrarInvestidor(data: CriarInvestidorLaqusDto) {
+  async cadastrarInvestidor(data: CadastrarLaqusPayload['dadosCedente']) {
+    const callbackUrl = `${this.configService.get<string>('BASE_URL')}/laqus/atualizarStatus`;
+    const payload: CadastrarLaqusPayload = {
+      callbackUrl,
+      dadosCedente: data,
+    };
     const response = await fetch(`${this.laqusApi}/cadastro`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
     const result = await response.json();
+    console.log('result');
+    console.log(result);
 
     if (!response.ok) {
       throw new HttpException(

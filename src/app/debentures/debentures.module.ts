@@ -18,8 +18,10 @@ import { ConfigService } from '@nestjs/config';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
+import { CedenteModule } from '../cedente/cedente.module';
 
 @Module({
+  imports: [CedenteModule],
   controllers: [DebenturesController],
   providers: [
     DebentureSerieService,

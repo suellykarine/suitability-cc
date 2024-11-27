@@ -164,9 +164,13 @@ export class PrismaDebentureSerieInvestidorRepositorio
           debenture_serie: { connect: { id: id_debenture_serie } },
           fundo_investimento: { connect: { id: id_fundo_investimento } },
         },
+        include: {
+          conta_investidor: true,
+          debenture_serie: true,
+        },
       });
 
-    return serieInvestidorData;
+    return converterCamposDecimais(serieInvestidorData);
   }
 
   async atualizar({

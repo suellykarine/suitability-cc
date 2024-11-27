@@ -37,6 +37,7 @@ import {
   filtrarSeriesPorValor,
   pertenceADebentureAtual,
 } from './utils/estaAptoAEstruturar';
+import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 
 type FiltrarSeriesValidasProps = {
   seriesId: number[];
@@ -58,6 +59,7 @@ export class DebentureSerieService {
     private readonly srmBankService: SrmBankService,
     private readonly configService: ConfigService,
     private readonly adaptadorDb: AdaptadorDb,
+    private readonly cadastroCedenteService: CadastroCedenteService,
   ) {}
 
   async solicitarSerie({
@@ -89,12 +91,6 @@ export class DebentureSerieService {
       if (!fundo) {
         throw new NotFoundException(
           `Fundo de investimento com ID ${identificadorFundo} não encontrado`,
-        );
-      }
-
-      if (!fundo.administrador_fundo?.endereco) {
-        throw new BadRequestException(
-          'O administrador do fundo não possui um endereço',
         );
       }
 
@@ -580,7 +576,9 @@ export class DebentureSerieService {
     serie: DebentureSerieInvestidor,
   ): Promise<{ identificadorLaqus: string }> {
     if (!fundo) throw new InternalServerErrorException('azedou');
-
+    const { endereco } = await this.cadastroCedenteService.buscarDadosPJ(
+      fundo.cpf_cnpj,
+    );
     const retornoLaqus = await this.laqusService.cadastrarInvestidor({
       tipoDeEmpresa: TipoDeEmpresa.Limitada,
       tipoPessoa: TipoPessoa.Juridica,
@@ -593,13 +591,13 @@ export class DebentureSerieService {
       atividadePrincipal: fundo.atividade_principal ?? '',
       faturamentoMedioMensal12Meses: Number(fundo.faturamento_anual),
       endereco: {
-        cep: fundo.administrador_fundo?.endereco?.cep ?? '',
-        rua: fundo.administrador_fundo?.endereco?.logradouro ?? '',
-        numero: fundo.administrador_fundo?.endereco?.numero ?? '',
-        complemento: fundo.administrador_fundo?.endereco?.complemento ?? '',
-        bairro: fundo.administrador_fundo?.endereco?.bairro ?? '',
-        cidade: fundo.administrador_fundo?.endereco?.cidade ?? '',
-        uf: fundo.administrador_fundo?.endereco?.estado ?? '',
+        cep: endereco?.cep ?? '',
+        rua: endereco?.logradouro ?? '',
+        numero: endereco?.numero ?? '',
+        complemento: endereco?.complemento ?? '',
+        bairro: endereco?.bairro ?? '',
+        cidade: endereco?.cidade ?? '',
+        uf: endereco?.uf ?? '',
       },
       dadosBancarios: {
         codigoDoBanco: serie.conta_investidor?.codigo_banco ?? '',

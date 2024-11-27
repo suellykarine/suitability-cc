@@ -13,5 +13,6 @@ import { DocumentoCedenteService } from './cedenteDocumentos.service';
     CadastroCedenteService,
     DocumentoCedenteService,
   ],
+  exports: [CedenteService, CadastroCedenteService],
 })
 export class CedenteModule {}
