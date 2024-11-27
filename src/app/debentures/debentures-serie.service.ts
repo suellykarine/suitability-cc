@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -29,6 +30,8 @@ import {
 } from 'src/utils/funcoes/repositorios';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+
 @Injectable()
 export class DebentureSerieService {
   private readonly limiteDebenture = 50000000;
@@ -43,6 +46,7 @@ export class DebentureSerieService {
     private readonly srmBankService: SrmBankService,
     private readonly configService: ConfigService,
     private readonly adaptadorDb: AdaptadorDb,
+    private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {}
 
   async criar(
@@ -341,5 +345,17 @@ export class DebentureSerieService {
         },
       ],
     });
+  }
+
+  async listarOperacoesPorFundoInvestimento(id: number) {
+    try {
+      return await this.operacaoDebentureRepositorio.buscarPorFundoInvestimento(
+        id,
+      );
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Falha ao tentar buscar operações',
+      );
+    }
   }
 }

@@ -22,7 +22,7 @@ export type DebentureSerie = {
   data_emissao?: Date;
   data_vencimento?: Date;
   debenture?: Debenture;
-  debenture_serie_investidor: DebentureSerieInvestidor[];
+  debenture_serie_investidor?: DebentureSerieInvestidor[];
 };
 
 export type DebentureSerieInvestidor = {

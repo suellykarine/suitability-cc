@@ -94,4 +94,11 @@ export class DebenturesController {
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
   }
+  @UseGuards(JwtAuthGuardPremium)
+  @Get('/operacao-debenture/:id')
+  async listarOperacoesPorFundoInvestimento(@Param('id') id: string) {
+    return await this.debenturesSerieService.listarOperacoesPorFundoInvestimento(
+      Number(id),
+    );
+  }
 }
