@@ -17,8 +17,8 @@ export class PainelService {
     const urlSigmaPorCnpj = `${process.env.ATIVOS_URL}/ativos-disponiveis/v1/ativos/rentabibilidade?identificadorInvestidor=${cnpj}`;
     const urlSigmaPorIdUsuario = `${process.env.ATIVOS_URL}/ativos-disponiveis/v1/ativos/rentabibilidade-consolidado?identificadorInvestidor=${idUsuario}`;
 
-    const responseCnpj = await fetch(urlSigmaPorCnpj, options);
-    const dadosCnpj = await responseCnpj.json();
+    const requestCnpj = await fetch(urlSigmaPorCnpj, options);
+    const dadosCnpj = await requestCnpj.json();
 
     delete dadosCnpj.rendimentosAtivosConsolidado;
 
