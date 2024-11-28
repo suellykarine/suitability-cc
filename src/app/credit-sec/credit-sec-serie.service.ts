@@ -13,7 +13,7 @@ import {
 } from 'src/@types/entities/fundos';
 import { Usuario } from 'src/@types/entities/usuario';
 
-import { sigmaHeaders } from 'src/app/auth/constants';
+import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoGestorFundoRepositorio';

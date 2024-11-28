@@ -28,7 +28,14 @@ export class JwtStrategyBackoffice extends PassportStrategy(
         tipo_usuario: true,
       },
     });
-    if (usuario.tipo_usuario.tipo !== TipoUsuarioEnum.BACKOFFICE) {
+    const usuariosPermitidos: (keyof typeof TipoUsuarioEnum)[] = [
+      'BACKOFFICE',
+      'ADMINISTRADOR_SISTEMAS',
+    ];
+    const acessoLiberado = usuariosPermitidos.includes(
+      usuario.tipo_usuario.tipo as keyof typeof TipoUsuarioEnum,
+    );
+    if (!acessoLiberado) {
       throw new UnauthorizedException({
         mensagem: 'Você não tem acesso a essa rota',
       });

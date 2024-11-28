@@ -1,28 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { AtualizarSenhaDto } from './dto/atualizar-senha.dto';
-import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
-
-export type Usuario = any;
+import { Usuario } from 'src/@types/entities/usuario';
+import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 
 @Injectable()
 export class UsuarioService {
-  constructor(private prismaUsuarioRepositorio: PrismaUsuarioRepositorio) {}
+  constructor(private usuarioRepositorio: UsuarioRepositorio) {}
 
   async encontrarUsuario(email: string): Promise<Usuario | undefined> {
-    const usuario =
-      await this.prismaUsuarioRepositorio.encontrarPorEmail(email);
+    const usuario = await this.usuarioRepositorio.encontrarPorEmail(email);
 
     return usuario;
   }
 
-  async atualizarSenha(
-    idUsuario: number,
-    atualizarSenhaDto: AtualizarSenhaDto,
-  ) {
-    atualizarSenhaDto.senha = await bcrypt.hash(atualizarSenhaDto.senha, 10);
+  async atualizarSenha(idUsuario: number, { senha }: AtualizarSenhaDto) {
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    await this.prismaUsuarioRepositorio.atualizar(idUsuario, atualizarSenhaDto);
+    await this.usuarioRepositorio.atualizar(idUsuario, {
+      senha: senhaCriptografada,
+    });
 
     return { mensagem: 'Senha alterada com sucesso' };
   }

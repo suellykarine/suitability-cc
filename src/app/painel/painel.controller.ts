@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Request, UseGuards } from '@nestjs/common';
 import { PainelService } from './painel.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 import { RequisicaoPersonalizada } from 'src/utils/interfaces/requisicao.interface';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 

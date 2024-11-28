@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
@@ -15,10 +16,10 @@ import {
   AtualizarDebentureSerieDto,
   AtualizarValorDaSerieDto,
 } from './dto/atualizar-debenture-serie.dto';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
-import { JwtAuthGuardPremium } from '../auth/guards/premium-auth.guard';
+import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 
 @ApiTags('Debentures')
@@ -30,17 +31,18 @@ export class DebenturesController {
     private readonly debentureService: DebentureService,
   ) {}
 
-  @UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardPremium)
   @Get()
   async listarDebentures() {
     return this.debentureService.listarDebentures();
   }
+
   @UseGuards(JwtAuthGuardBackoffice)
   @Post()
   async criarDebenture(@Body() criarDebentureDto: CriarDebentureDto) {
     return this.debentureService.criarDebenture(criarDebentureDto);
   }
-  @UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardPremium)
   @Get('/serie')
   @ApiQuery({
     name: 'pagina',
@@ -107,5 +109,30 @@ export class DebenturesController {
   @Delete('serie/:id')
   async deletar(@Param('id') id: string) {
     return this.debenturesSerieService.deletar(+id);
+  }
+  @UseGuards(JwtAuthGuardPremium)
+  @Get('operacao-debenture')
+  async listarOperacoesPorGestorFundo(
+    @Query('idGestorFundo') idGestorFundo: string,
+  ) {
+    return await this.debenturesSerieService.listarOperacoesPorGestorFundo(
+      Number(idGestorFundo),
+    );
+  }
+  @Get('serie-investidor/:id/:valor')
+  async temDebentureSerieComSaldo(
+    @Param('id') id: string,
+    @Param('valor') valor: string,
+  ) {
+    const valorEntrada = Number(valor);
+    const idInvestidor = Number(id);
+    if (!valorEntrada) throw new BadRequestException('valor inválido');
+    if (!idInvestidor) throw new BadRequestException('id inválido');
+
+    const service = await this.debenturesSerieService.estaAptoAEstruturar(
+      idInvestidor,
+      valorEntrada,
+    );
+    return service;
   }
 }

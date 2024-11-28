@@ -1,7 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { CreateEstruturacaoCarrinhoDto } from './dto/create-estruturacao-carrinho.dto';
 import { ConfigService } from '@nestjs/config';
-import { sigmaHeaders } from '../auth/constants';
+import { sigmaHeaders } from '../autenticacao/constants';
 import { FormalizarCarteiraDto } from './dto/formalizar-carteira.dto';
 import { ExcluirCarteiraDto } from './dto/excluir-carteira.dto';
 import { IntroduzirAtivoCarteiraDto } from './dto/introduzir-ativo-carteira.dto';

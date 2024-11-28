@@ -18,6 +18,8 @@ import { ConfigService } from '@nestjs/config';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
 
 @Module({
   controllers: [DebenturesController],
@@ -51,6 +53,10 @@ import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
     {
       provide: AdaptadorDb,
       useClass: PrismaAdaptadorDb,
+    },
+    {
+      provide: OperacaoDebentureRepositorio,
+      useClass: PrismaOperacaoDebentureRepositorio,
     },
   ],
 })
