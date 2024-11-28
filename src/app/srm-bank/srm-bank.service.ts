@@ -1,4 +1,10 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   RespostaCriarContaSrmBank,
   RespostaBuscarContaSrmBank,
@@ -109,6 +115,33 @@ export class SrmBankService {
       throw new NotFoundException('Conta não encontrada');
     }
     return findConta;
+  }
+  async buscarContaSrmBankAtivaPorCnpj(identificador: string) {
+    const req = await fetch(
+      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente?ativo=true`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': sigmaHeaders['X-API-KEY'],
+        },
+      },
+    );
+    if (!req.ok)
+      throw new HttpException(
+        `Erro ao buscar conta: ${req.status} ${req.statusText}`,
+        req.status,
+      );
+
+    const data = await req.json();
+
+    if (!data.length)
+      throw new BadRequestException('Não foi encontrada Nenhuma conta ativa');
+    const firstAccount = data[0].dadosBancarios;
+
+    if (!firstAccount)
+      throw new InternalServerErrorException('Houve um erro desconhecido');
+
+    return firstAccount;
   }
 
   private async registrarContaNoCreditConnect(data: RegistrarContaNoCC) {
