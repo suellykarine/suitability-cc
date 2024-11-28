@@ -172,4 +172,29 @@ export class SrmBankService {
       );
     }
   }
+
+  async buscarSaldoContaInvestidor(numeroConta: number) {
+    try {
+      const url = `${process.env.BASE_URL_SALDO_CONTA_INVESTIDOR}${numeroConta}`;
+
+      const req = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!req.ok) {
+        throw new InternalServerErrorException(
+          'Ocorreu um erro ao buscar o saldo',
+        );
+      }
+
+      const result = await req.json();
+      return { saldoEmConta: result.saldoEmConta };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Ocorreu um erro ao buscar o saldo',
+      );
+    }
+  }
 }

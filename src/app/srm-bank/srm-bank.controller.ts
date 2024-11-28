@@ -22,7 +22,7 @@ export class SrmBankController {
       id_cedente,
     });
   }
-  @UseGuards(JwtAuthGuardBackoffice, JwtAuthGuardPremium)
+  @UseGuards(JwtAuthGuardPremium)
   @Get('conta/:id_fundo_investidor')
   buscarContaInvestidor(
     @Param('id_fundo_investidor') id_fundo_investidor: string,
@@ -30,5 +30,11 @@ export class SrmBankController {
     return this.srmBankService.buscarContaInvestidor(
       Number(id_fundo_investidor),
     );
+  }
+
+  @UseGuards(JwtAuthGuardPremium)
+  @Get('saldo/:numeroConta')
+  async buscarSaldoContaInvestidor(@Param('numeroConta') numeroConta: string) {
+    return this.SrmBankService.buscarSaldoContaInvestidor(Number(numeroConta));
   }
 }
