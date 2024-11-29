@@ -13,21 +13,20 @@ import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/pris
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
 import { DebentureService } from './debentures.service';
-import { LaqusService } from '../laqus/laqus.service';
 import { ConfigService } from '@nestjs/config';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
-import { CedenteModule } from '../cedente/cedente.module';
+import { CreditSecModule } from '../credit-sec/credit-sec.module';
+import { LaqusModule } from '../laqus/laqus.module';
 
 @Module({
-  imports: [CedenteModule],
+  imports: [CreditSecModule, LaqusModule],
   controllers: [DebenturesController],
   providers: [
     DebentureSerieService,
     PrismaService,
     DebentureService,
-    LaqusService,
     ConfigService,
     SrmBankService,
     {

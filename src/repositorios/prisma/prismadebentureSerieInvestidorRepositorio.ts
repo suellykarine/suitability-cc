@@ -30,7 +30,12 @@ export class PrismaDebentureSerieInvestidorRepositorio
     const serieInvestidorData =
       await this.prisma.debenture_serie_investidor.findUnique({
         where: { id },
-        include: { debenture_serie: true },
+        include: {
+          debenture_serie: true,
+          fundo_investimento: true,
+          conta_investidor: true,
+          operacao_debenture: true,
+        },
       });
 
     return converterCamposDecimais(serieInvestidorData);
@@ -42,9 +47,23 @@ export class PrismaDebentureSerieInvestidorRepositorio
     const serieInvestidorData =
       await this.prisma.debenture_serie_investidor.findMany({
         where: { id_fundo_investimento },
+        include: { debenture_serie: true, conta_investidor: true },
       });
 
     return serieInvestidorData.map(converterCamposDecimais);
+  }
+
+  async encontraMaisRecentePorIdFundoInvestimento({
+    id_fundo_investimento,
+  }: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>) {
+    const serieInvestidorData =
+      await this.prisma.debenture_serie_investidor.findFirst({
+        where: { id_fundo_investimento },
+        orderBy: { data_vinculo: 'desc' },
+        include: { debenture_serie: true, conta_investidor: true },
+      });
+
+    return converterCamposDecimais(serieInvestidorData);
   }
 
   async encontrarPorDesvinculo({
@@ -59,6 +78,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
           },
           debenture_serie: {
             data_emissao: null,
+            data_vencimento: null,
             debenture_serie_investidor: {
               every: {
                 OR: [
@@ -186,10 +206,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return serieInvestidorData;
   }
 
-  async encontrarPorIdDebentureSerie(id_debenture_serie: number) {
+  async encontrarMaisRecentePorIdDebentureSerie(id_debenture_serie: number) {
     const debentureSerieInvestidor =
       await this.prisma.debenture_serie_investidor.findFirst({
         where: { id_debenture_serie },
+        orderBy: { data_vinculo: 'desc' },
       });
     return debentureSerieInvestidor;
   }
@@ -211,8 +232,17 @@ export class PrismaDebentureSerieInvestidorRepositorio
   async todosStatusCreditSecNull(): Promise<DebentureSerieInvestidor[] | null> {
     const data = await this.prisma.debenture_serie_investidor.findMany({
       where: { status_retorno_creditsec: null },
+      include: {
+        debenture_serie: {
+          include: {
+            debenture: true,
+          },
+        },
+        conta_investidor: true,
+        fundo_investimento: true,
+      },
     });
-    return data;
+    return converterCamposDecimais(data);
   }
 
   private async encontrarPorIdContaInvestidor(
