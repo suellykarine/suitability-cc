@@ -32,6 +32,8 @@ import {
 } from './utils/estaAptoAEstruturar';
 import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
 
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+
 type FiltrarSeriesValidasProps = {
   seriesId: number[];
   debentureId: number;
@@ -52,6 +54,7 @@ export class DebentureSerieService {
     private readonly srmBankService: SrmBankService,
     private readonly creditSecSerieService: CreditSecSerieService,
     private readonly adaptadorDb: AdaptadorDb,
+    private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {}
 
   async solicitarSerie({
@@ -624,5 +627,15 @@ export class DebentureSerieService {
     return numerosSerie.reduce((acc, current) => {
       return acc === current ? acc + 1 : acc;
     }, 1);
+  }
+
+  async listarOperacoesPorGestorFundo(id: number) {
+    try {
+      return await this.operacaoDebentureRepositorio.buscarPorGestorFundo(id);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Falha ao tentar buscar operações',
+      );
+    }
   }
 }

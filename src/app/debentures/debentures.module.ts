@@ -19,6 +19,8 @@ import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
 import { CreditSecModule } from '../credit-sec/credit-sec.module';
 import { LaqusModule } from '../laqus/laqus.module';
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
 
 @Module({
   imports: [CreditSecModule, LaqusModule],
@@ -52,6 +54,10 @@ import { LaqusModule } from '../laqus/laqus.module';
     {
       provide: AdaptadorDb,
       useClass: PrismaAdaptadorDb,
+    },
+    {
+      provide: OperacaoDebentureRepositorio,
+      useClass: PrismaOperacaoDebentureRepositorio,
     },
   ],
   exports: [DebentureService, DebentureSerieService],
