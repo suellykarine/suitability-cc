@@ -288,11 +288,11 @@ export class DebentureSerieService {
   }
 
   async solicitarSerieBackOffice(payload: CriarDebentureSerieDto) {
-    const serieSolicitada = await this.solicitarSerie(payload);
     await this.fundoInvestimentoRepositorio.atualizar(
       payload.identificadorFundo,
       { valor_serie_debenture: payload.valorEntrada, apto_debenture: true },
     );
+    const serieSolicitada = await this.solicitarSerie(payload);
 
     return serieSolicitada;
   }

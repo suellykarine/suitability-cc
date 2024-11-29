@@ -256,6 +256,8 @@ export class CreditSecSerieService {
     );
 
     if (req.ok) return;
+    console.log('erro #solicitarSerieCreditSec');
+    console.log(req.json());
     throw new HttpException(
       `Erro ao criar serie: ${req.status} ${req.statusText}`,
       req.status,
