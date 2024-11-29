@@ -9,7 +9,12 @@ export class PrismaAdaptadorDb implements AdaptadorDb {
 
   async fazerTransacao<T>(
     operacao: (sessao: Prisma.TransactionClient) => Promise<T>,
+    config: {
+      maxWait?: number;
+      timeout?: number;
+      isolationLevel?: Prisma.TransactionIsolationLevel;
+    },
   ): Promise<T> {
-    return await this.prismaService.$transaction(operacao);
+    return await this.prismaService.$transaction(operacao, config);
   }
 }

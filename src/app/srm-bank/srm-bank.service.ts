@@ -11,31 +11,31 @@ import {
 } from './interface/interface';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SrmBankService {
   constructor(
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+    private readonly configService: ConfigService,
   ) {}
 
-  async criarContaInvestidor(dados: {
-    identificador: string;
-    id_cedente: string;
-  }) {
+  async criarContaInvestidor(idFundoInvestidor: number) {
+    const identificador = this.configService.get('IDENTIFICADOR_CEDENTE');
     try {
       function esperar(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
-      const criarConta = await this.CriarContaSRMBank(dados.identificador);
-      await esperar(500);
+      const criarConta = await this.CriarContaSRMBank(identificador);
+      await esperar(1000); //TO-REFACTOR: solicitar para o SRMBank resolver essa assincronia da criação de conta.
       const buscarConta = await this.buscarContaSrmBank(
-        dados.identificador,
+        identificador,
         criarConta.conta.slice(0, 9),
       );
 
       const objRegistrarContaCC: RegistrarContaNoCC = {
-        id_fundo_investidor: Number(dados.id_cedente),
-        identificador_favorecido: String(criarConta.id),
+        id_fundo_investidor: idFundoInvestidor,
+        identificador_favorecido: String(identificador),
         agencia: criarConta.agencia,
         agencia_digito: '0',
         codigo_banco: '533',
