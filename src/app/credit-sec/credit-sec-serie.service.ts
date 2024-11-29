@@ -270,8 +270,6 @@ export class CreditSecSerieService {
       },
     });
     const response = await req.json();
-    console.log('response');
-    console.log(response);
 
     if (req.ok) return response;
 

@@ -88,8 +88,6 @@ export class LaqusService {
               status_retorno_laqus: status.toUpperCase() as StatusRetornoLaqus,
               data_desvinculo: status === 'Reprovado' ? new Date() : null,
             });
-          console.log('debentureSerieInvestidorAtualizado');
-          console.log(debentureSerieInvestidorAtualizado);
           if (!debentureSerieInvestidorAtualizado)
             throw new BadRequestException(
               'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',

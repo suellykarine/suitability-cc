@@ -323,7 +323,6 @@ export class DebentureSerieService {
     statusLaqus?: string;
     idLaqus?: string;
   }): Promise<DebentureSerieInvestidor> {
-    console.log('idContaInvestidor', idContaInvestidor);
     await this.contaInvestidorRepositorio.atualizar(idContaInvestidor, {
       id_fundo_investidor: idFundoInvestimento,
     });
