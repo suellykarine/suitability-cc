@@ -57,7 +57,7 @@ export class LaqusService {
       throw new NotFoundException('Fundo de investimento não foi encontrado');
 
     const ultimoVinculoDSI =
-      await this.debentureSerieInvestidorRepositorio.encontraMaisRecentePorIdFundoInvestimento(
+      await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdFundoInvestimento(
         { id_fundo_investimento: fundoInvestimento.id },
       );
 
@@ -113,7 +113,7 @@ export class LaqusService {
 
     if (status === 'Aprovado') {
       await this.creditSecSerieService.solicitarSerie(
-        debentureSerieInvestidorAtualizado.id_fundo_investimento,
+        debentureSerieInvestidorAtualizado.id,
       );
     }
 

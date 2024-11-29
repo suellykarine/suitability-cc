@@ -33,7 +33,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
     props: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>,
   ): Promise<DebentureSerieInvestidor[] | null>;
 
-  abstract encontraMaisRecentePorIdFundoInvestimento(
+  abstract encontrarMaisRecentePorIdFundoInvestimento(
     props: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>,
   ): Promise<DebentureSerieInvestidor | null>;
 
