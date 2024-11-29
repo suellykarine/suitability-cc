@@ -171,8 +171,6 @@ export class LaqusService {
         },
       ],
     };
-    console.log('dadosCedente');
-    console.log(dadosCedente);
     const callbackUrl = `${this.configService.get<string>('BASE_URL')}/laqus/atualizarStatus`;
     const payload: CadastrarLaqusPayload = {
       callbackUrl,
@@ -192,8 +190,7 @@ export class LaqusService {
     if (!response.ok) {
       console.log(retornoLaqus);
       throw new HttpException(
-        'Não foi possível cadastrar o investidor na laqus:' +
-          JSON.stringify(retornoLaqus),
+        'Não foi possível cadastrar o investidor na laqus',
         response.status,
       );
     }

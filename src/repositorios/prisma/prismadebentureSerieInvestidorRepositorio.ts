@@ -32,7 +32,35 @@ export class PrismaDebentureSerieInvestidorRepositorio
         where: { id },
         include: {
           debenture_serie: true,
-          fundo_investimento: true,
+          fundo_investimento: {
+            include: {
+              documento: true,
+              administrador_fundo: {
+                include: {
+                  endereco: true,
+                },
+              },
+              fundo_investimento_gestor_fundo: {
+                include: {
+                  gestor_fundo: {
+                    include: {
+                      status_gestor_fundo: true,
+                      endereco: true,
+                    },
+                  },
+                  usuario_fundo_investimento: {
+                    include: {
+                      usuario: {
+                        include: {
+                          endereco: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
           conta_investidor: true,
           operacao_debenture: true,
         },
