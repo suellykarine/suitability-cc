@@ -254,10 +254,10 @@ export class CreditSecSerieService {
         },
       },
     );
-
+    const creditSecData = await req.json();
     if (req.ok) return;
     console.log('erro #solicitarSerieCreditSec');
-    console.log(req.json());
+    console.log(creditSecData);
     throw new HttpException(
       `Erro ao criar serie: ${req.status} ${req.statusText}`,
       req.status,
