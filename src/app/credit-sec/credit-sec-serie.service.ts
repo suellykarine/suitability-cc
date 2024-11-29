@@ -243,21 +243,24 @@ export class CreditSecSerieService {
     );
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
-    const req = await fetch(
-      `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`,
-      {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
-        },
+    console.log('body #solicitarSerieCreditSec');
+    console.log(body);
+    const url = `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`;
+    console.log('disparando para :', url);
+    const req = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
       },
-    );
-
+    });
+    const creditSecData = await req.json();
+    console.log('data #solicitarSerieCreditSec');
+    console.log(creditSecData);
     if (req.ok) return;
     console.log('erro #solicitarSerieCreditSec');
-    console.log(req.json());
+    console.log(creditSecData);
     throw new HttpException(
       `Erro ao criar serie: ${req.status} ${req.statusText}`,
       req.status,
