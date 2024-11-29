@@ -190,7 +190,8 @@ export class LaqusService {
 
     if (!response.ok) {
       throw new HttpException(
-        'Não foi possível cadastrar o investidor na laqus',
+        'Não foi possível cadastrar o investidor na laqus:' +
+          JSON.stringify(retornoLaqus),
         response.status,
       );
     }
