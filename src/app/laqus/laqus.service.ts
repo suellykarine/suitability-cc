@@ -189,6 +189,7 @@ export class LaqusService {
     const retornoLaqus = (await response.json()) as { id: string };
 
     if (!response.ok) {
+      console.log(retornoLaqus);
       throw new HttpException(
         'Não foi possível cadastrar o investidor na laqus:' +
           JSON.stringify(retornoLaqus),
