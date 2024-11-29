@@ -243,28 +243,34 @@ export class CreditSecSerieService {
     );
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
-    console.log('body #solicitarSerieCreditSec');
-    console.log(body);
-    const url = `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`;
-    console.log('disparando para :', url);
-    const req = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
-      },
-    });
-    const creditSecData = await req.json();
-    console.log('data #solicitarSerieCreditSec');
-    console.log(creditSecData);
-    if (req.ok) return;
-    console.log('erro #solicitarSerieCreditSec');
-    console.log(creditSecData);
-    throw new HttpException(
-      `Erro ao criar serie: ${req.status} ${req.statusText}`,
-      req.status,
-    );
+    try {
+      console.log('body #solicitarSerieCreditSec');
+      console.log(body);
+      const url = `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`;
+      console.log('disparando para :', url);
+      const req = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
+        },
+      });
+      if (req.ok) return;
+      const creditSecData = await req.json();
+      console.log('erroResponse #solicitarSerieCreditSec');
+      console.log(creditSecData[0]);
+      throw new HttpException(
+        `Erro ao criar serie: ${req.status} ${req.statusText}, ${creditSecData[0]}`,
+        req.status,
+      );
+    } catch (error) {
+      console.log('erroCatch #solicitarSerieCreditSec');
+      const errorData = await error.json();
+      console.log(errorData);
+      console.log(error);
+      throw error;
+    }
   }
 
   private async buscarCedenteSigma(identificador: string): Promise<Cedente> {
