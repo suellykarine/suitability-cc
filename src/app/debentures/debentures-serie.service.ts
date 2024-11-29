@@ -288,26 +288,13 @@ export class DebentureSerieService {
   }
 
   async solicitarSerieBackOffice(payload: CriarDebentureSerieDto) {
-    const fundoInvestimentoAtualizado =
-      await this.fundoInvestimentoRepositorio.atualizar(
-        payload.identificadorFundo,
-        { valor_serie_debenture: payload.valorEntrada, apto_debenture: true },
-      );
+    const serieSolicitada = await this.solicitarSerie(payload);
+    await this.fundoInvestimentoRepositorio.atualizar(
+      payload.identificadorFundo,
+      { valor_serie_debenture: payload.valorEntrada, apto_debenture: true },
+    );
 
-    if (!fundoInvestimentoAtualizado) {
-      throw new BadRequestException(
-        'Não foi possível atualizar o fundo de investimento',
-      );
-    }
-    try {
-      return await this.solicitarSerie(payload);
-    } catch (error) {
-      await this.fundoInvestimentoRepositorio.atualizar(
-        payload.identificadorFundo,
-        { valor_serie_debenture: null, apto_debenture: false },
-      );
-      throw error;
-    }
+    return serieSolicitada;
   }
 
   private async reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor({
