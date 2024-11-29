@@ -243,6 +243,8 @@ export class CreditSecSerieService {
     );
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
+    console.log('body #solicitarSerieCreditSec');
+    console.log(body);
     const req = await fetch(
       `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`,
       {
