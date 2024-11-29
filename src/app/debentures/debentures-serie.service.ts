@@ -282,11 +282,11 @@ export class DebentureSerieService {
         throw error;
       }
       return debentureSerieInvestidorCriada.debenture_serie;
+    } else {
+      await this.creditSecSerieService.solicitarSerie(
+        debentureSerieInvestidorCriada.id,
+      );
     }
-
-    await this.creditSecSerieService.solicitarSerie(
-      debentureSerieInvestidorCriada.id,
-    );
 
     return debentureSerieInvestidorCriada.debenture_serie;
   }
