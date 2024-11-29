@@ -100,7 +100,7 @@ export class DebentureSerieService {
     this.verificarLimiteDebenture(seriesParaVerificarLimite, valorEntrada);
 
     const ultimoVinculoDSI =
-      await this.debentureSerieInvestidorRepositorio.encontraMaisRecentePorIdFundoInvestimento(
+      await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdFundoInvestimento(
         { id_fundo_investimento: identificadorFundo },
       );
 
@@ -193,7 +193,9 @@ export class DebentureSerieService {
           throw error;
         }
       } else {
-        await this.creditSecSerieService.solicitarSerie(identificadorFundo);
+        await this.creditSecSerieService.solicitarSerie(
+          debentureSerieInvestidorCriada.id,
+        );
       }
 
       return debentureSerieInvestidorCriada.debenture_serie;
@@ -280,9 +282,11 @@ export class DebentureSerieService {
         throw error;
       }
       return debentureSerieInvestidorCriada.debenture_serie;
+    } else {
+      await this.creditSecSerieService.solicitarSerie(
+        debentureSerieInvestidorCriada.id,
+      );
     }
-
-    await this.creditSecSerieService.solicitarSerie(identificadorFundo);
 
     return debentureSerieInvestidorCriada.debenture_serie;
   }

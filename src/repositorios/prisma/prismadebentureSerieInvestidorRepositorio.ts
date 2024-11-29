@@ -34,6 +34,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
           debenture_serie: true,
           fundo_investimento: {
             include: {
+              representante_fundo: true,
               documento: true,
               administrador_fundo: {
                 include: {
@@ -81,7 +82,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return serieInvestidorData.map(converterCamposDecimais);
   }
 
-  async encontraMaisRecentePorIdFundoInvestimento({
+  async encontrarMaisRecentePorIdFundoInvestimento({
     id_fundo_investimento,
   }: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>) {
     const serieInvestidorData =
