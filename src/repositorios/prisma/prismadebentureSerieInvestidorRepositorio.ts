@@ -31,7 +31,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
       await this.prisma.debenture_serie_investidor.findUnique({
         where: { id },
         include: {
-          debenture_serie: true,
+          debenture_serie: {
+            include: {
+              debenture: true,
+            },
+          },
           fundo_investimento: {
             include: {
               representante_fundo: true,

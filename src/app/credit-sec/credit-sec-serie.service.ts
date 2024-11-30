@@ -231,10 +231,10 @@ export class CreditSecSerieService {
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
     try {
-      console.log('body #solicitarSerieCreditSec');
-      console.log(body);
+      console.log('body #solicitarSerieCreditSec'); //TO-DO: apagar após testes
+      console.log(body); //TO-DO: apagar após testes
       const url = `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`;
-      console.log('disparando para :', url);
+      console.log('disparando para :', url); //TO-DO: apagar após testes
       const req = await fetch(url, {
         method: 'POST',
         body: JSON.stringify(body),
@@ -245,8 +245,8 @@ export class CreditSecSerieService {
       });
       if (req.ok) return;
       const creditSecData = await req.json();
-      console.log('erroResponse #solicitarSerieCreditSec');
-      console.log(creditSecData[0]);
+      console.log('erroResponse #solicitarSerieCreditSec'); //TO-DO: apagar após testes
+      console.log(creditSecData[0]); //TO-DO: apagar após testes
       throw new HttpException(
         `Erro ao criar serie: ${req.status} ${req.statusText}, ${creditSecData[0]}`,
         req.status,
@@ -277,50 +277,23 @@ export class CreditSecSerieService {
     );
   }
 
-  private async buscarFundoInvestidor(id: number) {
-    const fund =
-      await this.fundoInvestimentoRepositorio.encontrarComRelacionamentos(id);
-
-    if (fund.cpf_cnpj) return fund;
-    throw new InternalServerErrorException('Erro ao buscar cedente');
-  }
-
-  private async buscarUsuario(idFundo: number) {
-    const fundoGestorFundo =
-      await this.fundoInvestimentoGestorFundoRepositorio.encontrarPorIdDoFundo(
-        idFundo,
-      );
-
-    const usuarioFundo =
-      await this.usuarioFundoInvestimentoRepositorio.encontrarPeloIdGestorFundo(
-        fundoGestorFundo.id,
-      );
-    const usuario = await this.usuarioRepositorio.encontrarPorId(
-      usuarioFundo.id_usuario,
-    );
-
-    if (usuario.cpf) return usuario;
-
-    throw new InternalServerErrorException('Erro ao buscar usuário');
-  }
-
   private async montarBodySolicitarSerie(
     representanteCedente: RepresentanteFundo,
     enderecoCedente: EnderecoCedente,
     cedenteCreditConnect: FundoInvestimento,
     usuario: Omit<Usuario, 'tipo_usuario'>,
-    serieInvestidor: DebentureSerieInvestidor,
+    debentureSerieInvestidor: DebentureSerieInvestidor,
   ) {
     const objSolicitarSerie: SolicitarSerieType = {
       numero_emissao:
-        serieInvestidor.debenture_serie.debenture.numero_debenture,
-      numero_serie: serieInvestidor.debenture_serie.numero_serie,
+        debentureSerieInvestidor.debenture_serie.debenture.numero_debenture,
+      numero_serie: debentureSerieInvestidor.debenture_serie.numero_serie,
       callback_url: `${this.baseUrl}api/credit-sec/solicitar-serie/retorno/criacao-serie`,
       conta_serie: {
         banco: '533',
-        agencia: serieInvestidor.conta_investidor.agencia,
-        conta: serieInvestidor.conta_investidor.conta,
-        digito: serieInvestidor.conta_investidor.conta_digito,
+        agencia: debentureSerieInvestidor.conta_investidor.agencia,
+        conta: debentureSerieInvestidor.conta_investidor.conta,
+        digito: debentureSerieInvestidor.conta_investidor.conta_digito,
       },
       debenturista: {
         cnpj: cedenteCreditConnect.cpf_cnpj,
@@ -349,7 +322,8 @@ export class CreditSecSerieService {
           telefone: representanteCedente.telefone,
         },
       ],
-      valor_total_integralizado: +serieInvestidor.debenture_serie.valor_serie,
+      valor_total_integralizado:
+        +debentureSerieInvestidor.debenture_serie.valor_serie,
     };
     return objSolicitarSerie;
   }
