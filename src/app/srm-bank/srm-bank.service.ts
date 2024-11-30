@@ -27,7 +27,9 @@ export class SrmBankService {
         return new Promise((resolve) => setTimeout(resolve, ms));
       }
       const criarConta = await this.CriarContaSRMBank(identificador);
-      await esperar(1000); //TO-REFACTOR: solicitar para o SRMBank resolver essa assincronia da criação de conta.
+      console.log('criarConta');
+      console.log(criarConta);
+      await esperar(2000); //TO-REFACTOR: solicitar para o SRMBank resolver essa assincronia da criação de conta.
       const buscarConta = await this.buscarContaSrmBank(
         identificador,
         criarConta.conta.slice(0, 9),
