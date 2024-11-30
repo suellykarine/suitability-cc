@@ -277,33 +277,6 @@ export class CreditSecSerieService {
     );
   }
 
-  private async buscarFundoInvestidor(id: number) {
-    const fund =
-      await this.fundoInvestimentoRepositorio.encontrarComRelacionamentos(id);
-
-    if (fund.cpf_cnpj) return fund;
-    throw new InternalServerErrorException('Erro ao buscar cedente');
-  }
-
-  private async buscarUsuario(idFundo: number) {
-    const fundoGestorFundo =
-      await this.fundoInvestimentoGestorFundoRepositorio.encontrarPorIdDoFundo(
-        idFundo,
-      );
-
-    const usuarioFundo =
-      await this.usuarioFundoInvestimentoRepositorio.encontrarPeloIdGestorFundo(
-        fundoGestorFundo.id,
-      );
-    const usuario = await this.usuarioRepositorio.encontrarPorId(
-      usuarioFundo.id_usuario,
-    );
-
-    if (usuario.cpf) return usuario;
-
-    throw new InternalServerErrorException('Erro ao buscar usuário');
-  }
-
   private async montarBodySolicitarSerie(
     representanteCedente: RepresentanteFundo,
     enderecoCedente: EnderecoCedente,
@@ -349,7 +322,8 @@ export class CreditSecSerieService {
           telefone: representanteCedente.telefone,
         },
       ],
-      valor_total_integralizado: +debentureSerieInvestidor.debenture_serie.valor_serie,
+      valor_total_integralizado:
+        +debentureSerieInvestidor.debenture_serie.valor_serie,
     };
     return objSolicitarSerie;
   }
