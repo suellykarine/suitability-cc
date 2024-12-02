@@ -31,6 +31,7 @@ import { atualizarProcuradorDto } from '../sigma/dto/atualziarProcuradorInvestid
 import { ProcuradorFundoRepositorio } from 'src/repositorios/contratos/procuradorFundoRepositorio';
 import { EnderecoRepositorio } from 'src/repositorios/contratos/enderecoRepositorio';
 import { Endereco } from 'src/@types/entities/endereco';
+import { atualizarRepresentanteLegalDto } from '../sigma/dto/representanteLegalInvestidorDto';
 
 @Injectable()
 export class FundosService {
@@ -892,6 +893,34 @@ export class FundosService {
         where: { id: fundo.id_representante_fundo },
       });
 
+      const representanteLegalInvestidor: atualizarRepresentanteLegalDto = {
+        nome: data.nome_representante,
+        endereco: {
+          uf: data.estado_endereco_representante,
+          cep: data.cep_endereco_representante,
+          cidade: data.municipio_endereco_representante,
+          bairro: data.bairro_endereco_representante,
+          logradouro: data.rua_endereco_representante,
+          numero: data.numero_endereco_representante,
+          complemento: '',
+        },
+        telefone: {
+          numero: data.telefone_representante.replace(/\D/g, '').slice(-9),
+          ddd: data.telefone_representante.replace(/\D/g, '').slice(0, 2),
+        },
+        email: data.email_representante,
+        dadosAssinatura: {
+          tipoAssinatura: 'C',
+          dataValidadeAssinatura: '2025-12-31',
+          possuiCertificadoDigital: true,
+        },
+      };
+
+      await this.cadastroPessoaJuridicaService.atualizarRepresentanteLegal(
+        data.cpf_cnpj,
+        data.cpf_representante.replace(/\D/g, ''),
+        representanteLegalInvestidor,
+      );
       if (representanteAtual) {
         await prisma.representante_fundo.update({
           where: { id: representanteAtual.id },
