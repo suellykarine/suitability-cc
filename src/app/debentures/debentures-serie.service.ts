@@ -589,6 +589,20 @@ export class DebentureSerieService {
     return seriesValidas.filter((serie) => serie !== null);
   }
 
+  async extornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+    return this.atualizarValorSerie(
+      numeroSerie,
+      (valorAtual) => valorAtual - valorEntrada,
+    );
+  }
+
+  async registroBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+    return this.atualizarValorSerie(
+      numeroSerie,
+      (valorAtual) => valorAtual + valorEntrada,
+    );
+  }
+
   private verificarLimiteDebenture(
     arrayDeSeries: DebentureSerie[] = [],
     valorEntrada: number,
@@ -627,5 +641,37 @@ export class DebentureSerieService {
         'Falha ao tentar buscar operações',
       );
     }
+  }
+
+  private async atualizarValorSerie(
+    numeroSerie: number,
+    calcularNovoValor: (valorAtual: number) => number,
+  ) {
+    const debentureId = (await this.debentureRepositorio.buscarAtiva())?.id;
+
+    if (!debentureId) {
+      throw new NotFoundException('Debenture não encontrada');
+    }
+
+    const debentureSerie =
+      await this.debentureSerieRepositorio.buscarPorNumeroSerie(
+        debentureId,
+        numeroSerie,
+      );
+
+    if (!debentureSerie) {
+      throw new NotFoundException(
+        `debenture_serie com o número de série ${numeroSerie} não encontrada`,
+      );
+    }
+
+    const debentureSerieAtualizada =
+      await this.debentureSerieRepositorio.atualizar(debentureSerie.id, {
+        valor_serie_investido: calcularNovoValor(
+          debentureSerie.valor_serie_investido,
+        ),
+      });
+
+    return debentureSerieAtualizada;
   }
 }
