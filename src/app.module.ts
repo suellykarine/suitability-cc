@@ -17,7 +17,7 @@ import { AtivosModule } from './app/ativos/ativos.module';
 import { PainelModule } from './app/painel/painel.module';
 import { AnbimaModule } from './app/anbima/anbima.module';
 import { FundosModule } from './app/fundos/fundos.module';
-import { AuthModule } from './app/auth/auth.module';
+import { AuthModule } from './app/autenticacao/autenticacao.module';
 import { CcbModule } from './app/ccb/ccb.module';
 import { AppController } from './app.controller';
 import { AdmModule } from './app/adm/adm.module';
@@ -26,6 +26,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppService } from './app.service';
 import { Module } from '@nestjs/common';
 import { LaqusModule } from './app/laqus/laqus.module';
+import { DevelopmentModule } from './app/development/development.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { LaqusModule } from './app/laqus/laqus.module';
     CcbModule,
     PdfModule,
     AdmModule,
+    DevelopmentModule,
   ],
   controllers: [AppController],
   providers: [

@@ -2,7 +2,10 @@ import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { FundoInvestimentoRepositorio } from '../contratos/fundoInvestimentoRepositorio';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
-import { FundoInvestimento } from 'src/@types/entities/fundos';
+import {
+  FundoInvestimento,
+  FundoInvestimentoSemVinculos,
+} from 'src/@types/entities/fundos';
 import { Prisma } from '@prisma/client';
 import { AtualizarFundoInvestimentoAptoDebenture } from 'src/@types/entities/debenture';
 
@@ -41,6 +44,39 @@ export class PrismaFundoInvestimentoRepositorio
     return converterCamposDecimais(fundoDados);
   }
 
+  async atualizar(
+    id: FundoInvestimento['id'],
+    {
+      id_administrador_fundo,
+      id_fundo_backoffice,
+      id_representante_fundo,
+      id_status_fundo_investimento,
+      ...dados
+    }: Partial<Omit<FundoInvestimentoSemVinculos, 'id'>>,
+  ): Promise<FundoInvestimento> {
+    const fundo = await this.prisma.fundo_investimento.update({
+      where: { id },
+      data: {
+        ...dados,
+        ...(id_administrador_fundo && {
+          administrador_fundo: { connect: { id: id_administrador_fundo } },
+        }),
+        ...(id_fundo_backoffice && {
+          fundo_backoffice: { connect: { id: id_fundo_backoffice } },
+        }),
+        ...(id_representante_fundo && {
+          representante_fundo: { connect: { id: id_representante_fundo } },
+        }),
+        ...(id_status_fundo_investimento && {
+          status_fundo_investimento: {
+            connect: { id: id_status_fundo_investimento },
+          },
+        }),
+      },
+    });
+    return converterCamposDecimais(fundo);
+  }
+
   async encontrarPorCpfCnpj(cpfCnpj: string) {
     const fundo = await this.prisma.fundo_investimento.findUnique({
       where: {
@@ -76,5 +112,28 @@ export class PrismaFundoInvestimentoRepositorio
     });
 
     return converterCamposDecimais(atualizaFundo);
+  }
+  async buscarEstaAptoADebentureRepositorio(id: number): Promise<boolean> {
+    const investidor = await this.prisma.fundo_investimento.findUnique({
+      where: { id },
+      select: {
+        apto_debenture: true,
+        valor_serie_debenture: true,
+      },
+    });
+
+    if (!investidor) {
+      return false;
+    }
+
+    if (!investidor.apto_debenture) {
+      return false;
+    }
+
+    if (!investidor.valor_serie_debenture) {
+      return false;
+    }
+
+    return true;
   }
 }

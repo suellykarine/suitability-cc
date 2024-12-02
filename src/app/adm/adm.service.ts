@@ -34,8 +34,8 @@ export class AdmService {
       telefone: createAdmDto.telefone,
       senha: senhaHash,
       cpf: createAdmDto.cpf || null,
-      tipo_usuario: tipoUsuario,
-      status_usuario: statusUsuario,
+      id_tipo_usuario: tipoUsuario.id,
+      id_status_usuario: statusUsuario.id,
     });
 
     return {
@@ -83,7 +83,8 @@ export class AdmService {
   }
 
   async atualizarUsuario(id: number, atualizarUsuarioDto: AtualizarUsuarioDto) {
-    const usuarioExistente = await this.usuarioRepositorio.encontrarPorId(id);
+    const usuarioExistente =
+      await this.usuarioRepositorio.encontrarPorIdComSenha(id);
 
     if (!usuarioExistente) {
       throw new NotFoundException('Usuário não encontrado.');
@@ -93,13 +94,17 @@ export class AdmService {
       ? await bcrypt.hash(atualizarUsuarioDto.senha, 10)
       : usuarioExistente.senha;
 
+    const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
+      atualizarUsuarioDto.tipo_usuario,
+    );
+
     const usuarioAtualizado = await this.usuarioRepositorio.atualizar(id, {
       email: atualizarUsuarioDto.email || usuarioExistente.email,
       nome: atualizarUsuarioDto.nome || usuarioExistente.nome,
       senha: senhaCriptografada,
       cpf: atualizarUsuarioDto.cpf || null,
       telefone: atualizarUsuarioDto.telefone || usuarioExistente.telefone,
-      tipo_usuario: atualizarUsuarioDto.tipo_usuario,
+      id_tipo_usuario: tipoUsuario.id,
     });
 
     return {
@@ -152,9 +157,13 @@ export class AdmService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
+    const { senha } = await this.usuarioRepositorio.encontrarPorIdComSenha(
+      usuario.id,
+    );
+
     const senhaValida = await bcrypt.compare(
       atualizarSenhaMasterDto.senha_atual,
-      usuario.senha,
+      senha,
     );
 
     if (!senhaValida) {

@@ -16,21 +16,29 @@ import {
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { LaqusService } from '../laqus/laqus.service';
-import {
-  Funcao,
-  TipoDeEmpresa,
-  TipoPessoa,
-} from '../laqus/dto/criarInvestidorLaqus.dto';
-import { FundoInvestimento } from 'src/@types/entities/fundos';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
-import { ConfigService } from '@nestjs/config';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import {
   definirContextosDeTransacao,
   removerContextosDeTransacao,
 } from 'src/utils/funcoes/repositorios';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
+import {
+  calcularDataDeCorte,
+  ehValidaPorData,
+  encontrarSerieComValorAproximado,
+  filtrarSeriesPorValor,
+  pertenceADebentureAtual,
+} from './utils/estaAptoAEstruturar';
+import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
 
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+
+type FiltrarSeriesValidasProps = {
+  seriesId: number[];
+  debentureId: number;
+  dataDeCorte: Date;
+};
 @Injectable()
 export class DebentureSerieService {
   private readonly limiteDebenture = 50000000;
@@ -41,208 +49,256 @@ export class DebentureSerieService {
     private readonly debentureRepositorio: DebentureRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+    private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly laqusService: LaqusService,
     private readonly srmBankService: SrmBankService,
-    private readonly configService: ConfigService,
+    private readonly creditSecSerieService: CreditSecSerieService,
     private readonly adaptadorDb: AdaptadorDb,
+    private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {}
 
   async solicitarSerie({
     valorEntrada,
     identificadorFundo,
-  }: CriarDebentureSerieDto): Promise<DebentureSerie> {
-    return this.adaptadorDb.fazerTransacao(async (contexto) => {
-      definirContextosDeTransacao({
-        repositorios: [
-          this.debentureSerieRepositorio,
-          this.debentureSerieInvestidorRepositorio,
-          this.contaInvestidorRepositorio,
-        ],
-        contexto,
-      });
-      const debenture = await this.debentureRepositorio.buscarAtiva();
+  }: CriarDebentureSerieDto): Promise<DebentureSerie | undefined> {
+    const debenture = await this.debentureRepositorio.buscarAtiva();
 
-      if (!debenture) {
-        throw new NotFoundException('Debenture ativa não encontrada');
-      }
+    if (!debenture) {
+      throw new NotFoundException('Debenture ativa não encontrada');
+    }
 
-      const idDebenture = debenture.id;
+    const idDebenture = debenture.id;
 
-      const fundo =
-        await this.prismaFundoInvestimentoRepositorio.encontrarPorId(
-          identificadorFundo,
-        );
-
-      if (!fundo) {
-        throw new NotFoundException(
-          `Fundo de investimento com ID ${identificadorFundo} não encontrado`,
-        );
-      }
-
-      if (!fundo.administrador_fundo.endereco) {
-        throw new BadRequestException(
-          'O administrador do fundo não possui um endereço',
-        );
-      }
-
-      if (!valorEntrada) {
-        throw new BadRequestException(
-          'Valor série não enviado ou fundo não possuí um valor de serie',
-        );
-      }
-
-      const debentureSerieInvestidorDesvinculado =
-        await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo({
-          idDebenture,
-        });
-
-      const debentureSerieDesvinculada =
-        debentureSerieInvestidorDesvinculado.debenture_serie;
-
-      const debentureSerieDesvinculadaValida =
-        debentureSerieDesvinculada &&
-        debentureSerieDesvinculada.data_vencimento > new Date();
-
-      const seriesParaVerificarLimite = debenture.debenture_serie.filter(
-        (serie) => serie.id !== debentureSerieDesvinculada.id,
+    const fundo =
+      await this.prismaFundoInvestimentoRepositorio.encontrarPorId(
+        identificadorFundo,
       );
 
-      this.verificarLimiteDebenture(seriesParaVerificarLimite, valorEntrada);
+    if (!fundo) {
+      throw new NotFoundException(
+        `Fundo de investimento com ID ${identificadorFundo} não encontrado`,
+      );
+    }
 
-      const debentureSerieInvestidorEncontradosPeloFundo =
-        await this.debentureSerieInvestidorRepositorio.encontrarPorIdFundoInvestimento(
-          { id_fundo_investimento: identificadorFundo },
-        );
+    if (!valorEntrada) {
+      throw new BadRequestException(
+        'Valor série não enviado ou fundo não possuí um valor de serie',
+      );
+    }
 
-      const DebentureSerieInvestidorPeloFundoOrdenados =
-        debentureSerieInvestidorEncontradosPeloFundo?.sort((a, b) => {
-          if (a.data_vinculo > b.data_vinculo) return -1;
-          if (a.data_vinculo < b.data_vinculo) return 1;
-          return 0;
-        });
-
-      const ultimoVinculoFundo =
-        DebentureSerieInvestidorPeloFundoOrdenados?.[0];
-
-      const { status_retorno_laqus, codigo_investidor_laqus } =
-        ultimoVinculoFundo ?? {};
-
-      const fundoReprovadoLaqus =
-        status_retorno_laqus.toLocaleLowerCase() === 'reprovado';
-
-      if (fundoReprovadoLaqus)
-        throw new BadRequestException('O investidor está reprovado pela Laqus');
-
-      const fundoPendenteLaqus =
-        status_retorno_laqus.toLocaleLowerCase() === 'pendente';
-
-      if (fundoPendenteLaqus) {
-        throw new BadRequestException(
-          'O investidor está com cadastro pendente na Laqus',
-        );
-      }
-      const fundoNovoLaqus = !status_retorno_laqus;
-
-      if (debentureSerieDesvinculadaValida) {
-        const valorSerieDesvinculada = Number(
-          debentureSerieInvestidorDesvinculado.debenture_serie.valor_serie,
-        );
-        const serieEncontradaIgualValorAtual =
-          valorEntrada === valorSerieDesvinculada;
-
-        if (!serieEncontradaIgualValorAtual) {
-          this.atualizarValorDaSerie({
-            idDebentureSerie:
-              debentureSerieInvestidorDesvinculado.id_debenture_serie,
-            valorSerie: valorEntrada,
-          });
-        }
-
-        await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
-          {
-            idDebentureSerie:
-              debentureSerieInvestidorDesvinculado.id_debenture_serie,
-            idContaInvestidor:
-              debentureSerieInvestidorDesvinculado.id_conta_investidor,
-            idFundoInvestimento: identificadorFundo,
-            idLaqus: codigo_investidor_laqus,
-            statusLaqus: status_retorno_laqus,
-          },
-        );
-
-        if (fundoNovoLaqus) {
-          await this.chamarLaqus(fundo, debentureSerieInvestidorDesvinculado);
-        }
-        removerContextosDeTransacao({
-          repositorios: [
-            this.debentureSerieRepositorio,
-            this.debentureSerieInvestidorRepositorio,
-            this.contaInvestidorRepositorio,
-          ],
-        });
-        return debentureSerieInvestidorDesvinculado.debenture_serie;
-      }
-
-      const debentureSerieInvestidorEncerrado =
-        await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento();
-
-      const novaSerie = await this.criarNovaSerie({
-        idDebenture: idDebenture,
-        valorSerie: valorEntrada,
+    const debentureSerieInvestidorDesvinculado =
+      await this.debentureSerieInvestidorRepositorio.encontrarPorDesvinculo({
+        idDebenture,
       });
-      if (debentureSerieInvestidorEncerrado) {
-        const idContaInvestidor =
-          debentureSerieInvestidorEncerrado.id_conta_investidor;
-        await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
-          {
-            idDebentureSerie: novaSerie.id,
-            idContaInvestidor,
-            idFundoInvestimento: identificadorFundo,
-            idLaqus: codigo_investidor_laqus,
-            statusLaqus: status_retorno_laqus,
+    const debentureSerieDesvinculada =
+      debentureSerieInvestidorDesvinculado?.debenture_serie;
+
+    const seriesParaVerificarLimite = debenture.debenture_serie.filter(
+      (serie) => serie.id !== debentureSerieDesvinculada?.id,
+    );
+
+    this.verificarLimiteDebenture(seriesParaVerificarLimite, valorEntrada);
+
+    const ultimoVinculoDSI =
+      await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdFundoInvestimento(
+        { id_fundo_investimento: identificadorFundo },
+      );
+
+    const { status_retorno_laqus, codigo_investidor_laqus } =
+      ultimoVinculoDSI ?? {};
+
+    const fundoReprovadoLaqus = status_retorno_laqus === 'REPROVADO';
+    if (fundoReprovadoLaqus)
+      throw new BadRequestException('O investidor está reprovado pela Laqus');
+
+    const fundoPendenteLaqus = status_retorno_laqus === 'PENDENTE';
+
+    if (fundoPendenteLaqus) {
+      throw new BadRequestException(
+        'O investidor está com cadastro pendente na Laqus',
+      );
+    }
+    const fundoErroLaqus = status_retorno_laqus === 'ERRO';
+
+    if (fundoErroLaqus) {
+      await this.laqusService.cadastrarInvestidor(ultimoVinculoDSI.id);
+
+      return ultimoVinculoDSI.debenture_serie;
+    }
+    const fundoNovoLaqus = !status_retorno_laqus;
+
+    if (!!debentureSerieDesvinculada) {
+      const valorSerieDesvinculada = Number(
+        debentureSerieInvestidorDesvinculado?.debenture_serie?.valor_serie,
+      );
+      const serieEncontradaIgualValorAtual =
+        valorEntrada === valorSerieDesvinculada;
+
+      const debentureSerieInvestidorCriada =
+        await this.adaptadorDb.fazerTransacao(
+          async (contexto) => {
+            definirContextosDeTransacao({
+              repositorios: [
+                this.debentureSerieRepositorio,
+                this.debentureSerieInvestidorRepositorio,
+                this.contaInvestidorRepositorio,
+              ],
+              contexto,
+            });
+
+            if (!serieEncontradaIgualValorAtual) {
+              this.atualizarValorDaSerie({
+                idDebentureSerie:
+                  debentureSerieInvestidorDesvinculado.id_debenture_serie,
+                valorSerie: valorEntrada,
+              });
+            }
+
+            const debentureSerieInvestidorCriada =
+              await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
+                {
+                  idDebentureSerie:
+                    debentureSerieInvestidorDesvinculado.id_debenture_serie,
+                  idContaInvestidor:
+                    debentureSerieInvestidorDesvinculado.id_conta_investidor,
+                  idFundoInvestimento: identificadorFundo,
+                  idLaqus: codigo_investidor_laqus,
+                  statusLaqus: status_retorno_laqus,
+                },
+              );
+
+            removerContextosDeTransacao({
+              repositorios: [
+                this.debentureSerieRepositorio,
+                this.debentureSerieInvestidorRepositorio,
+                this.contaInvestidorRepositorio,
+              ],
+            });
+            return debentureSerieInvestidorCriada;
           },
+          { timeout: 10000 },
         );
-
-        if (fundoNovoLaqus) {
-          await this.chamarLaqus(fundo, debentureSerieInvestidorEncerrado);
-        }
-        removerContextosDeTransacao({
-          repositorios: [
-            this.debentureSerieRepositorio,
-            this.debentureSerieInvestidorRepositorio,
-            this.contaInvestidorRepositorio,
-          ],
-        });
-        return novaSerie;
-      }
-
-      const identificador = this.configService.get('IDENTIFICADOR_CEDENTE');
-      const novaContaInvestidor =
-        await this.srmBankService.criarContaInvestidor({
-          identificador: identificador,
-          id_cedente: String(fundo.id),
-        });
-
-      const novaDebentureSerieInvestidor =
-        await this.criarDebentureSerieInvestidor({
-          idContaInvestidor: novaContaInvestidor.conta_investidor.id,
-          idDebentureSerie: novaSerie.id,
-          idFundoInvestimento: fundo.id,
-        });
 
       if (fundoNovoLaqus) {
-        await this.chamarLaqus(fundo, novaDebentureSerieInvestidor);
+        try {
+          await this.laqusService.cadastrarInvestidor(
+            debentureSerieInvestidorCriada.id,
+          );
+        } catch (error) {
+          await this.debentureSerieInvestidorRepositorio.atualizar({
+            id: debentureSerieInvestidorCriada.id,
+            status_retorno_laqus: 'ERRO',
+            mensagem_retorno_laqus: 'Falha ao criar cadastro na Laqus',
+          });
+          throw error;
+        }
+      } else {
+        await this.creditSecSerieService.solicitarSerie(
+          debentureSerieInvestidorCriada.id,
+        );
       }
 
-      removerContextosDeTransacao({
-        repositorios: [
-          this.debentureSerieRepositorio,
-          this.debentureSerieInvestidorRepositorio,
-          this.contaInvestidorRepositorio,
-        ],
-      });
-      return novaSerie;
-    });
+      return debentureSerieInvestidorCriada.debenture_serie;
+    }
+
+    const debentureSerieInvestidorEncerrado =
+      await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento();
+
+    const debentureSerieInvestidorCriada =
+      await this.adaptadorDb.fazerTransacao(
+        async (contexto) => {
+          definirContextosDeTransacao({
+            repositorios: [
+              this.debentureSerieRepositorio,
+              this.debentureSerieInvestidorRepositorio,
+              this.contaInvestidorRepositorio,
+            ],
+            contexto,
+          });
+
+          const novaSerie = await this.criarNovaSerie({
+            idDebenture: idDebenture,
+            valorSerie: valorEntrada,
+          });
+          if (debentureSerieInvestidorEncerrado) {
+            const idContaInvestidor =
+              debentureSerieInvestidorEncerrado.id_conta_investidor;
+            const debentureSerieInvestidorCriada =
+              await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
+                {
+                  idDebentureSerie: novaSerie.id,
+                  idContaInvestidor,
+                  idFundoInvestimento: identificadorFundo,
+                  idLaqus: codigo_investidor_laqus,
+                  statusLaqus: status_retorno_laqus,
+                },
+              );
+
+            removerContextosDeTransacao({
+              repositorios: [
+                this.debentureSerieRepositorio,
+                this.debentureSerieInvestidorRepositorio,
+                this.contaInvestidorRepositorio,
+              ],
+            });
+            return debentureSerieInvestidorCriada;
+          }
+
+          const novaContaInvestidor =
+            await this.srmBankService.criarContaInvestidor(identificadorFundo);
+
+          const debentureSerieInvestidorCriada =
+            await this.criarDebentureSerieInvestidor({
+              idContaInvestidor: novaContaInvestidor.conta_investidor?.id,
+              idDebentureSerie: novaSerie.id,
+              idFundoInvestimento: fundo.id,
+              idLaqus: codigo_investidor_laqus,
+              statusLaqus: status_retorno_laqus,
+            });
+
+          removerContextosDeTransacao({
+            repositorios: [
+              this.debentureSerieRepositorio,
+              this.debentureSerieInvestidorRepositorio,
+              this.contaInvestidorRepositorio,
+            ],
+          });
+          return debentureSerieInvestidorCriada;
+        },
+        { timeout: 10000 },
+      );
+
+    if (fundoNovoLaqus) {
+      try {
+        await this.laqusService.cadastrarInvestidor(
+          debentureSerieInvestidorCriada.id,
+        );
+      } catch (error) {
+        await this.debentureSerieInvestidorRepositorio.atualizar({
+          id: debentureSerieInvestidorCriada.id,
+          status_retorno_laqus: 'ERRO',
+          mensagem_retorno_laqus: 'Falha ao criar cadastro na Laqus',
+        });
+        throw error;
+      }
+      return debentureSerieInvestidorCriada.debenture_serie;
+    } else {
+      await this.creditSecSerieService.solicitarSerie(
+        debentureSerieInvestidorCriada.id,
+      );
+    }
+
+    return debentureSerieInvestidorCriada.debenture_serie;
+  }
+
+  async solicitarSerieBackOffice(payload: CriarDebentureSerieDto) {
+    await this.fundoInvestimentoRepositorio.atualizar(
+      payload.identificadorFundo,
+      { valor_serie_debenture: payload.valorEntrada, apto_debenture: true },
+    );
+    const serieSolicitada = await this.solicitarSerie(payload);
+
+    return serieSolicitada;
   }
 
   private async reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor({
@@ -257,12 +313,11 @@ export class DebentureSerieService {
     idFundoInvestimento: number;
     statusLaqus?: string;
     idLaqus?: string;
-  }): Promise<void> {
-    await this.contaInvestidorRepositorio.atualizarContaInvestidorFundoInvestimento(
-      idFundoInvestimento,
-      idContaInvestidor,
-    );
-    await this.criarDebentureSerieInvestidor({
+  }): Promise<DebentureSerieInvestidor> {
+    await this.contaInvestidorRepositorio.atualizar(idContaInvestidor, {
+      id_fundo_investidor: idFundoInvestimento,
+    });
+    return await this.criarDebentureSerieInvestidor({
       idDebentureSerie,
       idContaInvestidor,
       idFundoInvestimento,
@@ -279,7 +334,7 @@ export class DebentureSerieService {
     statusLaqus,
   }: {
     idDebentureSerie: number;
-    idContaInvestidor: number;
+    idContaInvestidor?: number;
     idFundoInvestimento: number;
     statusLaqus?: string;
     idLaqus?: string;
@@ -289,13 +344,8 @@ export class DebentureSerieService {
       id_conta_investidor: idContaInvestidor,
       id_fundo_investimento: idFundoInvestimento,
       data_vinculo: new Date(),
-      data_desvinculo: null,
-      data_encerramento: null,
       codigo_investidor_laqus: idLaqus,
       status_retorno_laqus: statusLaqus ?? 'Pendente',
-      mensagem_retorno_laqus: null,
-      status_retorno_creditsec: null,
-      mensagem_retorno_creditsec: null,
     });
   }
 
@@ -344,9 +394,6 @@ export class DebentureSerieService {
       id_debenture: idDebenture,
       valor_serie: valorSerie,
       valor_serie_investido: 0,
-      valor_serie_restante: valorSerie,
-      data_emissao: null,
-      data_vencimento: null,
     });
 
     return novaSerie;
@@ -366,6 +413,10 @@ export class DebentureSerieService {
   ): Promise<DebentureSerie | null> {
     if (data.valor_serie) {
       const debentureSerie = await this.encontrarPorId(id);
+      if (!debentureSerie)
+        throw new BadRequestException(
+          'Não foi possível encontrar a debenture serie',
+        );
       const seriesExistentes =
         await this.debentureSerieRepositorio.encontrarSeriesPorIdDebenture(
           debentureSerie.id_debenture,
@@ -382,13 +433,16 @@ export class DebentureSerieService {
   async atualizarValorDaSerie({
     idDebentureSerie,
     valorSerie,
-  }: AtualizarValorSerie): Promise<DebentureSerie> | null {
+  }: AtualizarValorSerie): Promise<DebentureSerie | null> {
     const debentureSerie = await this.encontrarPorId(idDebentureSerie);
 
     if (!debentureSerie)
       throw new NotFoundException('Debenture série não encontrada');
 
-    if (debentureSerie.data_vencimento < new Date())
+    if (
+      debentureSerie.data_vencimento &&
+      debentureSerie.data_vencimento < new Date()
+    )
       throw new BadRequestException('Debenture serie expirada');
 
     const data = { valor_serie: valorSerie };
@@ -402,6 +456,137 @@ export class DebentureSerieService {
 
   async deletar(id: number): Promise<void> {
     await this.debentureSerieRepositorio.deletar(id);
+  }
+  async estaAptoAEstruturar(
+    idInvestidor: number,
+    valorEntrada: number,
+  ): Promise<{
+    mensagem: string;
+    data: DebentureSerie;
+  } | null> {
+    return this.adaptadorDb.fazerTransacao(async (contexto) => {
+      definirContextosDeTransacao({
+        repositorios: [
+          this.debentureSerieRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+          this.contaInvestidorRepositorio,
+          this.fundoInvestimentoRepositorio,
+        ],
+        contexto,
+      });
+      const estaApto =
+        await this.fundoInvestimentoRepositorio.buscarEstaAptoADebentureRepositorio(
+          idInvestidor,
+        );
+
+      if (!estaApto) {
+        throw new BadRequestException(
+          'O investidor não está apto a investir por debenture',
+        );
+      }
+
+      const seriesValidasDoInvestidor =
+        await this.debentureSerieInvestidorRepositorio.buscarTodasDebentureSerieValidas(
+          idInvestidor,
+        );
+
+      if (seriesValidasDoInvestidor.length === 0) {
+        throw new BadRequestException('Não foram encontradas séries válidas');
+      }
+
+      const debentureAtual = await this.debentureRepositorio.buscarAtiva();
+
+      const dataDeCorte = calcularDataDeCorte(6);
+
+      const seriesValidasEComSaldoNaDebentureAtual =
+        await this.filtrarSeriesValidas({
+          seriesId: seriesValidasDoInvestidor,
+          debentureId: debentureAtual.id,
+          dataDeCorte,
+        });
+
+      if (seriesValidasEComSaldoNaDebentureAtual.length === 0) {
+        throw new BadRequestException(
+          'Não foram encontradas séries válidas  e com saldo na debenture atual',
+        );
+      }
+
+      const seriesComSaldoSuficiente = filtrarSeriesPorValor({
+        series: seriesValidasEComSaldoNaDebentureAtual,
+        valorEntrada,
+      });
+
+      if (seriesComSaldoSuficiente.length > 0) {
+        const serieMaisApropriada = encontrarSerieComValorAproximado({
+          series: seriesComSaldoSuficiente,
+          valorEntrada,
+        });
+        removerContextosDeTransacao({
+          repositorios: [
+            this.debentureSerieRepositorio,
+            this.debentureSerieInvestidorRepositorio,
+            this.contaInvestidorRepositorio,
+          ],
+        });
+        return {
+          mensagem: 'Debenture com saldo encontrada',
+          data: serieMaisApropriada,
+        };
+      }
+      const fundoInvestimento =
+        await this.fundoInvestimentoRepositorio.encontrarPorId(idInvestidor);
+      if (!fundoInvestimento) {
+        throw new NotFoundException('fundo de investimento não encontrado');
+      }
+
+      if (!fundoInvestimento.valor_serie_debenture)
+        throw new InternalServerErrorException(
+          'o valor da debenture serie não foi encontrado',
+        );
+
+      const saldoNovaDebentureSerie =
+        valorEntrada > fundoInvestimento.valor_serie_debenture
+          ? valorEntrada
+          : fundoInvestimento.valor_serie_debenture;
+      const novaSerie = await this.solicitarSerie({
+        valorEntrada: saldoNovaDebentureSerie,
+        identificadorFundo: idInvestidor,
+      });
+      if (!novaSerie) {
+        throw new InternalServerErrorException(
+          'Não foi possível criar uma nova serie',
+        );
+      }
+      removerContextosDeTransacao({
+        repositorios: [
+          this.debentureSerieRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+          this.contaInvestidorRepositorio,
+        ],
+      });
+      return {
+        mensagem: 'Debenture com saldo encontrada',
+        data: novaSerie,
+      };
+    });
+  }
+
+  private async filtrarSeriesValidas({
+    seriesId,
+    debentureId,
+    dataDeCorte,
+  }: FiltrarSeriesValidasProps): Promise<DebentureSerie[]> {
+    const seriesValidas = await Promise.all(
+      seriesId.map(async (serieId) => {
+        const serie =
+          await this.debentureSerieRepositorio.encontrarPorId(serieId);
+        const atendeCriteriosBasicos =
+          pertenceADebentureAtual({ serie, debentureId }) &&
+          ehValidaPorData({ serie, dataDeCorte });
+        return atendeCriteriosBasicos ? serie : null;
+      }),
+    );
+    return seriesValidas.filter((serie) => serie !== null);
   }
 
   async extornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
@@ -419,7 +604,7 @@ export class DebentureSerieService {
   }
 
   private verificarLimiteDebenture(
-    arrayDeSeries: DebentureSerie[],
+    arrayDeSeries: DebentureSerie[] = [],
     valorEntrada: number,
   ) {
     const valorTotalSeriesExistentes = arrayDeSeries.reduce(
@@ -448,62 +633,14 @@ export class DebentureSerieService {
     }, 1);
   }
 
-  private async chamarLaqus(
-    fundo: FundoInvestimento,
-    serie: DebentureSerieInvestidor,
-  ): Promise<{ identificadorLaqus: string }> {
-    const retornoLaqus = await this.laqusService.cadastrarInvestidor({
-      tipoDeEmpresa: TipoDeEmpresa.Limitada,
-      tipoPessoa: TipoPessoa.Juridica,
-      funcao: Funcao.Investidor,
-      email:
-        fundo.fundo_investimento_gestor_fundo[0].usuario_fundo_investimento[0]
-          .usuario.email,
-      cnpj: fundo.cpf_cnpj,
-      razaoSocial: fundo.razao_social,
-      atividadePrincipal: fundo.atividade_principal,
-      faturamentoMedioMensal12Meses: Number(fundo.faturamento_anual),
-      endereco: {
-        cep: fundo.administrador_fundo.endereco.cep,
-        rua: fundo.administrador_fundo.endereco.logradouro,
-        numero: fundo.administrador_fundo.endereco.numero,
-        complemento: fundo.administrador_fundo.endereco.complemento,
-        bairro: fundo.administrador_fundo.endereco.bairro,
-        cidade: fundo.administrador_fundo.endereco.cidade,
-        uf: fundo.administrador_fundo.endereco.estado,
-      },
-      dadosBancarios: {
-        codigoDoBanco: serie.conta_investidor.codigo_banco,
-        agencia: serie.conta_investidor.agencia,
-        digitoDaAgencia: serie.conta_investidor.agencia_digito,
-        contaCorrente: serie.conta_investidor.conta,
-        digitoDaConta: serie.conta_investidor.conta_digito,
-      },
-      telefones: [
-        {
-          numero: fundo.administrador_fundo.telefone,
-          tipo: 'Celular',
-        },
-      ],
-    });
-    if (!retornoLaqus.identificadorLaqus) {
+  async listarOperacoesPorGestorFundo(id: number) {
+    try {
+      return await this.operacaoDebentureRepositorio.buscarPorGestorFundo(id);
+    } catch (error) {
       throw new InternalServerErrorException(
-        'O identificador Laqus não foi retornado',
+        'Falha ao tentar buscar operações',
       );
     }
-
-    const atualizadoComIdentificadorLaqus =
-      await this.debentureSerieInvestidorRepositorio.atualizar({
-        id: serie.id,
-        status_retorno_laqus: 'Pendente',
-      });
-
-    if (!atualizadoComIdentificadorLaqus) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status do retorno Laqus',
-      );
-    }
-    return retornoLaqus;
   }
 
   private async atualizarValorSerie(

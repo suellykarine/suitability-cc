@@ -24,7 +24,7 @@ export class PrismaDebentureSerieRepositorio
   }
 
   async criar(
-    debentureSerie: Omit<DebentureSerie, 'id'>,
+    debentureSerie: Omit<DebentureSerie, 'id' | 'debenture_serie_investidor'>,
   ): Promise<DebentureSerie> {
     const { id_debenture, ...restoDebentureSerie } = debentureSerie;
 
