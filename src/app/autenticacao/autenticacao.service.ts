@@ -17,7 +17,6 @@ export class AutenticacaoService {
 
   async validarUsuario(email: string, senha: string): Promise<Usuario | null> {
     const usuario = await this.usuarioRepositorio.encontrarPorEmail(email);
-
     if (!usuario) {
       return null;
     }
