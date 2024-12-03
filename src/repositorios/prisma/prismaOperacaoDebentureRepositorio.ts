@@ -26,7 +26,13 @@ export class PrismaOperacaoDebentureRepositorio
       include: {
         debenture_serie_investidor: {
           include: {
-            debenture_serie: true,
+            fundo_investimento: true,
+            debenture_serie: {
+              include: {
+                debenture: true,
+              },
+            },
+            conta_investidor: true,
           },
         },
       },
