@@ -8,31 +8,27 @@ import {
 import {
   AnexarDocumentoDto,
   EnviarDocumentoDto,
-} from './dto/create-documento.dto';
-import { AtualizarDocumentoDto } from './dto/update-documento.dto';
+} from './dto/criar-documento.dto';
+import { AtualizarDocumentoStatusDto } from './dto/atualizar-documento.dto';
 import { StatusDocumento } from 'src/enums/StatusDocumento';
 import { TipoIdsDocumentos } from 'src/enums/TipoIdsDocumentos';
 import { FundosService } from '../fundos/fundos.service';
-import { Documento } from './entities/documento.entity';
 import { PrismaService } from 'prisma/prisma.service';
+import { DocumentoRepositorio } from 'src/repositorios/contratos/documentoRepositorio';
+import { Documento, DocumentoSemVinculo } from 'src/@types/entities/documento';
 
 @Injectable()
 export class DocumentosService {
   constructor(
     private readonly fundosService: FundosService,
     private prisma: PrismaService,
+    private readonly documentoRepositorio: DocumentoRepositorio,
   ) {}
   async enviarDocumento(
     enviarDocumentoDto: EnviarDocumentoDto,
     arquivo: Express.Multer.File,
     id: number,
   ) {
-    if (arquivo.mimetype !== 'application/pdf') {
-      throw new BadRequestException(
-        'Tipo de arquivo inválido. Apenas arquivos PDF são permitidos.',
-      );
-    }
-
     const entidade = await this.obterEntidadePorIdETipo(
       id,
       enviarDocumentoDto.tipo_id as TipoIdsDocumentos,
@@ -120,15 +116,17 @@ export class DocumentosService {
     };
   }
 
-  async atualizarDocumento(
+  async atualizarStatusDocumento(
     id: number,
-    atualizarDocumentoDto: AtualizarDocumentoDto,
+    atualizarDocumentoStatusDto: AtualizarDocumentoStatusDto,
     backofficeId: number,
   ) {
     const validarStatus = Object.values(StatusDocumento).map((s) =>
       s.toLowerCase(),
     );
-    if (!validarStatus.includes(atualizarDocumentoDto.status.toLowerCase())) {
+    if (
+      !validarStatus.includes(atualizarDocumentoStatusDto.status.toLowerCase())
+    ) {
       throw new BadRequestException('Status não permitido');
     }
 
@@ -142,15 +140,15 @@ export class DocumentosService {
     }
 
     const encontrarStatus = await this.obterStatusDocumento(
-      atualizarDocumentoDto.status.toUpperCase(),
+      atualizarDocumentoStatusDto.status.toUpperCase(),
     );
 
     let criarFeedBack = null;
-    if (atualizarDocumentoDto.mensagem) {
+    if (atualizarDocumentoStatusDto.mensagem) {
       criarFeedBack = await this.prisma.feedback_backoffice.create({
         data: {
           id_usuario_backoffice: Number(backofficeId),
-          mensagem: atualizarDocumentoDto.mensagem,
+          mensagem: atualizarDocumentoStatusDto.mensagem,
           id_documento: documento.id,
         },
       });
@@ -208,6 +206,42 @@ export class DocumentosService {
     );
 
     return { Documento_criado: documentoSalvo };
+  }
+
+  async atualizarDocumento(
+    id: number,
+    arquivo: Express.Multer.File,
+    idUsuarioRequisicao: number,
+  ) {
+    const documento = await this.buscarDocumentoPorId(id);
+
+    await this.verificarProprietarioDocumento(documento, idUsuarioRequisicao);
+
+    const urlDocumento = await this.enviarArquivoParaServidor(arquivo);
+
+    const statusDocumento = await this.obterStatusDocumento(
+      StatusDocumento.AGUARDANDO_ANALISE,
+    );
+
+    const dadosDocumento: Documento = {
+      nome_arquivo: arquivo.originalname,
+      extensao: arquivo.mimetype,
+      data_referencia: new Date(),
+      data_upload: new Date(),
+      url: String(urlDocumento),
+      id_status_documento: statusDocumento.id,
+    };
+
+    const documentoAtualizado =
+      await this.documentoRepositorio.atualizarDocumento(
+        documento.id,
+        dadosDocumento,
+      );
+
+    return {
+      path: urlDocumento,
+      document_id: documentoAtualizado.id,
+    };
   }
 
   private async verificarPropriedadeGestor(
@@ -292,7 +326,7 @@ export class DocumentosService {
   }
 
   private async salvarDocumento(
-    dadosDocumento: Documento,
+    dadosDocumento: DocumentoSemVinculo,
     tipoId: TipoIdsDocumentos,
     id: number,
   ) {
@@ -314,10 +348,38 @@ export class DocumentosService {
 
     dadosDocumento[campoChave] = id;
 
-    return this.prisma.documento.create({ data: dadosDocumento });
+    return this.documentoRepositorio.criar(dadosDocumento);
   }
 
   private bufferToBase64(buffer: Buffer): string {
     return buffer.toString('base64');
+  }
+
+  private async buscarDocumentoPorId(idDocumento: number) {
+    const documento = await this.documentoRepositorio.buscarPorId(idDocumento);
+
+    if (!documento) {
+      throw new NotFoundException('Documento não encontrado');
+    }
+
+    return documento;
+  }
+
+  private async verificarProprietarioDocumento(
+    documento: Documento,
+    idUsuarioRequisicao: number,
+  ) {
+    if (documento.id_usuario && documento.id_usuario !== idUsuarioRequisicao) {
+      throw new ForbiddenException(
+        'Você não tem autorização para atualizar esse documento',
+      );
+    }
+
+    if (documento.id_fundo_investimento) {
+      await this.fundosService.verificarPropriedadeFundo(
+        idUsuarioRequisicao,
+        documento.id_fundo_investimento,
+      );
+    }
   }
 }

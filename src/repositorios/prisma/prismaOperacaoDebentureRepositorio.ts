@@ -1,14 +1,61 @@
-import { OperacaoDebentureRepositorio } from '../contratos/operacaoDebentureRepositorio';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { OperacaoDebenture } from 'src/@types/entities/operacaoDebenture';
+import { OperacaoDebentureRepositorio } from '../contratos/operacaoDebentureRepositorio';
+import {
+  OperacaoDebenture,
+  OperacaoDebentureSemVinculo,
+} from 'src/@types/entities/operacaoDebenture';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 
 @Injectable()
 export class PrismaOperacaoDebentureRepositorio
   implements OperacaoDebentureRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  async criar(
+    data: Omit<OperacaoDebentureSemVinculo, 'id'>,
+  ): Promise<OperacaoDebenture> {
+    return await this.prisma.operacao_debenture.create({
+      data,
+    });
+  }
+
+  async atualizar(
+    {
+      id_debenture_serie_investidor,
+      ...data
+    }: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
+    id: number,
+  ): Promise<OperacaoDebenture> {
+    return await this.prisma.operacao_debenture.update({
+      where: { id },
+      data: {
+        ...data,
+        ...(id_debenture_serie_investidor && {
+          debenture_serie_investidor: {
+            connect: { id: id_debenture_serie_investidor },
+          },
+        }),
+      },
+    });
+  }
+
+  async buscarOperacoesPeloCodigoOperacao(
+    codigo_operacao: string,
+  ): Promise<OperacaoDebenture[]> {
+    return await this.prisma.operacao_debenture.findMany({
+      where: { codigo_operacao: Number(codigo_operacao) },
+    });
+  }
+
+  async buscarOperacoesPeloStatusCreditSec(
+    statusCreditSec: string,
+  ): Promise<OperacaoDebenture[]> {
+    return await this.prisma.operacao_debenture.findMany({
+      where: { status_retorno_creditsec: statusCreditSec },
+    });
+  }
 
   async buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]> {
     const operacoes = await this.prisma.operacao_debenture.findMany({

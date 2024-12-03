@@ -22,6 +22,7 @@ import { ReenviarCodigoDto } from './dto/resend-code.dto';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { CartaConvite } from './entities/carta-convite.entity';
 import { PrismaService } from 'prisma/prisma.service';
+import { fazerNada } from 'src/utils/funcoes/geral';
 
 @Injectable()
 export class CartaConviteService {
@@ -157,7 +158,7 @@ export class CartaConviteService {
   }
 
   async encontrarTodasCartasConvite() {
-    let cartasConvite = await this.prisma.carta_convite.findMany({
+    const cartasConvite = await this.prisma.carta_convite.findMany({
       where: {
         status_carta_convite: {
           nome: {
@@ -248,6 +249,7 @@ export class CartaConviteService {
     }
 
     const { status, idBackoffice, ...dados } = atualizarCartaConviteDto;
+    fazerNada([status, idBackoffice]);
 
     const updatedcartaConvite = await this.prisma.carta_convite.update({
       where: { id: cartaConvite.id },

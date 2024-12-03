@@ -4,6 +4,7 @@ import {
   IsEmail,
   IsNumberString,
   Length,
+  IsBoolean,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -230,7 +231,7 @@ export class AtualizarFundoDto {
     example: '001',
     description: 'Código do banco da conta de repasse do fundo de investimento',
   })
-  @IsNumberString()
+  @IsString()
   @IsOptional()
   codigo_banco?: string;
 
@@ -266,4 +267,104 @@ export class AtualizarFundoDto {
   @IsString()
   @IsOptional()
   status?: string;
+
+  @ApiProperty({
+    example: 'Proc EC',
+    description: 'Nome do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  nome_procurador?: string;
+
+  @ApiProperty({
+    example: '54488945007',
+    description: 'CPF do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  @Transform(
+    ({ value }) => typeof value === 'string' && value.replace(/[^\d]/g, ''),
+  )
+  @Length(11, 11)
+  cpf_procurador?: string;
+
+  @ApiProperty({
+    example: '5511941111111',
+    description: 'Telefone do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  telefone_procurador?: string;
+
+  @ApiProperty({
+    example: 'procecc@teste.com',
+    description: 'Email do procurador do fundo de investimento',
+  })
+  @IsEmail()
+  @IsOptional()
+  email_procurador?: string;
+
+  @ApiProperty({
+    example: '04830050',
+    description: 'CEP do endereço do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  cep_endereco_procurador?: string;
+
+  @ApiProperty({
+    example: 'Rua Castel Gandolfo',
+    description: 'Rua do endereço do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  rua_endereco_procurador?: string;
+
+  @ApiProperty({
+    example: '4321',
+    description: 'Número do endereço do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  numero_endereco_procurador?: string;
+
+  @ApiProperty({
+    example: 'Vila Progresso (Zona Sul)',
+    description: 'Bairro do endereço do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  bairro_endereco_procurador?: string;
+
+  @ApiProperty({
+    example: 'São Paulo',
+    description: 'Município do endereço do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  municipio_endereco_procurador?: string;
+
+  @ApiProperty({
+    example: 'SP',
+    description: 'Estado do endereço do procurador do fundo de investimento',
+  })
+  @IsString()
+  @IsOptional()
+  estado_endereco_procurador?: string;
+
+  @ApiProperty({
+    example: true,
+    description: 'Indica se o fundo está apto para debêntures',
+  })
+  @IsBoolean()
+  @IsOptional()
+  apto_debenture?: boolean;
+
+  @ApiProperty({
+    example: '2000000',
+    description: 'Valor da série de debêntures',
+  })
+  @IsNumberString()
+  @IsOptional()
+  valor_serie_debenture?: string;
 }

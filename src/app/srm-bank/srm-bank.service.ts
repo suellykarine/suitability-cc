@@ -1,8 +1,8 @@
 import {
+  BadRequestException,
   HttpException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import {
   RespostaCriarContaSrmBank,
@@ -11,31 +11,29 @@ import {
 } from './interface/interface';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SrmBankService {
   constructor(
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+    private readonly configService: ConfigService,
   ) {}
 
-  async criarContaInvestidor(dados: {
-    identificador: string;
-    id_cedente: string;
-  }) {
+  async criarContaInvestidor(idFundoInvestidor: number) {
+    const identificador = this.configService.get(
+      'IDENTIFICADOR_CREDITSEC',
+    ) as string;
     try {
-      function esperar(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-      }
-      const criarConta = await this.CriarContaSRMBank(dados.identificador);
-      await esperar(500);
+      const criarConta = await this.CriarContaSRMBank(identificador);
       const buscarConta = await this.buscarContaSrmBank(
-        dados.identificador,
+        identificador,
         criarConta.conta.slice(0, 9),
       );
 
       const objRegistrarContaCC: RegistrarContaNoCC = {
-        id_fundo_investidor: Number(dados.id_cedente),
-        identificador_favorecido: String(criarConta.id),
+        id_fundo_investidor: idFundoInvestidor,
+        identificador_favorecido: identificador,
         agencia: criarConta.agencia,
         agencia_digito: '0',
         codigo_banco: '533',
@@ -111,9 +109,36 @@ export class SrmBankService {
     );
 
     if (!findConta) {
-      throw new NotFoundException('Conta não encontrada');
+      return await this.buscarContaSrmBank(identificador, numeroConta);
     }
     return findConta;
+  }
+  async buscarContaSrmBankAtivaPorCnpj(identificador: string) {
+    const req = await fetch(
+      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente?ativo=true`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': sigmaHeaders['X-API-KEY'],
+        },
+      },
+    );
+    if (!req.ok)
+      throw new HttpException(
+        `Erro ao buscar conta: ${req.status} ${req.statusText}`,
+        req.status,
+      );
+
+    const data = await req.json();
+
+    if (!data.length)
+      throw new BadRequestException('Não foi encontrada Nenhuma conta ativa');
+    const firstAccount = data[0].dadosBancarios;
+
+    if (!firstAccount)
+      throw new InternalServerErrorException('Houve um erro desconhecido');
+
+    return firstAccount;
   }
 
   private async registrarContaNoCreditConnect(data: RegistrarContaNoCC) {

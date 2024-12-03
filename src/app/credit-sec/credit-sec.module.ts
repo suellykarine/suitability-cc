@@ -16,9 +16,12 @@ import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositori
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
 import { PrismaService } from 'prisma/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
+import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
-import { ConfigService } from '@nestjs/config';
+import { SigmaService } from '../sigma/sigma.service';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -28,6 +31,7 @@ import { ConfigService } from '@nestjs/config';
     ConfigService,
     CreditSecRemessaService,
     PrismaService,
+    SigmaService,
     {
       provide: DebentureRepositorio,
       useClass: PrismaDebentureRepositorio,
@@ -56,6 +60,11 @@ import { ConfigService } from '@nestjs/config';
       provide: UsuarioRepositorio,
       useClass: PrismaUsuarioRepositorio,
     },
+    {
+      provide: OperacaoDebentureRepositorio,
+      useClass: PrismaOperacaoDebentureRepositorio,
+    },
   ],
+  exports: [CreditSecSerieService, CreditSecRemessaService],
 })
 export class CreditSecModule {}

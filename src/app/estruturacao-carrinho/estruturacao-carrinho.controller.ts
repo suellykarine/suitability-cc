@@ -3,10 +3,11 @@ import {
   Post,
   Body,
   Param,
-  Put,
   Delete,
   HttpCode,
   UseGuards,
+  Get,
+  BadRequestException,
 } from '@nestjs/common';
 import { EstruturacaoCarrinhoService } from './estruturacao-carrinho.service';
 import { CreateEstruturacaoCarrinhoDto } from './dto/create-estruturacao-carrinho.dto';
@@ -14,7 +15,11 @@ import { FormalizarCarteiraDto } from './dto/formalizar-carteira.dto';
 import { ExcluirCarteiraDto } from './dto/excluir-carteira.dto';
 import { IntroduzirAtivoCarteiraDto } from './dto/introduzir-ativo-carteira.dto';
 import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ErrorResponseDto,
+  EstruturarInvestimentoDiretoResponseDto,
+} from './dto/estruturar-investimento-direto.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
@@ -74,5 +79,38 @@ export class EstruturacaoCarrinhoController {
     @Param('ativoId') ativoId: string,
   ) {
     return this.estruturacaoCarrinhoService.removerAtivoCarteira(id, ativoId);
+  }
+
+  @Get('direto/:identificador/:codigoOperacao')
+  @ApiResponse({
+    status: 200,
+    description: 'Compra formalizada com sucesso',
+    type: EstruturarInvestimentoDiretoResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    type: ErrorResponseDto,
+    description: `
+      Erros possíveis durante o processo:
+      - Não encontramos nenhuma conta ativa para o cedente.
+      - Não foi possível registrar  o Controle de Cadastro da Conta do Cedente para Operações Financeiras.
+      - Não foi possível iniciar a formalização da operação.
+      - Não foi possivel deletar o controle de operação.
+    `,
+  })
+  estruturacaoDireta(
+    @Param('identificador') identificador: string,
+    @Param('codigoOperacao') codigoOperacao: string,
+  ): Promise<EstruturarInvestimentoDiretoResponseDto> {
+    const codigoDaOperacaoNumber = Number(codigoOperacao);
+
+    if (!codigoDaOperacaoNumber) {
+      throw new BadRequestException('formato do codigo da operacao inválido');
+    }
+
+    return this.estruturacaoCarrinhoService.estruturarInvestimentoDireto({
+      identificador,
+      codigoOperacao: codigoDaOperacaoNumber,
+    });
   }
 }

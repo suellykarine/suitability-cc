@@ -1,9 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { AtualizarUsuarioDto } from 'src/app/adm/dto/update-adm.dto';
-import { Prisma, usuario } from '@prisma/client';
-import { UsuarioRepositorio } from '../contratos/usuarioRepositorio';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { UsuarioComStatusETipo } from 'src/@types/entities/usuarioComStatusETipo';
 import { UsuarioFundoInvestimentoRepositorio } from '../contratos/usuarioFundoInvestimentoRepositorio';
 import { UsuarioFundoInvestimento } from 'src/@types/entities/usuario';
 @Injectable()
