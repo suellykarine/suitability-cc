@@ -21,6 +21,7 @@ import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/pris
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
+import { SigmaService } from '../sigma/sigma.service';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -30,6 +31,7 @@ import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebent
     ConfigService,
     CreditSecRemessaService,
     PrismaService,
+    SigmaService,
     {
       provide: DebentureRepositorio,
       useClass: PrismaDebentureRepositorio,

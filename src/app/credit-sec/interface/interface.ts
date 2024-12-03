@@ -42,9 +42,14 @@ type Parcelas = {
   valor_face: number;
   valor_operado: number;
 };
+type TaxaCessao = {
+  tipo: string;
+  valor: number;
+  indice?: string;
+};
 type Titulos = {
   numero: string;
-  taxa_cessao: number;
+  taxa_cessao: TaxaCessao;
   tipo: string;
   sacado: Pick<Debenturista, 'cnpj' | 'razao_social' | 'nome_fantasia'>;
   data_emissao: string;
