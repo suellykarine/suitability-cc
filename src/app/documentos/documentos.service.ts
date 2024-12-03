@@ -15,7 +15,7 @@ import { TipoIdsDocumentos } from 'src/enums/TipoIdsDocumentos';
 import { FundosService } from '../fundos/fundos.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { DocumentoRepositorio } from 'src/repositorios/contratos/documentoRepositorio';
-import { Documento } from 'src/@types/entities/documento';
+import { Documento, DocumentoSemVinculo } from 'src/@types/entities/documento';
 
 @Injectable()
 export class DocumentosService {
@@ -326,14 +326,7 @@ export class DocumentosService {
   }
 
   private async salvarDocumento(
-    dadosDocumento: Omit<
-      Documento,
-      | 'fundo_investimento'
-      | 'gestor_fundo'
-      | 'status_documento'
-      | 'usuario'
-      | 'feedback_backoffice'
-    >,
+    dadosDocumento: DocumentoSemVinculo,
     tipoId: TipoIdsDocumentos,
     id: number,
   ) {

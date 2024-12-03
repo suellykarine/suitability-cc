@@ -2,7 +2,7 @@ import { FeedbackBackoffice } from './backoffice';
 import { FundoInvestimento, GestorFundo } from './fundos';
 import { Usuario } from './usuario';
 
-export type Documento = {
+export type DocumentoSemVinculo = {
   id?: number;
   data_referencia?: Date;
   data_upload?: Date;
@@ -15,6 +15,9 @@ export type Documento = {
   id_gestor_fundo?: number;
   id_fundo_investimento?: number;
   data_validade_documento?: Date;
+};
+
+export type Documento = DocumentoSemVinculo & {
   fundo_investimento?: FundoInvestimento;
   gestor_fundo?: GestorFundo;
   status_documento?: StatusDocumento;
