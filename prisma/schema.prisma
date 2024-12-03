@@ -454,10 +454,10 @@ model debenture_serie_investidor {
 model operacao_debenture {
   id                            Int                        @id(map: "pk_operacao_debenture_id") @default(autoincrement())
   id_debenture_serie_investidor Int
-  codigo_operacao               String                     @unique(map: "unique_operacao_debenture_codigo_operacao") @CreditConnect.NVarChar(50)
+  codigo_operacao               Int                        @unique(map: "unique_operacao_debenture_codigo_operacao")
   status_retorno_creditsec      String                     @CreditConnect.NVarChar(50)
   mensagem_retorno_creditsec    String?                    @CreditConnect.NVarChar(255)
-  data_inclusao                 DateTime                   @CreditConnect.Date
-  data_exclusao                 DateTime?                  @CreditConnect.Date
+  data_inclusao                 DateTime                   @CreditConnect.DateTime
+  data_exclusao                 DateTime?                  @CreditConnect.DateTime
   debenture_serie_investidor    debenture_serie_investidor @relation(fields: [id_debenture_serie_investidor], references: [id], onUpdate: NoAction, map: "fk_operacao_debenture_id_debenture_serie_investidor_debenture_serie_investidor_id")
 }

@@ -5,10 +5,13 @@ type ConvertDecimalToNumber<T> = {
     ? T[K]
     : T[K] extends Decimal
       ? number
-      : T[K] extends object
-        ? ConvertDecimalToNumber<T[K]>
-        : T[K];
+      : T[K] extends Array<infer U>
+        ? ConvertDecimalToNumber<U>[]
+        : T[K] extends object
+          ? ConvertDecimalToNumber<T[K]>
+          : T[K];
 };
+
 export const converterCamposDecimais = <T>(
   dados: T,
 ): ConvertDecimalToNumber<T> => {
@@ -16,18 +19,28 @@ export const converterCamposDecimais = <T>(
     return dados as ConvertDecimalToNumber<T>;
   }
 
-  return Object.fromEntries(
-    Object.entries(dados).map(([key, value]) => {
-      if (value instanceof Date) {
+  if (Array.isArray(dados)) {
+    return dados.map((item) =>
+      converterCamposDecimais(item),
+    ) as ConvertDecimalToNumber<T>;
+  }
+
+  if (typeof dados === 'object' && dados !== null) {
+    return Object.fromEntries(
+      Object.entries(dados).map(([key, value]) => {
+        if (value instanceof Date) {
+          return [key, value];
+        }
+        if (value instanceof Decimal) {
+          return [key, value.toNumber()];
+        }
+        if (typeof value === 'object' && value !== null) {
+          return [key, converterCamposDecimais(value)];
+        }
         return [key, value];
-      }
-      if (value instanceof Decimal) {
-        return [key, value.toNumber()];
-      }
-      if (typeof value === 'object' && value !== null) {
-        return [key, converterCamposDecimais(value)];
-      }
-      return [key, value];
-    }),
-  ) as ConvertDecimalToNumber<T>;
-}
+      }),
+    ) as ConvertDecimalToNumber<T>;
+  }
+
+  return dados as ConvertDecimalToNumber<T>;
+};
