@@ -1,4 +1,8 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -10,14 +14,15 @@ import {
 import {
   BodyCriarRegistroOperacao,
   NumerosSolicitarRemessa,
-  OperacoesCedente,
+  OperacoesCedente as OperacaoCedente,
   SolicitarRemessaType,
 } from './interface/interface';
 import { AtivosInvest } from 'src/@types/entities/ativoInvestido';
 import { Cron } from '@nestjs/schedule';
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
-import { CriarOperacaoDebenture } from 'src/@types/entities/operacaoDebenture';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
+import { statusRetornoCreditSecDicionario } from './const';
+import { OperacaoDebentureSemVinculo } from 'src/@types/entities/operacaoDebenture';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -36,34 +41,27 @@ export class CreditSecRemessaService {
           'PENDING',
         );
 
-      await Promise.all(
-        remessasPendentes.map(async (remessa) => {
-          const debentureSerieInvestidor =
-            await this.debentureSerieInvestidorRepositorio.encontrarPorId(
-              remessa.id_debenture_serie_investidor,
-            );
-          const debentureSerie =
-            await this.debentureSerieRepositorio.encontrarPorId(
-              debentureSerieInvestidor.id_debenture_serie,
-            );
-          const debenture = await this.debentureRepositorio.encontrarPorId(
-            debentureSerie.id_debenture,
+      for (const remessa of remessasPendentes) {
+        const debentureSerieInvestidor =
+          await this.debentureSerieInvestidorRepositorio.encontrarPorId(
+            remessa.id_debenture_serie_investidor,
           );
+        const debentureSerie = debentureSerieInvestidor.debenture_serie;
+        const debenture = debentureSerieInvestidor.debenture_serie.debenture;
 
-          const buscarStatusRemessa = await this.buscarStatusRemessa({
-            numero_emissao: debenture.numero_debenture,
-            numero_remessa: remessa.codigo_operacao,
-            numero_serie: debentureSerie.numero_serie,
-          });
+        const buscarStatusRemessa = await this.buscarStatusRemessa({
+          numero_emissao: debenture.numero_debenture,
+          numero_remessa: remessa.codigo_operacao,
+          numero_serie: debentureSerie.numero_serie,
+        });
 
-          await this.registrarRetornoCreditSec(buscarStatusRemessa);
-          return;
-        }),
-      );
+        await this.registrarRetornoCreditSec(buscarStatusRemessa);
+      }
     } catch (error) {
       throw error;
     }
   }
+
   async solicitarRemessa(data: BodyCriacaoRemessaDto) {
     try {
       const debenture_serie =
@@ -72,7 +70,7 @@ export class CreditSecRemessaService {
         );
 
       const debentureSerieInvestidor =
-        await this.debentureSerieInvestidorRepositorio.encontrarPorIdDebentureSerie(
+        await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdDebentureSerie(
           debenture_serie.id,
         );
       const fundoInvestimento =
@@ -83,12 +81,11 @@ export class CreditSecRemessaService {
       const operacaoCedente = await this.encontrarOperacoesCedenteSigma(
         String(data.codigo_operacao),
       );
-
       const body = this.montarBodySolicitarRemessa(
         {
           numero_emissao: data.numero_debenture,
           numero_serie: data.numero_serie,
-          numero_remessa: String(data.codigo_operacao),
+          numero_remessa: operacaoCedente.codigoOperacao,
           data_operacao: operacaoCedente.dataOperacao,
         },
         operacaoCedente.ativosInvest,
@@ -98,9 +95,12 @@ export class CreditSecRemessaService {
 
       //TO-DO: CHAMAR SERVIÇO DE BAIXA DE VALOR INVESTIDO. QUE SERÁ CRIADO PELO LORENZO
 
-      const dataCriarOperacaoDebentureCreditConnect = {
-        codigo_operacao: String(data.codigo_operacao),
-        status_retorno_creditsec: 'PENDING',
+      const dataCriarOperacaoDebentureCreditConnect: Omit<
+        OperacaoDebentureSemVinculo,
+        'id'
+      > = {
+        codigo_operacao: data.codigo_operacao,
+        status_retorno_creditsec: 'PENDENTE',
         id_debenture_serie_investidor: debentureSerieInvestidor.id,
         data_inclusao: new Date(),
       };
@@ -136,14 +136,16 @@ export class CreditSecRemessaService {
           data.numero_remessa,
         );
       const operacaoPendente = encontrarOperacoesdebenture.find(
-        (operacao) => operacao.status_retorno_creditsec === 'PENDING',
+        (operacao) => operacao.status_retorno_creditsec === 'PENDENTE',
       );
-      if (data.status === 'SUCCESS') {
+
+      const statusRetorno = statusRetornoCreditSecDicionario[data.status];
+      if (statusRetorno === 'APROVADO') {
         //CHAMAR OUTRO SERVIÇO QUE O LORENZO FEZ, NA RN17, SOBRE A CONTA DO CEDENTE
         await this.destravarOperacaoDebentureSigma(data.numero_remessa);
 
         const bodyAtualizarOperacao = {
-          status_retorno_creditsec: data.status,
+          status_retorno_creditsec: statusRetorno,
         };
         await this.operacaoDebentureRepositorio.atualizar(
           bodyAtualizarOperacao,
@@ -152,11 +154,11 @@ export class CreditSecRemessaService {
         return;
       }
 
-      if (data.status === 'FAILURE') {
+      if (statusRetorno === 'REPROVADO') {
         //CHAMAR OUTRO SERVIÇO QUE O LORENZO FEZ, NA RN25, SOBRE O ESTORNO AO CEDENTE
 
         const bodyAtualizarOperacao = {
-          status_retorno_creditsec: data.status,
+          status_retorno_creditsec: statusRetorno,
           data_exclusao: new Date(),
         };
         await this.operacaoDebentureRepositorio.atualizar(
@@ -225,7 +227,7 @@ export class CreditSecRemessaService {
 
   private async encontrarOperacoesCedenteSigma(
     codigoOperacao: string,
-  ): Promise<OperacoesCedente> {
+  ): Promise<OperacaoCedente> {
     const req = await fetch(
       `${process.env.BASE_URL_OPERACOES_INVEST}fluxo-operacional/v1/operacoes-invest/${codigoOperacao}`,
       {
@@ -341,7 +343,7 @@ export class CreditSecRemessaService {
   }
 
   private async criarOperacaoDebentureCreditConnect(
-    data: CriarOperacaoDebenture,
+    data: Omit<OperacaoDebentureSemVinculo, 'id'>,
   ) {
     const criarOperacaoDebenture =
       await this.operacaoDebentureRepositorio.criar(data);

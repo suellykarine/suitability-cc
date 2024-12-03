@@ -9,6 +9,8 @@ import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoIn
 import { PrismaFundoInvestimentoRepositorio } from 'src/repositorios/prisma/prismaFundoInvestimentoRepositorio';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
+import { CreditSecModule } from '../credit-sec/credit-sec.module';
+import { CedenteModule } from '../cedente/cedente.module';
 
 @Module({
   controllers: [LaqusController],
@@ -29,6 +31,7 @@ import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
       useClass: PrismaAdaptadorDb,
     },
   ],
+  imports: [CreditSecModule, CedenteModule],
   exports: [LaqusService],
 })
 export class LaqusModule {}

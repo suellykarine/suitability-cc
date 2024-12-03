@@ -1,7 +1,7 @@
 import { DebentureSerieInvestidor } from './debenture';
 import { FundoInvestimento } from './fundos';
 
-export type ContaInvestidor = {
+export type ContaInvestidorSemVinculos = {
   id: number;
   id_fundo_investidor?: number;
   identificador_favorecido: string;
@@ -12,6 +12,9 @@ export type ContaInvestidor = {
   conta: string;
   conta_digito?: string;
   codigo_conta: string;
+};
+
+export type ContaInvestidor = ContaInvestidorSemVinculos & {
   fundo_investimento?: FundoInvestimento;
   debenture_serie_investidor?: DebentureSerieInvestidor[];
 };
