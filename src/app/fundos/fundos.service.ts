@@ -26,12 +26,21 @@ import { CriarSecuritizadoraDto } from './dto/criar-securitizaroda.dto copy';
 import { AtualizarFundoDto } from './dto/atualizar-fundo.dto';
 import { PrismaService } from 'prisma/prisma.service';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
+import { CadastroPessoaJuridicaService } from '../sigma/cadastro-pessoa-juridica.service';
+import { atualizarProcuradorDto } from '../sigma/dto/atualziarProcuradorInvestidorDto';
+import { ProcuradorFundoRepositorio } from 'src/repositorios/contratos/procuradorFundoRepositorio';
+import { EnderecoRepositorio } from 'src/repositorios/contratos/enderecoRepositorio';
+import { Endereco } from 'src/@types/entities/endereco';
+import { atualizarRepresentanteLegalDto } from '../sigma/dto/representanteLegalInvestidorDto';
 
 @Injectable()
 export class FundosService {
   constructor(
     private prisma: PrismaService,
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
+    private readonly cadastroPessoaJuridicaService: CadastroPessoaJuridicaService,
+    private readonly procuradorFundoRepositorio: ProcuradorFundoRepositorio,
+    private readonly enderecoRepositorio: EnderecoRepositorio,
   ) {}
 
   async criarFundo(id: number, criarFundoDto: CriarFundoDto[]) {
@@ -242,6 +251,52 @@ export class FundosService {
 
     await this.verificarPropriedadeFundo(idUsuario, fundo.id);
 
+    if (data.cpf_procurador) {
+      const telefoneCompleto = data.telefone_procurador.replace(/\D/g, '');
+      const ddd = telefoneCompleto.slice(0, 2);
+      const numero =
+        telefoneCompleto.slice(2).length === 11
+          ? telefoneCompleto.slice(3)
+          : telefoneCompleto.slice(2);
+
+      const procuradorInvestidor: atualizarProcuradorDto = {
+        nome: data.nome_procurador,
+        endereco: {
+          uf: data.estado_endereco_procurador,
+          cep: data.cep_endereco_procurador,
+          cidade: data.municipio_endereco_procurador,
+          bairro: data.bairro_endereco_procurador,
+          logradouro: data.rua_endereco_procurador,
+          numero: data.numero_endereco_procurador,
+          complemento: '',
+        },
+        telefone: {
+          numero,
+          ddd,
+        },
+        email: data.email_procurador,
+        dadosAssinatura: {
+          tipoAssinatura: 'C',
+          dataValidadeAssinatura: '2025-12-31',
+          possuiCertificadoDigital: true,
+          tipoDocumento: 'P',
+        },
+      };
+      const procurador =
+        await this.procuradorFundoRepositorio.buscarProcuradorPorCpf(
+          data.cpf_procurador,
+        );
+
+      await this.atualizarProcurador(
+        fundo.cpf_cnpj,
+        data.cpf_procurador,
+        procuradorInvestidor,
+        procurador.id,
+        procurador.endereco.id,
+        data.telefone_procurador,
+      );
+    }
+
     const statusFundo = await this.obterStatusFundoPatch(data.status);
 
     if (data.status && Object.keys(data).length === 1) {
@@ -277,6 +332,48 @@ export class FundosService {
       mensagem: `${tipoEstrutura} atualizado`,
       fundo_atualizado: fundoAtualizado,
     };
+  }
+
+  private async atualizarProcurador(
+    fundoCnpj: string,
+    procuradorCpf: string,
+    procurador: atualizarProcuradorDto,
+    id: number,
+    idEndereco: number,
+    telefoneProcurador: string,
+  ) {
+    const procuradorAtualizadoSigma = true;
+    await this.cadastroPessoaJuridicaService.atualizarProcuradorInvestidor(
+      fundoCnpj,
+      procuradorCpf,
+      procurador,
+    );
+
+    const { telefone, endereco, ...procuradorSemTelefoneEndereco } = procurador;
+
+    if (procuradorAtualizadoSigma) {
+      const enderecoProcuradorFormatado = {
+        ...endereco,
+        estado: endereco.uf,
+      };
+      delete enderecoProcuradorFormatado.uf;
+      await this.atualizarEndereco(enderecoProcuradorFormatado, idEndereco);
+      delete procuradorSemTelefoneEndereco.dadosAssinatura;
+      await this.procuradorFundoRepositorio.atualizar(id, {
+        telefone: telefoneProcurador,
+        ...procuradorSemTelefoneEndereco,
+      });
+    }
+  }
+
+  private async atualizarEndereco(
+    endereco: Partial<Endereco>,
+    id: number,
+  ): Promise<Endereco | null> {
+    if (!endereco) {
+      return null;
+    }
+    return await this.enderecoRepositorio.atualizar(id, endereco);
   }
 
   async deleteFundo(
@@ -796,6 +893,34 @@ export class FundosService {
         where: { id: fundo.id_representante_fundo },
       });
 
+      const representanteLegalInvestidor: atualizarRepresentanteLegalDto = {
+        nome: data.nome_representante,
+        endereco: {
+          uf: data.estado_endereco_representante,
+          cep: data.cep_endereco_representante,
+          cidade: data.municipio_endereco_representante,
+          bairro: data.bairro_endereco_representante,
+          logradouro: data.rua_endereco_representante,
+          numero: data.numero_endereco_representante,
+          complemento: '',
+        },
+        telefone: {
+          numero: data.telefone_representante.replace(/\D/g, '').slice(-9),
+          ddd: data.telefone_representante.replace(/\D/g, '').slice(0, 2),
+        },
+        email: data.email_representante,
+        dadosAssinatura: {
+          tipoAssinatura: 'C',
+          dataValidadeAssinatura: '2025-12-31',
+          possuiCertificadoDigital: true,
+        },
+      };
+
+      await this.cadastroPessoaJuridicaService.atualizarRepresentanteLegal(
+        data.cpf_cnpj,
+        data.cpf_representante.replace(/\D/g, ''),
+        representanteLegalInvestidor,
+      );
       if (representanteAtual) {
         await prisma.representante_fundo.update({
           where: { id: representanteAtual.id },

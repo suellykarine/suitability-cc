@@ -125,8 +125,11 @@ export class PrismaUsuarioRepositorio implements UsuarioRepositorio {
         usuario_fundo_investimento: true,
       },
     });
-    const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuario);
-    return this.removerTokenRenovacaoDeUsuario(usuarioSemSenha);
+    if (usuario) {
+      const usuarioSemSenha = this.removerSenhaDePrismaUsuario(usuario);
+      return this.removerTokenRenovacaoDeUsuario(usuarioSemSenha);
+    }
+    return null;
   }
 
   async encontrarPorIdComSenha(id: number): Promise<UsuarioComSenha | null> {

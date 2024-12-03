@@ -102,7 +102,7 @@ export class CriarFactoringDto {
   @IsNotEmpty()
   estado_endereco_representante?: string;
 
-  @IsNumberString()
+  @IsString()
   @IsNotEmpty()
   codigo_banco?: string;
 
