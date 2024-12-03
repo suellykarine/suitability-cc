@@ -5,7 +5,6 @@ import { FundosModule } from '../fundos/fundos.module';
 import { PrismaService } from 'prisma/prisma.service';
 import { DocumentoRepositorio } from 'src/repositorios/contratos/documentoRepositorio';
 import { PrismaDocumentoRepositorio } from 'src/repositorios/prisma/prismaDocumentoRepositorio';
-import { FundosService } from '../fundos/fundos.service';
 
 @Module({
   imports: [FundosModule],
@@ -13,7 +12,6 @@ import { FundosService } from '../fundos/fundos.service';
   providers: [
     DocumentosService,
     PrismaService,
-    FundosService,
     {
       provide: DocumentoRepositorio,
       useClass: PrismaDocumentoRepositorio,
