@@ -20,7 +20,7 @@ import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contra
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
-import { BodyRetornoCriacaoSerieDto } from './dto/body-callback.dto';
+import { BodyRetornoCriacaoSerieDto } from './dto/serie-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
