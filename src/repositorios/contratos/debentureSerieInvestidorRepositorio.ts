@@ -31,7 +31,11 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
 
   abstract encontrarPorIdFundoInvestimento(
     props: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>,
-  ): Promise<Omit<DebentureSerieInvestidor, 'debenture_serie'>[] | null>;
+  ): Promise<DebentureSerieInvestidor[] | null>;
+
+  abstract encontrarMaisRecentePorIdFundoInvestimento(
+    props: Pick<DebentureSerieInvestidor, 'id_fundo_investimento'>,
+  ): Promise<DebentureSerieInvestidor | null>;
 
   abstract encontrarPorIdContaInvestidorDataEncerramento(
     idFundoInvestimento: number,
@@ -48,7 +52,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract atualizarStatusLaqus(
     props: AtualizarDebentureSerieInvestidorLaqus,
   ): Promise<RetornoMultiplos>;
-  abstract encontrarPorIdDebentureSerie(
+  abstract encontrarMaisRecentePorIdDebentureSerie(
     idDebentureSerie: number,
   ): Promise<DebentureSerieInvestidor | null>;
 

@@ -8,9 +8,6 @@ import {
   Put,
   UseInterceptors,
   UploadedFile,
-  ParseFilePipe,
-  FileTypeValidator,
-  Request,
   ParseFilePipeBuilder,
   HttpStatus,
 } from '@nestjs/common';

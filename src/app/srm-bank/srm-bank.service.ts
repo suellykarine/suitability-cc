@@ -1,4 +1,8 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import {
   RespostaCriarContaSrmBank,
   RespostaBuscarContaSrmBank,
@@ -6,27 +10,29 @@ import {
 } from './interface/interface';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SrmBankService {
   constructor(
     private readonly contaInvestidorRepositorio: ContaInvestidorRepositorio,
+    private readonly configService: ConfigService,
   ) {}
 
-  async criarContaInvestidor(dados: {
-    identificador: string;
-    id_cedente: string;
-  }) {
+  async criarContaInvestidor(idFundoInvestidor: number) {
+    const identificador = this.configService.get(
+      'IDENTIFICADOR_CREDITSEC',
+    ) as string;
     try {
-      const criarConta = await this.CriarContaSRMBank(dados.identificador);
+      const criarConta = await this.CriarContaSRMBank(identificador);
       const buscarConta = await this.buscarContaSrmBank(
-        dados.identificador,
+        identificador,
         criarConta.conta.slice(0, 9),
       );
 
       const objRegistrarContaCC: RegistrarContaNoCC = {
-        id_fundo_investidor: Number(dados.id_cedente),
-        identificador_favorecido: String(criarConta.id),
+        id_fundo_investidor: idFundoInvestidor,
+        identificador_favorecido: identificador,
         agencia: criarConta.agencia,
         agencia_digito: '0',
         codigo_banco: '533',
@@ -132,6 +138,31 @@ export class SrmBankService {
       throw new HttpException(
         `Erro ao buscar conta investidor: ${error.message}`,
         500,
+      );
+    }
+  }
+
+  async buscarSaldoContaInvestidor(numeroConta: number) {
+    try {
+      const url = `${process.env.BASE_URL_SALDO_CONTA_INVESTIDOR}${numeroConta}`;
+
+      const req = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!req.ok) {
+        throw new InternalServerErrorException(
+          'Ocorreu um erro ao buscar o saldo',
+        );
+      }
+
+      const result = await req.json();
+      return { saldoEmConta: result.saldoEmConta };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Ocorreu um erro ao buscar o saldo',
       );
     }
   }

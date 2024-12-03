@@ -1,19 +1,24 @@
-import { Prisma, operacao_debenture } from '@prisma/client';
-import { CriarOperacaoDebenture } from 'src/@types/entities/operacaoDebenture';
+import {
+  OperacaoDebentureSemVinculo,
+  OperacaoDebenture,
+} from 'src/@types/entities/operacaoDebenture';
 
 export abstract class OperacaoDebentureRepositorio {
-  abstract criar(data: CriarOperacaoDebenture): Promise<operacao_debenture>;
+  abstract criar(
+    data: Omit<OperacaoDebentureSemVinculo, 'id'>,
+  ): Promise<OperacaoDebenture>;
 
   abstract atualizar(
-    data: Partial<CriarOperacaoDebenture>,
+    data: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
     id: number,
-  ): Promise<operacao_debenture>;
+  ): Promise<OperacaoDebenture>;
 
   abstract buscarOperacoesPeloStatusCreditSec(
     statusCreditSec: string,
-  ): Promise<operacao_debenture[]>;
+  ): Promise<OperacaoDebenture[]>;
 
   abstract buscarOperacoesPeloCodigoOperacao(
     cofigoOperacao: string,
-  ): Promise<operacao_debenture[]>;
+  ): Promise<OperacaoDebenture[]>;
+  abstract buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]>;
 }

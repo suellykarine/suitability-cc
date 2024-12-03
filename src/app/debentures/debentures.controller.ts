@@ -31,7 +31,7 @@ export class DebenturesController {
     private readonly debentureService: DebentureService,
   ) {}
 
-  @UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardPremium)
   @Get()
   async listarDebentures() {
     return this.debentureService.listarDebentures();
@@ -42,8 +42,7 @@ export class DebenturesController {
   async criarDebenture(@Body() criarDebentureDto: CriarDebentureDto) {
     return this.debentureService.criarDebenture(criarDebentureDto);
   }
-
-  @UseGuards(JwtAuthGuardBackoffice)
+  @UseGuards(JwtAuthGuardPremium)
   @Get('/serie')
   @ApiQuery({
     name: 'pagina',
@@ -74,9 +73,9 @@ export class DebenturesController {
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
-  @Post('serie')
+  @Post('serie/backoffice')
   async solicitarSerie(@Body() payload: CriarDebentureSerieDto) {
-    return this.debenturesSerieService.solicitarSerie(payload);
+    return this.debenturesSerieService.solicitarSerieBackOffice(payload);
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
@@ -112,6 +111,14 @@ export class DebenturesController {
     return this.debenturesSerieService.deletar(+id);
   }
   @UseGuards(JwtAuthGuardPremium)
+  @Get('operacao-debenture')
+  async listarOperacoesPorGestorFundo(
+    @Query('idGestorFundo') idGestorFundo: string,
+  ) {
+    return await this.debenturesSerieService.listarOperacoesPorGestorFundo(
+      Number(idGestorFundo),
+    );
+  }
   @Get('serie-investidor/:id/:valor')
   async temDebentureSerieComSaldo(
     @Param('id') id: string,
