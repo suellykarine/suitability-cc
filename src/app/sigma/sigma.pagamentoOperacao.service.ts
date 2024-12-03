@@ -1,7 +1,7 @@
 import { Injectable, HttpException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { sigmaHeaders } from 'src/app/auth/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { sigmaHeaders } from '../autenticacao/constants';
 @Injectable()
 export class PagamentoOperacaoService {
   private readonly urlBase: string;

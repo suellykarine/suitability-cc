@@ -2,7 +2,7 @@ import { Controller, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CodigoOperacaoDto } from './dto/codigo-operacao.dto';
 import { PagamentoOperacaoService } from './sigma.pagamentoOperacao.service';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 
 @UseGuards(JwtAuthGuardBackoffice)
 @ApiTags('Sigma')
