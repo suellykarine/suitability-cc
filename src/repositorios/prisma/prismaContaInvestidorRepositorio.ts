@@ -66,4 +66,11 @@ export class PrismaContaInvestidorRepositorio
     });
     return contaInvestidor;
   }
+
+  async buscarContaPorId(id: number): Promise<ContaInvestidor | null> {
+    const contaInvestidor = await this.prisma.conta_investidor.findUnique({
+      where: { id },
+    });
+    return contaInvestidor;
+  }
 }
