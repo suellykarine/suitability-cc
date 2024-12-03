@@ -1,11 +1,12 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
 import { ConfigService } from '@nestjs/config';
-import { sigmaHeaders } from '../auth/constants';
+import { sigmaHeaders } from '../autenticacao/constants';
 import { CreateContaCorrenteDto } from './dto/create-conta-corrente.dto';
 import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
+import { Cedente } from 'src/@types/entities/cedente';
 
 @Injectable()
 export class CadastroCedenteService {
@@ -91,6 +92,27 @@ export class CadastroCedenteService {
       throw new HttpException(
         dados.message || 'Erro na comunicação com o serviço externo',
         dados.statusCode || 502,
+      );
+    }
+
+    return dados;
+  }
+
+  async buscarDadosPJ(identificadorFundo: string): Promise<Cedente> {
+    const url = `${this.urlBase}/${identificadorFundo}`;
+
+    const resposta = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': sigmaHeaders['X-API-KEY'],
+      },
+    });
+
+    const dados = (await resposta.json()) as Cedente;
+
+    if (!resposta.ok) {
+      throw new BadRequestException(
+        'Erro na comunicação com o serviço externo',
       );
     }
 

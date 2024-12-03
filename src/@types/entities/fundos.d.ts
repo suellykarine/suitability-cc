@@ -7,7 +7,7 @@ import { FeedbackBackoffice, FundoBackoffice } from './backoffice';
 import { Endereco } from './endereco';
 import { Usuario, UsuarioFundoInvestimento } from './usuario';
 
-export type FundoInvestimento = {
+export type FundoInvestimentoSemVinculos = {
   id: number;
   nome?: string;
   razao_social?: string;
@@ -18,10 +18,10 @@ export type FundoInvestimento = {
   id_status_fundo_investimento?: number;
   id_fundo_backoffice?: number;
   id_administrador_fundo?: number;
+  id_representante_fundo?: number;
   detalhes?: string;
   data_criacao?: Date;
   cpf_cnpj?: string;
-  id_representante_fundo?: number;
   tipo_estrutura?: string;
   faturamento_anual?: string;
   apto_debenture: boolean;
@@ -29,6 +29,9 @@ export type FundoInvestimento = {
   nota_investidor_suitability?: number;
   perfil_investidor_suitability?: string;
   data_expiracao_suitability?: Date;
+};
+
+export type FundoInvestimento = FundoInvestimentoSemVinculos & {
   carteira_investimento?: CarteiraInvestimento[];
   conta_investidor?: ContaInvestidor[];
   conta_repasse?: ContaRepasse;

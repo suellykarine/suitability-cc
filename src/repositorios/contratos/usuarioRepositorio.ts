@@ -1,24 +1,29 @@
-import { Prisma, status_usuario, tipo_usuario, usuario } from '@prisma/client';
-import { AtualizarUsuarioDto } from 'src/app/adm/dto/update-adm.dto';
 import { Repositorio } from './repositorio';
-import { UsuarioComStatusETipo } from 'src/@types/entities/usuarioComStatusETipo';
-import { Usuario } from 'src/app/usuarios/usuario.service';
+import {
+  Usuario,
+  UsuarioComSenha,
+  UsuarioSemVinculosComSenha,
+} from 'src/@types/entities/usuario';
 
 export abstract class UsuarioRepositorio extends Repositorio {
-  abstract encontrarTodos(): Promise<usuario[]>;
+  abstract encontrarTodos(): Promise<Usuario[]>;
   abstract encontrarPorId(id: number): Promise<Usuario | null>;
-  abstract encontrarPorEmail(email: string): Promise<usuario | null>;
+  abstract encontrarPorEmail(email: string): Promise<Usuario | null>;
   abstract criar(
-    data: Usuario,
-    prisma?: Prisma.TransactionClient,
-  ): Promise<usuario>;
-  abstract atualizar(id: number, data: AtualizarUsuarioDto): Promise<Usuario>;
+    data: Omit<UsuarioSemVinculosComSenha, 'id'>,
+  ): Promise<Usuario>;
+  abstract atualizar(
+    id: number,
+    data: Partial<Omit<UsuarioSemVinculosComSenha, 'id'>>,
+  ): Promise<Usuario>;
   abstract deletar(id: number): Promise<void>;
   abstract atualizarStatusETipo(
     id: number,
     idStatusUsuario: number | null,
     idTipoUsuario: number | null,
-  ): Promise<any>;
+  ): Promise<Usuario>;
+
+  abstract encontrarPorIdComSenha(id: number): Promise<UsuarioComSenha | null>;
 
   abstract encontrarTodosPorTipoUsuario(
     desvio: number,
@@ -27,4 +32,13 @@ export abstract class UsuarioRepositorio extends Repositorio {
   ): Promise<Usuario[] | null>;
 
   abstract contarUsuariosPorTipo(tipoUsuario: string): Promise<number>;
+
+  abstract adicionarTokenUsuario(
+    token: string,
+    idUsuario: number,
+  ): Promise<{ tokenRenovacao: string }>;
+
+  abstract buscarTokenRenovacao(id: number): Promise<string | null>;
+
+  abstract logout(idUsuario: number): Promise<void>;
 }

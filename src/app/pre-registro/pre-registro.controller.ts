@@ -11,10 +11,10 @@ import {
   Request,
 } from '@nestjs/common';
 import { PreRegistroService } from './pre-registro.service';
-import { JwtAuthGuardBackoffice } from '../auth/guards/backoffice-auth.guard';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { JwtAuthGuardPreRegistro } from '../auth/guards/pre-register-auth.guard';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
+import { JwtAuthGuardPreRegistro } from '../autenticacao/guards/pre-register-auth.guard';
 import {
   CriarUsuarioDto,
   CriarCodigoDeVerificacaoDto,

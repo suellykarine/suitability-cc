@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { sigmaHeaders } from '../auth/constants';
+import { sigmaHeaders } from '../autenticacao/constants';
 
 @Injectable()
 export class PainelService {

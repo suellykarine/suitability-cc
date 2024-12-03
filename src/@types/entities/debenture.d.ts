@@ -21,6 +21,7 @@ export type DebentureSerie = {
   data_emissao?: Date;
   data_vencimento?: Date;
   debenture?: Debenture;
+  debenture_serie_investidor?: DebentureSerieInvestidor[];
 };
 
 export type DebentureSerieInvestidor = {
@@ -65,7 +66,7 @@ export type atualizarDatasDebentureSerie = {
   data_vencimento: Date;
   id_debenture_serie: number;
 };
-export type StatusRetornoLaqus = 'Pendente' | 'Reprovado' | 'Aprovado';
+export type StatusRetornoLaqus = 'PENDENTE' | 'REPROVADO' | 'APROVADO' | 'ERRO';
 
 type AtualizarValorSerie = {
   idDebentureSerie: number;

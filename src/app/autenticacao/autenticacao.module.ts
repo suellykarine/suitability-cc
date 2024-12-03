@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AutenticacaoService } from './auth.service';
+import { AutenticacaoService } from './autenticacao.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsuariosModule } from '../usuarios/usuario.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtStrategyBackoffice } from './strategies/backoffice.strategy';
 import { JwtStrategyAdm } from './strategies/adm.strategy';
@@ -14,16 +13,12 @@ import { JwtStrategyCartaConvite } from './strategies/carta-convite.strategy';
 import { PrismaService } from 'prisma/prisma.service';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
+import { AutenticacaoController } from './autenticacao.controller';
+import { JwtStrategyDevelopment } from './strategies/development.strategy';
 
 @Module({
-  imports: [
-    UsuariosModule,
-    PassportModule,
-    JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1d' },
-    }),
-  ],
+  controllers: [AutenticacaoController],
+  imports: [UsuariosModule, PassportModule, JwtModule.register({})],
   providers: [
     AutenticacaoService,
     LocalStrategy,
@@ -33,6 +28,7 @@ import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioR
     JwtStrategyPremium,
     JwtStrategyPreRegister,
     JwtStrategyCartaConvite,
+    JwtStrategyDevelopment,
     PrismaService,
     {
       provide: UsuarioRepositorio,

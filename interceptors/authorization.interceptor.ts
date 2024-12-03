@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
-import { jwtConstants } from 'src/app/auth/constants';
+import { jwtConstants } from 'src/app/autenticacao/constants';
 
 @Injectable()
 export class AuthorizationInterceptor implements NestInterceptor {
