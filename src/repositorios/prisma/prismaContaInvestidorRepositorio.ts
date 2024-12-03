@@ -1,7 +1,10 @@
 import { PrismaService } from 'prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { ContaInvestidorRepositorio } from '../contratos/contaInvestidorRespositorio';
-import { ContaInvestidor } from 'src/@types/entities/contaInvestidor';
+import {
+  ContaInvestidor,
+  ContaInvestidorSemVinculos,
+} from 'src/@types/entities/contaInvestidor';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -18,21 +21,28 @@ export class PrismaContaInvestidorRepositorio
     this.prisma = new PrismaService();
   }
 
-  async atualizarContaInvestidorFundoInvestimento(
-    idFundoInvestimento: number,
-    idContaInvestidor: number,
-  ): Promise<ContaInvestidor | null> {
+  async atualizar(
+    id: number,
+    {
+      id_fundo_investidor,
+      ...contaInvestidor
+    }: Partial<Omit<ContaInvestidorSemVinculos, 'id'>>,
+  ): Promise<ContaInvestidorSemVinculos | null> {
     return await this.prisma.conta_investidor.update({
-      where: { id: idContaInvestidor },
-      data: { fundo_investimento: { connect: { id: idFundoInvestimento } } },
+      where: { id },
+      data: {
+        ...contaInvestidor,
+        ...(id_fundo_investidor && {
+          fundo_investimento: { connect: { id: id_fundo_investidor } },
+        }),
+      },
     });
   }
 
   async criarContaInvestidor(
-    dados: Omit<ContaInvestidor, 'id' | 'fundo_investimento'>,
-  ): Promise<ContaInvestidor> {
-    const { id_fundo_investidor, debenture_serie_investidor, ...restoDados } =
-      dados;
+    dados: Omit<ContaInvestidorSemVinculos, 'id'>,
+  ): Promise<ContaInvestidorSemVinculos> {
+    const { id_fundo_investidor, ...restoDados } = dados;
 
 
     const dadosCriacao: Prisma.conta_investidorCreateInput = {
@@ -54,6 +64,13 @@ export class PrismaContaInvestidorRepositorio
       where: {
         id_fundo_investidor: idenficadorFundo,
       },
+    });
+    return contaInvestidor;
+  }
+
+  async buscarContaPorId(id: number): Promise<ContaInvestidor | null> {
+    const contaInvestidor = await this.prisma.conta_investidor.findUnique({
+      where: { id },
     });
     return contaInvestidor;
   }

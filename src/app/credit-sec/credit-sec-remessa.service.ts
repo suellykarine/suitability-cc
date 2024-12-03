@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { sigmaHeaders } from 'src/app/auth/constants';
+import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
@@ -19,6 +19,31 @@ export class CreditSecRemessaService {
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
   ) {}
 
+  async gerarResultadoRemessa({
+    operacao,
+    data,
+  }: {
+    operacao: OperacoesCedente;
+    data: SolicitarRemessaType;
+  }) {
+    try {
+      const remessa = await this.solicitarRemessaCreditSec(data);
+      return {
+        success: true,
+        operacao: operacao,
+        data: remessa,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        operacao: operacao.codigoOperacao,
+        data: null,
+        error: error.message,
+      };
+    }
+  }
+
   async solicitarRemessa(data: BodyCriacaoRemessaDto) {
     try {
       const debenture_serie =
@@ -27,7 +52,7 @@ export class CreditSecRemessaService {
         );
 
       const debentureSerieInvestidor =
-        await this.debentureSerieInvestidorRepositorio.encontrarPorIdDebentureSerie(
+        await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdDebentureSerie(
           debenture_serie.id,
         );
       const fundoInvestimento =
@@ -38,7 +63,6 @@ export class CreditSecRemessaService {
       const operacoesCedente = await this.encontrarOperacoesCedente(
         fundoInvestimento.cpf_cnpj,
       );
-
       const criaRemessaParaCadaOperacao = await Promise.all(
         operacoesCedente.map(async (operacao) => {
           const body = this.montarBodySolicitarRemessa(
@@ -50,20 +74,10 @@ export class CreditSecRemessaService {
             },
             operacao.ativosInvest,
           );
-          try {
-            const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
-            return {
-              success: true,
-              operacao: operacao.codigoOperacao,
-              data: solicitarRemessa,
-            };
-          } catch (error) {
-            return {
-              success: false,
-              operacao: operacao.codigoOperacao,
-              error: error.message,
-            };
-          }
+          return this.gerarResultadoRemessa({
+            data: body,
+            operacao,
+          });
         }),
       );
       return criaRemessaParaCadaOperacao;
