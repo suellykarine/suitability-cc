@@ -14,7 +14,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
 import { AutenticacaoController } from './autenticacao.controller';
-import { LogService } from '../global/logs/log.service';
+import { JwtStrategyDevelopment } from './strategies/development.strategy';
 
 @Module({
   controllers: [AutenticacaoController],
@@ -28,8 +28,8 @@ import { LogService } from '../global/logs/log.service';
     JwtStrategyPremium,
     JwtStrategyPreRegister,
     JwtStrategyCartaConvite,
+    JwtStrategyDevelopment,
     PrismaService,
-    LogService,
     {
       provide: UsuarioRepositorio,
       useClass: PrismaUsuarioRepositorio,
