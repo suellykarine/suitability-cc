@@ -4,7 +4,6 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { UsuariosModule } from '../usuarios/usuario.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtStrategyBackoffice } from './strategies/backoffice.strategy';
 import { JwtStrategyAdm } from './strategies/adm.strategy';
@@ -15,6 +14,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
 import { AutenticacaoController } from './autenticacao.controller';
+import { LogService } from '../global/logs/log.service';
 
 @Module({
   controllers: [AutenticacaoController],
@@ -29,6 +29,7 @@ import { AutenticacaoController } from './autenticacao.controller';
     JwtStrategyPreRegister,
     JwtStrategyCartaConvite,
     PrismaService,
+    LogService,
     {
       provide: UsuarioRepositorio,
       useClass: PrismaUsuarioRepositorio,

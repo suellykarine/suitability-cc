@@ -22,10 +22,13 @@ import { CcbModule } from './app/ccb/ccb.module';
 import { AppController } from './app.controller';
 import { AdmModule } from './app/adm/adm.module';
 import { PdfModule } from './app/pdf/pdf.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppService } from './app.service';
 import { Module } from '@nestjs/common';
 import { LaqusModule } from './app/laqus/laqus.module';
+import { MongoModule } from './app/global/db/mongodb/mongo.module';
+import { TratamentoExcessoesFiltro } from './helpers/filtros/filtroExcessoes';
+import { LogModule } from './app/global/logs/log.module';
 
 @Module({
   imports: [
@@ -53,6 +56,8 @@ import { LaqusModule } from './app/laqus/laqus.module';
     CcbModule,
     PdfModule,
     AdmModule,
+    MongoModule,
+    LogModule,
   ],
   controllers: [AppController],
   providers: [
@@ -60,6 +65,10 @@ import { LaqusModule } from './app/laqus/laqus.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: AuthorizationInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: TratamentoExcessoesFiltro,
     },
   ],
 })
