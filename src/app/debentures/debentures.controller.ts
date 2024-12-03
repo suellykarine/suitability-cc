@@ -73,9 +73,9 @@ export class DebenturesController {
   }
 
   @UseGuards(JwtAuthGuardBackoffice)
-  @Post('serie')
+  @Post('serie/backoffice')
   async solicitarSerie(@Body() payload: CriarDebentureSerieDto) {
-    return this.debenturesSerieService.solicitarSerie(payload);
+    return this.debenturesSerieService.solicitarSerieBackOffice(payload);
   }
 
   @UseGuards(JwtAuthGuardBackoffice)

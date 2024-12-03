@@ -33,20 +33,3 @@ export class BodyRetornoCriacaoSerieDto {
   @IsOptional()
   motivo: string;
 }
-
-export class BodyCriacaoRemessaDto {
-  @ApiProperty({
-    description: 'Número debênture',
-    example: 1,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  numero_debenture: number;
-  @ApiProperty({
-    description: 'Número série',
-    example: 1,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  numero_serie: number;
-}

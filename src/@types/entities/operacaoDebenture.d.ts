@@ -1,6 +1,6 @@
 import { DebentureSerieInvestidor } from './debenture';
 
-export type OperacaoDebenture = {
+export type OperacaoDebentureSemVinculo = {
   id: number;
   id_debenture_serie_investidor: number;
   codigo_operacao: number;
@@ -8,5 +8,8 @@ export type OperacaoDebenture = {
   mensagem_retorno_creditsec?: string | null;
   data_inclusao: Date;
   data_exclusao?: Date | null;
+};
+
+export type OperacaoDebenture = OperacaoDebentureSemVinculo & {
   debenture_serie_investidor?: DebentureSerieInvestidor;
 };

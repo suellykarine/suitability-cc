@@ -37,4 +37,9 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
   abstract atualizaDatasDebentureSerie(
     data: atualizarDatasDebentureSerie,
   ): Promise<DebentureSerie>;
+
+  abstract buscarPorNumeroSerie(
+    idDebenture: number,
+    numeroSerie: number,
+  ): Promise<DebentureSerie | null>;
 }
