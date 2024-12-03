@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Param, Get, Post } from '@nestjs/common';
+import { Controller, Post, UseGuards, Param, Get } from '@nestjs/common';
 import { JwtAuthGuardBackoffice } from 'src/app/autenticacao/guards/backoffice-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
