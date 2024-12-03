@@ -44,7 +44,6 @@ export class PrismaContaInvestidorRepositorio
   ): Promise<ContaInvestidorSemVinculos> {
     const { id_fundo_investidor, ...restoDados } = dados;
 
-
     const dadosCriacao: Prisma.conta_investidorCreateInput = {
       ...restoDados,
       ...(id_fundo_investidor && {
