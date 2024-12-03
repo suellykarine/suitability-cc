@@ -2,7 +2,6 @@ import {
   HttpException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import {
   RespostaCriarContaSrmBank,
@@ -21,15 +20,11 @@ export class SrmBankService {
   ) {}
 
   async criarContaInvestidor(idFundoInvestidor: number) {
-    const identificador = this.configService.get('IDENTIFICADOR_CEDENTE');
+    const identificador = this.configService.get(
+      'IDENTIFICADOR_CREDITSEC',
+    ) as string;
     try {
-      function esperar(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-      }
       const criarConta = await this.CriarContaSRMBank(identificador);
-      console.log('criarConta');
-      console.log(criarConta);
-      await esperar(2000); //TO-REFACTOR: solicitar para o SRMBank resolver essa assincronia da criação de conta.
       const buscarConta = await this.buscarContaSrmBank(
         identificador,
         criarConta.conta.slice(0, 9),
@@ -37,7 +32,7 @@ export class SrmBankService {
 
       const objRegistrarContaCC: RegistrarContaNoCC = {
         id_fundo_investidor: idFundoInvestidor,
-        identificador_favorecido: String(identificador),
+        identificador_favorecido: identificador,
         agencia: criarConta.agencia,
         agencia_digito: '0',
         codigo_banco: '533',
@@ -113,7 +108,7 @@ export class SrmBankService {
     );
 
     if (!findConta) {
-      throw new NotFoundException('Conta não encontrada');
+      return await this.buscarContaSrmBank(identificador, numeroConta);
     }
     return findConta;
   }
