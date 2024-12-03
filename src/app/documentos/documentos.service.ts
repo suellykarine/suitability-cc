@@ -348,7 +348,7 @@ export class DocumentosService {
 
     dadosDocumento[campoChave] = id;
 
-    return this.prisma.documento.create({ data: dadosDocumento });
+    return this.documentoRepositorio.criar(dadosDocumento);
   }
 
   private bufferToBase64(buffer: Buffer): string {

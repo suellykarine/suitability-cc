@@ -34,6 +34,7 @@ export class PrismaContaInvestidorRepositorio
     const { id_fundo_investidor, debenture_serie_investidor, ...restoDados } =
       dados;
 
+
     const dadosCriacao: Prisma.conta_investidorCreateInput = {
       ...restoDados,
       ...(id_fundo_investidor && {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { DocumentoRepositorio } from '../contratos/documentoRepositorio';
-import { Documento } from 'src/@types/entities/documento';
+import { Documento, DocumentoSemVinculo } from 'src/@types/entities/documento';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -22,22 +22,77 @@ export class PrismaDocumentoRepositorio implements DocumentoRepositorio {
     });
   }
 
+  async criar({
+    id_fundo_investimento,
+    id_gestor_fundo,
+    id_status_documento,
+    id_usuario,
+    ...dados
+  }: Omit<DocumentoSemVinculo, 'id'>): Promise<Documento> {
+    return this.prisma.documento.create({
+      data: {
+        ...dados,
+
+        ...(id_fundo_investimento && {
+          fundo_investimento: {
+            connect: { id: id_fundo_investimento },
+          },
+        }),
+        ...(id_gestor_fundo && {
+          gestor_fundo: {
+            connect: { id: id_gestor_fundo },
+          },
+        }),
+        ...(id_status_documento && {
+          status_documento: {
+            connect: { id: id_status_documento },
+          },
+        }),
+        ...(id_usuario && {
+          usuario: {
+            connect: { id: id_usuario },
+          },
+        }),
+      },
+    });
+  }
+
   async atualizarDocumento(
     idDocumento: number,
-    dadosDocumento: Partial<
-      Omit<
-        Documento,
-        | 'fundo_investimento'
-        | 'gestor_fundo'
-        | 'status_documento'
-        | 'usuario'
-        | 'feedback_backoffice'
-      >
-    >,
+    {
+      id_fundo_investimento,
+      id_gestor_fundo,
+      id_status_documento,
+      id_usuario,
+      ...dados
+    }: Partial<Omit<DocumentoSemVinculo, 'id'>>,
   ): Promise<Documento | null> {
     return this.prisma.documento.update({
       where: { id: idDocumento },
-      data: { ...dadosDocumento },
+      data: {
+        ...dados,
+
+        ...(id_fundo_investimento && {
+          fundo_investimento: {
+            connect: { id: id_fundo_investimento },
+          },
+        }),
+        ...(id_gestor_fundo && {
+          gestor_fundo: {
+            connect: { id: id_gestor_fundo },
+          },
+        }),
+        ...(id_status_documento && {
+          status_documento: {
+            connect: { id: id_status_documento },
+          },
+        }),
+        ...(id_usuario && {
+          usuario: {
+            connect: { id: id_usuario },
+          },
+        }),
+      },
     });
   }
 }
