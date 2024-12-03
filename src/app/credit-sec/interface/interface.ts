@@ -42,9 +42,14 @@ type Parcelas = {
   valor_face: number;
   valor_operado: number;
 };
+type TaxaCessao = {
+  tipo: string;
+  valor: number;
+  indice?: string;
+};
 type Titulos = {
   numero: string;
-  taxa_cessao: number;
+  taxa_cessao: TaxaCessao;
   tipo: string;
   sacado: Pick<Debenturista, 'cnpj' | 'razao_social' | 'nome_fantasia'>;
   data_emissao: string;
@@ -55,7 +60,7 @@ type Titulos = {
 };
 
 export type SolicitarRemessaType = {
-  numero_remessa: string;
+  numero_remessa: number;
   numero_emissao: number;
   numero_serie: number;
   callback_url: string;
@@ -84,3 +89,10 @@ export type NumerosSolicitarRemessa = Pick<
   SolicitarRemessaType,
   'numero_serie' | 'numero_emissao' | 'numero_remessa'
 > & { data_operacao: string };
+
+export type BodyCriarRegistroOperacao = {
+  cedenteIdentificador: string;
+  codigoControleParceiroValor: string;
+  investidorIdentificador: string;
+  produtoSigla: string;
+};
