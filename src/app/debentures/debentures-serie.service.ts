@@ -589,7 +589,7 @@ export class DebentureSerieService {
     return seriesValidas.filter((serie) => serie !== null);
   }
 
-  async extornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+  async estornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
     return this.atualizarValorSerie(
       numeroSerie,
       (valorAtual) => valorAtual - valorEntrada,

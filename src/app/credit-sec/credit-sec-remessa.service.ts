@@ -23,6 +23,7 @@ import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operaca
 import { SigmaService } from '../sigma/sigma.service';
 import { statusRetornoCreditSecDicionario } from './const';
 import { OperacaoDebentureSemVinculo } from 'src/@types/entities/operacaoDebenture';
+import { DebentureSerieService } from '../debentures/debentures-serie.service';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -32,6 +33,7 @@ export class CreditSecRemessaService {
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
     private readonly sigma: SigmaService,
+    private readonly debentureSerieService: DebentureSerieService,
   ) {}
   @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoRemessa() {
@@ -93,7 +95,15 @@ export class CreditSecRemessaService {
 
       const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
 
-      //TO-DO: CHAMAR SERVIÇO DE BAIXA DE VALOR INVESTIDO. QUE SERÁ CRIADO PELO LORENZO
+      /*Em conversa com o Éder foi identificado que o serviço abaixo (RN24) foi construido de forma
+        errada, ele não pode solicitar o valor a ser realizado a baixa, esse valor tem que ser identificado
+        de alguma forma dentro do próprio serviço. Ficou decidido que no momento em que estiver fazendo
+        a amarração dos serviços isso será corrigido pelo Thalys*/
+
+      await this.debentureSerieService.registroBaixaValorSerie(
+        debenture_serie.id,
+        operacaoCedente.valorLiquido,
+      );
 
       const dataCriarOperacaoDebentureCreditConnect: Omit<
         OperacaoDebentureSemVinculo,
@@ -155,7 +165,22 @@ export class CreditSecRemessaService {
       }
 
       if (statusRetorno === 'REPROVADO') {
-        //CHAMAR OUTRO SERVIÇO QUE O LORENZO FEZ, NA RN25, SOBRE O ESTORNO AO CEDENTE
+        const debentureSerieInvestidor =
+          await this.debentureSerieInvestidorRepositorio.encontrarPorId(
+            operacaoPendente.id_debenture_serie_investidor,
+          );
+        const debentureSerie = debentureSerieInvestidor.debenture_serie;
+        const debenture = debentureSerieInvestidor.debenture_serie.debenture;
+
+        /*Em conversa com o Éder foi identificado que o serviço abaixo (RN25) foi construido de forma
+        errada, ele não pode solicitar o valor a ser estornado, esse valor tem que ser identificado
+        de alguma forma dentro do próprio serviço. Ficou decidido que no momento em que estiver fazendo
+        a amarração dos serviços isso será corrigido pelo Thalys*/
+
+        await this.debentureSerieService.estornoBaixaValorSerie(
+          debentureSerie.id,
+          1,
+        );
 
         const bodyAtualizarOperacao = {
           status_retorno_creditsec: statusRetorno,
