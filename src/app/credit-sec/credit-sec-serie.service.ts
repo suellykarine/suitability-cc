@@ -11,10 +11,8 @@ import { Usuario } from 'src/@types/entities/usuario';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
-import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoGestorFundoRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
-import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+
 import { BodyRetornoCriacaoSerieDto } from './dto/serie-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
@@ -35,9 +33,6 @@ export class CreditSecSerieService {
   private baseUrlCadastroSigma: string;
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
-    private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
-    private readonly usuarioFundoInvestimentoRepositorio: UsuarioFundoInvestimentoRepositorio,
-    private readonly usuarioRepositorio: UsuarioRepositorio,
     private readonly logService: LogService,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
