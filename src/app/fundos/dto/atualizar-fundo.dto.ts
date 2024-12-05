@@ -366,5 +366,5 @@ export class AtualizarFundoDto {
   })
   @IsNumberString()
   @IsOptional()
-  valor_serie_debenture?: string;
+  valor_serie_debenture?: number;
 }

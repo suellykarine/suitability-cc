@@ -64,6 +64,14 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
       },
     });
 
+    if (
+      status !== HttpStatus.INTERNAL_SERVER_ERROR &&
+      exception instanceof HttpException
+    ) {
+      const corpoResposta = exception.getResponse();
+      return response.status(status).json(corpoResposta);
+    }
+
     return response.status(status).json({
       error: {
         message: `Erro interno do servidor: ${message}`,

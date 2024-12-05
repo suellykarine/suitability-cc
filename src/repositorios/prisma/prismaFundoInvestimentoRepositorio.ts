@@ -8,6 +8,8 @@ import {
 } from 'src/@types/entities/fundos';
 import { Prisma } from '@prisma/client';
 import { AtualizarFundoInvestimentoAptoDebenture } from 'src/@types/entities/debenture';
+import { Fundo } from 'src/@types/entities/banco';
+import { formatarCNPJ } from 'src/utils/formatar';
 
 @Injectable()
 export class PrismaFundoInvestimentoRepositorio
@@ -21,6 +23,27 @@ export class PrismaFundoInvestimentoRepositorio
   removerContextoDaTransacao(): void {
     this.prisma = new PrismaService();
   }
+
+  async criar(
+    data: Omit<FundoInvestimentoSemVinculos, 'id'>,
+  ): Promise<FundoInvestimento | null> {
+    const fundo = await this.prisma.fundo_investimento.create({
+      data,
+      include: {
+        fundo_backoffice: true,
+        administrador_fundo: {
+          include: {
+            administrador_fundo_representante_fundo: {
+              include: { representante_fundo: true, administrador_fundo: true },
+            },
+          },
+        },
+        status_fundo_investimento: true,
+      },
+    });
+    return converterCamposDecimais(fundo);
+  }
+
   async encontrarPorId(id: number): Promise<FundoInvestimento | null> {
     const fundoDados = await this.prisma.fundo_investimento.findUnique({
       where: { id },
@@ -42,6 +65,24 @@ export class PrismaFundoInvestimentoRepositorio
       },
     });
     return converterCamposDecimais(fundoDados);
+  }
+
+  async encontrarPorIdETipoEstrutura(
+    id: number,
+    tipoEstrutura: string,
+  ): Promise<FundoInvestimento | null> {
+    const fundo = await this.prisma.fundo_investimento.findUnique({
+      where: { id, tipo_estrutura: tipoEstrutura },
+      include: {
+        procurador_fundo_fundo_investimento: true,
+      },
+    });
+    return converterCamposDecimais(fundo);
+  }
+
+  async bucarFundos(): Promise<FundoInvestimento[] | null> {
+    const fundos = await this.prisma.fundo_investimento.findMany();
+    return converterCamposDecimais(fundos);
   }
 
   async atualizar(
@@ -72,6 +113,12 @@ export class PrismaFundoInvestimentoRepositorio
             connect: { id: id_status_fundo_investimento },
           },
         }),
+      },
+      include: {
+        fundo_backoffice: true,
+        status_fundo_investimento: true,
+        conta_repasse: true,
+        administrador_fundo: true,
       },
     });
     return converterCamposDecimais(fundo);
@@ -135,5 +182,46 @@ export class PrismaFundoInvestimentoRepositorio
     }
 
     return true;
+  }
+
+  async buscarPorBackoffice(
+    idBackoffice: number,
+  ): Promise<FundoInvestimento[]> {
+    const fundo = await this.prisma.fundo_investimento.findMany({
+      where: { id_fundo_backoffice: idBackoffice },
+    });
+    return converterCamposDecimais(fundo);
+  }
+
+  async buscarPorAdministrador(
+    idAdministrador: number,
+  ): Promise<FundoInvestimento[]> {
+    const fundo = await this.prisma.fundo_investimento.findMany({
+      where: { id_administrador_fundo: idAdministrador },
+    });
+    return converterCamposDecimais(fundo);
+  }
+
+  async buscarPorRepresentante(
+    idRepresentante: number,
+  ): Promise<FundoInvestimento[]> {
+    const fundos = await this.prisma.fundo_investimento.findMany({
+      where: { id_representante_fundo: idRepresentante },
+    });
+    return converterCamposDecimais(fundos);
+  }
+
+  async remover(id: number) {
+    await this.prisma.fundo_investimento.delete({ where: { id } });
+  }
+
+  async encontrarPorIdEPerfil(
+    id: number,
+    perfilInvestimento: string,
+  ): Promise<FundoInvestimento | null> {
+    const fundo = await this.prisma.fundo_investimento.findUnique({
+      where: { id, tipo_estrutura: perfilInvestimento },
+    });
+    return converterCamposDecimais(fundo);
   }
 }
