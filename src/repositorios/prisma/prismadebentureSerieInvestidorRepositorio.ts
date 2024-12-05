@@ -345,7 +345,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
         id_fundo_investimento: idFundoInvestimento,
         data_encerramento: null,
         data_desvinculo: null,
-        status_retorno_laqus: 'Aprovado',
+        status_retorno_laqus: 'APROVADO',
         status_retorno_creditsec: 'SUCCESS',
       },
       select: {
