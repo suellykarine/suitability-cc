@@ -70,10 +70,10 @@ import { LogModule } from './app/global/logs/log.module';
       provide: APP_INTERCEPTOR,
       useClass: AuthorizationInterceptor,
     },
-    // {
-    //   provide: APP_FILTER,
-    //   useClass: TratamentoExcessoesFiltro,
-    // },
+    {
+      provide: APP_FILTER,
+      useClass: TratamentoExcessoesFiltro,
+    },
   ],
 })
 export class AppModule {}
