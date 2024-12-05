@@ -180,7 +180,8 @@ export class CreditSecSerieService {
   async registrarRetornoCreditSec(data: BodyRetornoCriacaoSerieDto) {
     try {
       const debentureSerie =
-        await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
+        await this.debentureSerieRepositorio.encontrarSeriePorNumeroEmissaoNumeroSerie(
+          +data.numero_emissao,
           +data.numero_serie,
         );
       const ultimoVinculoDSI =
