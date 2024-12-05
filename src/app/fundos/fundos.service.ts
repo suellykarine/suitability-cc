@@ -558,45 +558,6 @@ export class FundosService {
     throw new InternalServerErrorException();
   }
 
-  transformarParaFundoSemVinculos(
-    data: AtualizarFundoDto,
-  ): Partial<FundoInvestimentoSemVinculos> {
-    const fundoSemVinculos: Partial<FundoInvestimentoSemVinculos> = {};
-
-    const camposValidos: (keyof FundoInvestimentoSemVinculos)[] = [
-      'id',
-      'nome',
-      'razao_social',
-      'nome_fantasia',
-      'codigo_anbima',
-      'classe_anbima',
-      'atividade_principal',
-      'id_status_fundo_investimento',
-      'id_fundo_backoffice',
-      'id_administrador_fundo',
-      'id_representante_fundo',
-      'detalhes',
-      'data_criacao',
-      'cpf_cnpj',
-      'tipo_estrutura',
-      'faturamento_anual',
-      'apto_debenture',
-      'valor_serie_debenture',
-      'nota_investidor_suitability',
-      'perfil_investidor_suitability',
-      'data_expiracao_suitability',
-    ];
-
-    for (const campo of camposValidos) {
-      if (campo in data) {
-        fundoSemVinculos[campo as string] =
-          data[campo as keyof AtualizarFundoDto];
-      }
-    }
-
-    return fundoSemVinculos;
-  }
-
   private async atualizarProcurador(
     fundoCnpj: string,
     procuradorCpf: string,
@@ -1415,5 +1376,44 @@ export class FundosService {
       mensagem: 'fundo de investimento está apto ao investimento por debenture',
       data: estaApto,
     };
+  }
+
+  private transformarParaFundoSemVinculos(
+    data: AtualizarFundoDto,
+  ): Partial<FundoInvestimentoSemVinculos> {
+    const fundoSemVinculos: Partial<FundoInvestimentoSemVinculos> = {};
+
+    const camposValidos: (keyof FundoInvestimentoSemVinculos)[] = [
+      'id',
+      'nome',
+      'razao_social',
+      'nome_fantasia',
+      'codigo_anbima',
+      'classe_anbima',
+      'atividade_principal',
+      'id_status_fundo_investimento',
+      'id_fundo_backoffice',
+      'id_administrador_fundo',
+      'id_representante_fundo',
+      'detalhes',
+      'data_criacao',
+      'cpf_cnpj',
+      'tipo_estrutura',
+      'faturamento_anual',
+      'apto_debenture',
+      'valor_serie_debenture',
+      'nota_investidor_suitability',
+      'perfil_investidor_suitability',
+      'data_expiracao_suitability',
+    ];
+
+    for (const campo of camposValidos) {
+      if (campo in data) {
+        fundoSemVinculos[campo as string] =
+          data[campo as keyof AtualizarFundoDto];
+      }
+    }
+
+    return fundoSemVinculos;
   }
 }
