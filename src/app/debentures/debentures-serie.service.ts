@@ -158,9 +158,6 @@ export class DebentureSerieService {
     }
     const fundoNovoLaqus = !status_retorno_laqus;
 
-    console.log('debentureSerieDesvinculada');
-    console.log(debentureSerieDesvinculada);
-
     if (!!debentureSerieDesvinculada) {
       const valorSerieDesvinculada = Number(
         debentureSerieInvestidorDesvinculado?.debenture_serie?.valor_serie,
