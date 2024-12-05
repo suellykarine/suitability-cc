@@ -101,13 +101,6 @@ export class CreditSecSerieService {
   }
 
   async solicitarSerie(debentureSerieInvestidorId: number) {
-    // TO-DO: Remover esse atualizar e o return após correção pela creditSec
-    await this.debentureSerieInvestidorRepositorio.atualizar({
-      id: debentureSerieInvestidorId,
-      status_retorno_creditsec: 'PENDENTE',
-      mensagem_retorno_creditsec: null,
-    });
-    return;
     try {
       const debentureSerieInvestidor =
         await this.debentureSerieInvestidorRepositorio.encontrarPorId(
@@ -180,7 +173,8 @@ export class CreditSecSerieService {
   async registrarRetornoCreditSec(data: BodyRetornoCriacaoSerieDto) {
     try {
       const debentureSerie =
-        await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
+        await this.debentureSerieRepositorio.encontrarSeriePorNumeroEmissaoNumeroSerie(
+          +data.numero_emissao,
           +data.numero_serie,
         );
       const ultimoVinculoDSI =
