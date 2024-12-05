@@ -63,7 +63,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract todosStatusCreditSecNull(): Promise<
     DebentureSerieInvestidor[] | null
   >;
-  abstract buscarTodasDebentureSerieValidas(
+  abstract buscarTodasSeriesAptasParaInvestir(
     idFundoInvestimento: number,
   ): Promise<number[]>;
 }

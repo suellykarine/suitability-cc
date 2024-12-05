@@ -337,7 +337,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
 
     return debentureSerieInvestidor;
   }
-  async buscarTodasDebentureSerieValidas(
+  async buscarTodasSeriesAptasParaInvestir(
     idFundoInvestimento: number,
   ): Promise<number[]> {
     const debentures = await this.prisma.debenture_serie_investidor.findMany({
@@ -346,7 +346,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
         data_encerramento: null,
         data_desvinculo: null,
         status_retorno_laqus: 'APROVADO',
-        status_retorno_creditsec: 'SUCCESS',
+        status_retorno_creditsec: 'APROVADO',
       },
       select: {
         id_debenture_serie: true,

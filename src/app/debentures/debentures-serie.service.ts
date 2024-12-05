@@ -537,7 +537,7 @@ export class DebentureSerieService {
       }
 
       const seriesValidasDoInvestidor =
-        await this.debentureSerieInvestidorRepositorio.buscarTodasDebentureSerieValidas(
+        await this.debentureSerieInvestidorRepositorio.buscarTodasSeriesAptasParaInvestir(
           idInvestidor,
         );
 
