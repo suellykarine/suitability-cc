@@ -8,10 +8,6 @@ import {
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
 import { ConfigService } from '@nestjs/config';
 import {
-  definirContextosDeTransacao,
-  removerContextosDeTransacao,
-} from 'src/utils/funcoes/repositorios';
-import {
   BadRequestException,
   NotFoundException,
   HttpException,
@@ -71,50 +67,30 @@ export class LaqusService {
         'Não foi encontrado nenhuma debenture serie investidor para esse investidor',
       );
     const debentureSerieInvestidorAtualizado =
-      await this.adaptadorDb.fazerTransacao(async (contexto) => {
-        try {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.debentureSerieInvestidorRepositorio,
-              this.fundoInvestimentoRepositorio,
-            ],
-            contexto,
-          });
-          if (status === 'Reprovado') {
-            await this.desabilitarDebentureDoFundoDeInvestimento(
-              fundoInvestimento.id,
-            );
-          }
-
-          const debentureSerieInvestidorAtualizado =
-            await this.debentureSerieInvestidorRepositorio.atualizar({
-              id: ultimoVinculoDSI.id,
-              mensagem_retorno_laqus: justificativa,
-              status_retorno_laqus: status.toUpperCase() as StatusRetornoLaqus,
-              data_desvinculo: status === 'Reprovado' ? new Date() : null,
-            });
-          if (!debentureSerieInvestidorAtualizado)
-            throw new BadRequestException(
-              'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
-            );
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.debentureSerieInvestidorRepositorio,
-            ],
-          });
-
-          return debentureSerieInvestidorAtualizado;
-        } catch (error) {
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.debentureSerieInvestidorRepositorio,
-            ],
-          });
-          throw error;
+      await this.adaptadorDb.fazerTransacao(async () => {
+        if (status === 'Reprovado') {
+          await this.desabilitarDebentureDoFundoDeInvestimento(
+            fundoInvestimento.id,
+          );
         }
-      });
+
+        const debentureSerieInvestidorAtualizado =
+          await this.debentureSerieInvestidorRepositorio.atualizar({
+            id: ultimoVinculoDSI.id,
+            mensagem_retorno_laqus: justificativa,
+            status_retorno_laqus: status.toUpperCase() as StatusRetornoLaqus,
+            data_desvinculo: status === 'Reprovado' ? new Date() : null,
+          });
+        if (!debentureSerieInvestidorAtualizado)
+          throw new BadRequestException(
+            'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
+          );
+
+        return debentureSerieInvestidorAtualizado;
+      }, [
+        this.fundoInvestimentoRepositorio,
+        this.debentureSerieInvestidorRepositorio,
+      ]);
 
     if (status === 'Aprovado') {
       await this.creditSecSerieService.solicitarSerie(

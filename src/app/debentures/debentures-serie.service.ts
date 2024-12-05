@@ -13,10 +13,6 @@ import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInve
 import { LaqusService } from '../laqus/laqus.service';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
-import {
-  definirContextosDeTransacao,
-  removerContextosDeTransacao,
-} from 'src/utils/funcoes/repositorios';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 import {
   calcularDataDeCorte,
@@ -162,6 +158,9 @@ export class DebentureSerieService {
     }
     const fundoNovoLaqus = !status_retorno_laqus;
 
+    console.log('debentureSerieDesvinculada');
+    console.log(debentureSerieDesvinculada);
+
     if (!!debentureSerieDesvinculada) {
       const valorSerieDesvinculada = Number(
         debentureSerieInvestidorDesvinculado?.debenture_serie?.valor_serie,
@@ -170,49 +169,34 @@ export class DebentureSerieService {
         valorEntrada === valorSerieDesvinculada;
 
       const debentureSerieInvestidorCriada =
-        await this.adaptadorDb.fazerTransacao(
-          async (contexto) => {
-            definirContextosDeTransacao({
-              repositorios: [
-                this.debentureSerieRepositorio,
-                this.debentureSerieInvestidorRepositorio,
-                this.contaInvestidorRepositorio,
-              ],
-              contexto,
+        await this.adaptadorDb.fazerTransacao(async () => {
+          if (!serieEncontradaIgualValorAtual) {
+            this.atualizarValorDaSerie({
+              idDebentureSerie:
+                debentureSerieInvestidorDesvinculado.id_debenture_serie,
+              valorSerie: valorEntrada,
             });
+          }
 
-            if (!serieEncontradaIgualValorAtual) {
-              this.atualizarValorDaSerie({
+          const debentureSerieInvestidorCriada =
+            await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
+              {
                 idDebentureSerie:
                   debentureSerieInvestidorDesvinculado.id_debenture_serie,
-                valorSerie: valorEntrada,
-              });
-            }
+                idContaInvestidor:
+                  debentureSerieInvestidorDesvinculado.id_conta_investidor,
+                idFundoInvestimento: identificadorFundo,
+                idLaqus: codigo_investidor_laqus,
+                statusLaqus: status_retorno_laqus,
+              },
+            );
 
-            const debentureSerieInvestidorCriada =
-              await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
-                {
-                  idDebentureSerie:
-                    debentureSerieInvestidorDesvinculado.id_debenture_serie,
-                  idContaInvestidor:
-                    debentureSerieInvestidorDesvinculado.id_conta_investidor,
-                  idFundoInvestimento: identificadorFundo,
-                  idLaqus: codigo_investidor_laqus,
-                  statusLaqus: status_retorno_laqus,
-                },
-              );
-
-            removerContextosDeTransacao({
-              repositorios: [
-                this.debentureSerieRepositorio,
-                this.debentureSerieInvestidorRepositorio,
-                this.contaInvestidorRepositorio,
-              ],
-            });
-            return debentureSerieInvestidorCriada;
-          },
-          { timeout: 10000 },
-        );
+          return debentureSerieInvestidorCriada;
+        }, [
+          this.debentureSerieRepositorio,
+          this.debentureSerieInvestidorRepositorio,
+          this.contaInvestidorRepositorio,
+        ]);
 
       if (fundoNovoLaqus) {
         try {
@@ -247,68 +231,46 @@ export class DebentureSerieService {
       await this.debentureSerieInvestidorRepositorio.encontrarPorEncerramento();
 
     const debentureSerieInvestidorCriada =
-      await this.adaptadorDb.fazerTransacao(
-        async (contexto) => {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.debentureSerieRepositorio,
-              this.debentureSerieInvestidorRepositorio,
-              this.contaInvestidorRepositorio,
-            ],
-            contexto,
-          });
-
-          const novaSerie = await this.criarNovaSerie({
-            idDebenture: idDebenture,
-            valorSerie: valorEntrada,
-          });
-          if (debentureSerieInvestidorEncerrado) {
-            const idContaInvestidor =
-              debentureSerieInvestidorEncerrado.id_conta_investidor;
-            const debentureSerieInvestidorCriada =
-              await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
-                {
-                  idDebentureSerie: novaSerie.id,
-                  idContaInvestidor,
-                  idFundoInvestimento: identificadorFundo,
-                  idLaqus: codigo_investidor_laqus,
-                  statusLaqus: status_retorno_laqus,
-                },
-              );
-
-            removerContextosDeTransacao({
-              repositorios: [
-                this.debentureSerieRepositorio,
-                this.debentureSerieInvestidorRepositorio,
-                this.contaInvestidorRepositorio,
-              ],
-            });
-            return debentureSerieInvestidorCriada;
-          }
-
-          const novaContaInvestidor =
-            await this.srmBankService.criarContaInvestidor(identificadorFundo);
-
+      await this.adaptadorDb.fazerTransacao(async () => {
+        const novaSerie = await this.criarNovaSerie({
+          idDebenture: idDebenture,
+          valorSerie: valorEntrada,
+        });
+        if (debentureSerieInvestidorEncerrado) {
+          const idContaInvestidor =
+            debentureSerieInvestidorEncerrado.id_conta_investidor;
           const debentureSerieInvestidorCriada =
-            await this.criarDebentureSerieInvestidor({
-              idContaInvestidor: novaContaInvestidor.conta_investidor?.id,
-              idDebentureSerie: novaSerie.id,
-              idFundoInvestimento: fundo.id,
-              idLaqus: codigo_investidor_laqus,
-              statusLaqus: status_retorno_laqus,
-            });
+            await this.reutilizarTabelaContaInvestidorECriarDebentureSerieInvestidor(
+              {
+                idDebentureSerie: novaSerie.id,
+                idContaInvestidor,
+                idFundoInvestimento: identificadorFundo,
+                idLaqus: codigo_investidor_laqus,
+                statusLaqus: status_retorno_laqus,
+              },
+            );
 
-          removerContextosDeTransacao({
-            repositorios: [
-              this.debentureSerieRepositorio,
-              this.debentureSerieInvestidorRepositorio,
-              this.contaInvestidorRepositorio,
-            ],
-          });
           return debentureSerieInvestidorCriada;
-        },
-        { timeout: 10000 },
-      );
+        }
+
+        const novaContaInvestidor =
+          await this.srmBankService.criarContaInvestidor(identificadorFundo);
+
+        const debentureSerieInvestidorCriada =
+          await this.criarDebentureSerieInvestidor({
+            idContaInvestidor: novaContaInvestidor.conta_investidor?.id,
+            idDebentureSerie: novaSerie.id,
+            idFundoInvestimento: fundo.id,
+            idLaqus: codigo_investidor_laqus,
+            statusLaqus: status_retorno_laqus,
+          });
+
+        return debentureSerieInvestidorCriada;
+      }, [
+        this.debentureSerieRepositorio,
+        this.debentureSerieInvestidorRepositorio,
+        this.contaInvestidorRepositorio,
+      ]);
 
     if (fundoNovoLaqus) {
       try {
@@ -561,16 +523,7 @@ export class DebentureSerieService {
     mensagem: string;
     data: DebentureSerie;
   } | null> {
-    return this.adaptadorDb.fazerTransacao(async (contexto) => {
-      definirContextosDeTransacao({
-        repositorios: [
-          this.debentureSerieRepositorio,
-          this.debentureSerieInvestidorRepositorio,
-          this.contaInvestidorRepositorio,
-          this.fundoInvestimentoRepositorio,
-        ],
-        contexto,
-      });
+    return this.adaptadorDb.fazerTransacao(async () => {
       const estaApto =
         await this.fundoInvestimentoRepositorio.buscarEstaAptoADebentureRepositorio(
           idInvestidor,
@@ -632,13 +585,6 @@ export class DebentureSerieService {
           series: seriesComSaldoSuficiente,
           valorEntrada,
         });
-        removerContextosDeTransacao({
-          repositorios: [
-            this.debentureSerieRepositorio,
-            this.debentureSerieInvestidorRepositorio,
-            this.contaInvestidorRepositorio,
-          ],
-        });
         return {
           mensagem: 'Debenture com saldo encontrada',
           data: serieMaisApropriada,
@@ -683,18 +629,15 @@ export class DebentureSerieService {
           },
         });
       }
-      removerContextosDeTransacao({
-        repositorios: [
-          this.debentureSerieRepositorio,
-          this.debentureSerieInvestidorRepositorio,
-          this.contaInvestidorRepositorio,
-        ],
-      });
       return {
         mensagem: 'Debenture com saldo encontrada',
         data: novaSerie,
       };
-    });
+    }, [
+      this.debentureSerieRepositorio,
+      this.debentureSerieInvestidorRepositorio,
+      this.contaInvestidorRepositorio,
+    ]);
   }
 
   private async filtrarSeriesValidas({
