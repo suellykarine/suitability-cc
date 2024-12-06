@@ -95,4 +95,10 @@ export class PrismaDocumentoRepositorio implements DocumentoRepositorio {
       },
     });
   }
+
+  async removerPorFundo(idFundo: number): Promise<void> {
+    await this.prisma.documento.deleteMany({
+      where: { id_fundo_investimento: idFundo },
+    });
+  }
 }

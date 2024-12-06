@@ -8,15 +8,10 @@ import {
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
 import { ConfigService } from '@nestjs/config';
 import {
-  definirContextosDeTransacao,
-  removerContextosDeTransacao,
-} from 'src/utils/funcoes/repositorios';
-import {
   BadRequestException,
   NotFoundException,
   HttpException,
   Injectable,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { CadastrarLaqusPayload } from './types';
 import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
@@ -26,6 +21,11 @@ import {
   TipoDeEmpresa,
   TipoPessoa,
 } from './dto/criarInvestidorLaqus.dto';
+import {
+  ErroNaoEncontrado,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
+import { LogService } from '../global/logs/log.service';
 
 @Injectable()
 export class LaqusService {
@@ -36,6 +36,7 @@ export class LaqusService {
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly configService: ConfigService,
     private readonly creditSecSerieService: CreditSecSerieService,
+    private readonly logService: LogService,
     private readonly adaptadorDb: AdaptadorDb,
     private readonly cadastroCedenteService: CadastroCedenteService,
   ) {
@@ -66,50 +67,30 @@ export class LaqusService {
         'Não foi encontrado nenhuma debenture serie investidor para esse investidor',
       );
     const debentureSerieInvestidorAtualizado =
-      await this.adaptadorDb.fazerTransacao(async (contexto) => {
-        try {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.debentureSerieInvestidorRepositorio,
-              this.fundoInvestimentoRepositorio,
-            ],
-            contexto,
-          });
-          if (status === 'Reprovado') {
-            await this.desabilitarDebentureDoFundoDeInvestimento(
-              fundoInvestimento.id,
-            );
-          }
-
-          const debentureSerieInvestidorAtualizado =
-            await this.debentureSerieInvestidorRepositorio.atualizar({
-              id: ultimoVinculoDSI.id,
-              mensagem_retorno_laqus: justificativa,
-              status_retorno_laqus: status.toUpperCase() as StatusRetornoLaqus,
-              data_desvinculo: status === 'Reprovado' ? new Date() : null,
-            });
-          if (!debentureSerieInvestidorAtualizado)
-            throw new BadRequestException(
-              'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
-            );
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.debentureSerieInvestidorRepositorio,
-            ],
-          });
-
-          return debentureSerieInvestidorAtualizado;
-        } catch (error) {
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.debentureSerieInvestidorRepositorio,
-            ],
-          });
-          throw error;
+      await this.adaptadorDb.fazerTransacao(async () => {
+        if (status === 'Reprovado') {
+          await this.desabilitarDebentureDoFundoDeInvestimento(
+            fundoInvestimento.id,
+          );
         }
-      });
+
+        const debentureSerieInvestidorAtualizado =
+          await this.debentureSerieInvestidorRepositorio.atualizar({
+            id: ultimoVinculoDSI.id,
+            mensagem_retorno_laqus: justificativa,
+            status_retorno_laqus: status.toUpperCase() as StatusRetornoLaqus,
+            data_desvinculo: status === 'Reprovado' ? new Date() : null,
+          });
+        if (!debentureSerieInvestidorAtualizado)
+          throw new BadRequestException(
+            'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
+          );
+
+        return debentureSerieInvestidorAtualizado;
+      }, [
+        this.fundoInvestimentoRepositorio,
+        this.debentureSerieInvestidorRepositorio,
+      ]);
 
     if (status === 'Aprovado') {
       await this.creditSecSerieService.solicitarSerie(
@@ -127,7 +108,13 @@ export class LaqusService {
       );
 
     if (!debentureSerieInvestidor) {
-      throw new NotFoundException('Debenture Serie Investidor não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'laqus.cadastrarInvestidor',
+        mensagem: 'Debenture Serie Investidor não encontrado',
+        informacaoAdicional: {
+          dsi: identificadorDSI,
+        },
+      });
     }
 
     const { fundo_investimento: fundo, conta_investidor: contaInvestidor } =
@@ -188,17 +175,19 @@ export class LaqusService {
     const retornoLaqus = (await response.json()) as { id: string };
 
     if (!response.ok) {
-      console.log(retornoLaqus);
-      throw new HttpException(
-        'Não foi possível cadastrar o investidor na laqus',
-        response.status,
-      );
+      throw new ErroServidorInterno({
+        acao: 'laqus.cadastrarInvestidor',
+        mensagem: 'Erro ao cadastrar investidor no Laqus',
+        informacaoAdicional: { payload, retornoLaqus, response },
+      });
     }
 
     if (!retornoLaqus.id) {
-      throw new InternalServerErrorException(
-        'O identificador Laqus não foi retornado',
-      );
+      throw new ErroServidorInterno({
+        acao: 'laqus.cadastrarInvestidor',
+        mensagem: 'O identificador Laqus não foi retornado',
+        informacaoAdicional: { retornoLaqus, response: response, payload },
+      });
     }
 
     const atualizadoComIdentificadorLaqus =
@@ -210,10 +199,26 @@ export class LaqusService {
       });
 
     if (!atualizadoComIdentificadorLaqus) {
-      throw new InternalServerErrorException(
-        'Não foi possível atualizar o status do retorno Laqus',
-      );
+      throw new ErroServidorInterno({
+        acao: 'laqus.cadastrarInvestidor',
+        mensagem:
+          'Não foi possível atualizar o debenture serie investidor com o identificador Laqus',
+        informacaoAdicional: {
+          debentureSerieInvestidor,
+          retornoLaqus,
+          payload,
+        },
+      });
     }
+    this.logService.info({
+      acao: 'laqus.cadastrarInvestidor',
+      mensagem: 'Investidor cadastrado com sucesso no Laqus',
+      informacaoAdicional: {
+        payload,
+        retornoLaqus,
+        atualizadoComIdentificadorLaqus,
+      },
+    });
 
     return retornoLaqus;
   }

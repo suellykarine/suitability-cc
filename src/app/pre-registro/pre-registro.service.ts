@@ -28,10 +28,6 @@ import { CartaConviteRepositorio } from 'src/repositorios/contratos/cartaConvite
 import { StatusGestorFundoRepositorio } from 'src/repositorios/contratos/statusGestorFundoRepositorio';
 import { TokenUsadoRepositorio } from 'src/repositorios/contratos/tokenUsadoRepositorio';
 import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
-import {
-  definirContextosDeTransacao,
-  removerContextosDeTransacao,
-} from 'src/utils/funcoes/repositorios';
 import { CodigoVerificacaoRepositorio } from 'src/repositorios/contratos/codigoDeVerificacaoRepositorio';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { Usuario } from 'src/@types/entities/usuario';
@@ -153,59 +149,45 @@ export class PreRegistroService {
 
     const senhaEmHash = await bcrypt.hash(criarUsuarioDto.senha, 10);
 
-    const usuarioSalvo = await this.adaptadorDb.fazerTransacao(
-      async (prisma) => {
-        definirContextosDeTransacao({
-          repositorios: [
-            this.gestorFundoRepositorio,
-            this.usuarioRepositorio,
-            this.tokenUsadoRepositorio,
-          ],
-          contexto: prisma,
-        });
-
-        const encontrarCartaConvite =
-          await this.cartaConviteRepositorio.encontrarPorIdEAprovado(
-            cartaConvite.id,
-          );
-        if (!encontrarCartaConvite) {
-          throw new NotFoundException({
-            mensagem: 'Carta convite não encontrada ou não aprovada',
-          });
-        }
-
-        const gestorSalvo = await this.buscarOuCriarGestor(
-          encontrarCartaConvite.cnpj,
-          encontrarCartaConvite.empresa,
-          statusGestor.id,
+    const usuarioSalvo = await this.adaptadorDb.fazerTransacao(async () => {
+      const encontrarCartaConvite =
+        await this.cartaConviteRepositorio.encontrarPorIdEAprovado(
+          cartaConvite.id,
         );
-
-        const usuarioSalvo = await this.usuarioRepositorio.criar({
-          nome: encontrarCartaConvite.nome,
-          cpf: encontrarCartaConvite.cpf,
-          telefone: encontrarCartaConvite.telefone,
-          email: encontrarCartaConvite.email,
-          senha: senhaEmHash,
-          id_status_usuario: statusUsuario.id,
-          id_tipo_usuario: tipoUsuario.id,
-          id_gestor_fundo: gestorSalvo.id,
+      if (!encontrarCartaConvite) {
+        throw new NotFoundException({
+          mensagem: 'Carta convite não encontrada ou não aprovada',
         });
+      }
 
-        await this.tokenUsadoRepositorio.criar(
-          token,
-          new Date(Number(cartaConvite.iat) * 1000),
-        );
+      const gestorSalvo = await this.buscarOuCriarGestor(
+        encontrarCartaConvite.cnpj,
+        encontrarCartaConvite.empresa,
+        statusGestor.id,
+      );
 
-        removerContextosDeTransacao({
-          repositorios: [
-            this.gestorFundoRepositorio,
-            this.usuarioRepositorio,
-            this.tokenUsadoRepositorio,
-          ],
-        });
-        return usuarioSalvo;
-      },
-    );
+      const usuarioSalvo = await this.usuarioRepositorio.criar({
+        nome: encontrarCartaConvite.nome,
+        cpf: encontrarCartaConvite.cpf,
+        telefone: encontrarCartaConvite.telefone,
+        email: encontrarCartaConvite.email,
+        senha: senhaEmHash,
+        id_status_usuario: statusUsuario.id,
+        id_tipo_usuario: tipoUsuario.id,
+        id_gestor_fundo: gestorSalvo.id,
+      });
+
+      await this.tokenUsadoRepositorio.criar(
+        token,
+        new Date(Number(cartaConvite.iat) * 1000),
+      );
+
+      return usuarioSalvo;
+    }, [
+      this.gestorFundoRepositorio,
+      this.usuarioRepositorio,
+      this.tokenUsadoRepositorio,
+    ]);
 
     return {
       mensagem: 'Criado',
