@@ -244,10 +244,9 @@ export class CreditSecSerieService {
     dataVencimento.setMonth(dataAtual.getMonth() + 6);
 
     const debentureSerieAtualizado =
-      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie({
+      await this.debentureSerieRepositorio.atualizar(id_debenture_serie, {
         data_emissao: dataAtual,
         data_vencimento: dataVencimento,
-        id_debenture_serie,
       });
     return debentureSerieAtualizado;
   }

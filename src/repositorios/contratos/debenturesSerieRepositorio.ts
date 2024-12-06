@@ -1,8 +1,7 @@
 import {
-  atualizarDatasDebentureSerie,
   DebentureSerie,
+  DebentureSerieSemVinculo,
 } from 'src/@types/entities/debenture';
-import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
 import { Repositorio } from './repositorio';
 
 export abstract class DebentureSerieRepositorio extends Repositorio {
@@ -24,7 +23,7 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
 
   abstract atualizar(
     id: number,
-    debentureSerie: AtualizarDebentureSerieDto,
+    data: Partial<Omit<DebentureSerieSemVinculo, 'id'>>,
   ): Promise<DebentureSerie | null>;
 
   abstract deletar(id: number): Promise<void>;
@@ -34,10 +33,6 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
   abstract encontrarSeriesPorIdDebenture(
     idDebenture: number,
   ): Promise<DebentureSerie[]>;
-
-  abstract atualizaDatasDebentureSerie(
-    data: atualizarDatasDebentureSerie,
-  ): Promise<DebentureSerie>;
 
   abstract buscarPorNumeroSerie(
     idDebenture: number,

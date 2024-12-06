@@ -68,5 +68,5 @@ export function filtrarSeriesPorValor({
   series,
   valorEntrada,
 }: FiltrarSeriesPorValorProps): DebentureSerie[] {
-  return series.filter((serie) => serie.valor_serie_restante > valorEntrada);
+  return series.filter((serie) => serie.valor_serie_restante >= valorEntrada);
 }
