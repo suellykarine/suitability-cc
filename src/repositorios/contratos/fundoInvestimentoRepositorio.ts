@@ -23,4 +23,30 @@ export abstract class FundoInvestimentoRepositorio extends Repositorio {
     props: AtualizarFundoInvestimentoAptoDebenture,
   ): Promise<FundoInvestimento>;
   abstract buscarEstaAptoADebentureRepositorio(id: number): Promise<boolean>;
+
+  abstract bucarFundos(): Promise<FundoInvestimento[] | null>;
+
+  abstract encontrarPorIdETipoEstrutura(
+    id: number,
+    tipoEstrutura: string,
+  ): Promise<FundoInvestimento | null>;
+
+  abstract criar(
+    data: Omit<FundoInvestimentoSemVinculos, 'id'>,
+  ): Promise<FundoInvestimento | null>;
+
+  abstract buscarPorBackoffice(
+    idBackoffice: number,
+  ): Promise<FundoInvestimento[]>;
+  abstract buscarPorAdministrador(
+    idAdministrador: number,
+  ): Promise<FundoInvestimento[]>;
+  abstract buscarPorRepresentante(
+    idRepresentante: number,
+  ): Promise<FundoInvestimento[]>;
+  abstract remover(id: number): Promise<void>;
+  abstract encontrarPorIdEPerfil(
+    id: number,
+    perfilInvestimento: string,
+  ): Promise<FundoInvestimento | null>;
 }

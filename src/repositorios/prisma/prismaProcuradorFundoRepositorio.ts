@@ -1,13 +1,25 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
-import { ProcuradorFundo } from 'src/@types/entities/fundos';
+import {
+  ProcuradorFundo,
+  ProcuradorFundoSemVinculo,
+} from 'src/@types/entities/fundos';
 import { ProcuradorFundoRepositorio } from 'src/repositorios/contratos/procuradorFundoRepositorio';
 
 @Injectable()
 export class PrismaProcuradorFundoRepositorio
   implements ProcuradorFundoRepositorio
 {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async atualizar(
     id: number,
@@ -45,6 +57,34 @@ export class PrismaProcuradorFundoRepositorio
       include: {
         endereco: true,
       },
+    });
+  }
+
+  async encontrarPorCpf(cpf: string): Promise<ProcuradorFundo | null> {
+    return this.prisma.procurador_fundo.findFirst({
+      where: { cpf },
+    });
+  }
+
+  async criar(
+    data: Omit<ProcuradorFundoSemVinculo, 'id'>,
+  ): Promise<ProcuradorFundo> {
+    return this.prisma.procurador_fundo.create({ data });
+  }
+
+  async buscarProcuradorPorFundo(idFundo: number) {
+    return this.prisma.procurador_fundo.findFirst({
+      where: {
+        procurador_fundo_fundo_investimento: {
+          some: { id_fundo_investimento: idFundo },
+        },
+      },
+    });
+  }
+
+  async remover(id: number): Promise<void> {
+    await this.prisma.procurador_fundo.delete({
+      where: { id },
     });
   }
 }

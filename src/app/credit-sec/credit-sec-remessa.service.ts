@@ -67,8 +67,9 @@ export class CreditSecRemessaService {
   async solicitarRemessa(data: BodyCriacaoRemessaDto) {
     try {
       const debenture_serie =
-        await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
-          Number(data.numero_serie),
+        await this.debentureSerieRepositorio.encontrarSeriePorNumeroEmissaoNumeroSerie(
+          +data.numero_debenture,
+          +data.numero_serie,
         );
 
       const debentureSerieInvestidor =

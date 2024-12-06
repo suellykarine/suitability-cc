@@ -11,7 +11,7 @@ export type Debenture = {
   debenture_serie?: DebentureSerie[];
 };
 
-export type DebentureSerie = {
+export type DebentureSerieSemVinculo = {
   id: number;
   id_debenture: number;
   numero_serie: number;
@@ -20,6 +20,9 @@ export type DebentureSerie = {
   valor_serie_restante?: number;
   data_emissao?: Date;
   data_vencimento?: Date;
+};
+
+export type DebentureSerie = DebentureSerieSemVinculo & {
   debenture?: Debenture;
   debenture_serie_investidor?: DebentureSerieInvestidor[];
 };
