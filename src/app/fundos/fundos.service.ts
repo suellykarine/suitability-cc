@@ -3,7 +3,6 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -28,10 +27,6 @@ import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/
 import { Usuario, UsuarioFundoInvestimento } from 'src/@types/entities/usuario';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import {
-  definirContextosDeTransacao,
-  removerContextosDeTransacao,
-} from 'src/utils/funcoes/repositorios';
-import {
   AdministradorFundo,
   FundoInvestimento,
   FundoInvestimentoGestorFundo,
@@ -51,12 +46,10 @@ import { DocumentoRepositorio } from 'src/repositorios/contratos/documentoReposi
 import { StatusFundoInvestimento as statusFundo } from 'src/@types/entities/fundos';
 import { ProcuradorFundoFundoInvestimentoRepositorio } from 'src/repositorios/contratos/procuradorFundoFundoInvestimentoRepositorio';
 import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class FundosService {
   constructor(
-    // private prisma: PrismaService,
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly cadastroPessoaJuridicaService: CadastroPessoaJuridicaService,
     private readonly procuradorFundoRepositorio: ProcuradorFundoRepositorio,
@@ -80,77 +73,43 @@ export class FundosService {
     const usuario = await this.obterUsuario(id);
     let procurador: ProcuradorFundo;
 
-    const transacao = await this.adaptadorDb.fazerTransacao(
-      async (contexto) => {
-        try {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-            contexto,
-          });
+    const transacao = await this.adaptadorDb.fazerTransacao(async () => {
+      const fundosCriados: FundoInvestimento[] = [];
+      for (const fundoDto of criarFundoDto) {
+        await this.verificarFundoJaExistente(fundoDto.cpf_cnpj);
 
-          const fundosCriados: FundoInvestimento[] = [];
+        const novoFundo = await this.criarNovoFundo(fundoDto, usuario);
 
-          for (const fundoDto of criarFundoDto) {
-            await this.verificarFundoJaExistente(fundoDto.cpf_cnpj);
+        fundosCriados.push(novoFundo.novoFundo);
+        procurador = novoFundo.procurador_fundo;
+      }
 
-            const novoFundo = await this.criarNovoFundo(fundoDto, usuario);
-
-            fundosCriados.push(novoFundo.novoFundo);
-            procurador = novoFundo.procurador_fundo;
-          }
-
-          return {
-            mensagem: 'Fundos criados com sucesso',
-            fundos_criados: fundosCriados,
-            procurador_fundo: procurador,
-          };
-        } catch (error) {
-          throw error;
-        } finally {
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-          });
-        }
-      },
-    );
+      return {
+        mensagem: 'Fundos criados com sucesso',
+        fundos_criados: fundosCriados,
+        procurador_fundo: procurador,
+      };
+    }, [
+      this.fundoInvestimentoRepositorio,
+      this.procuradorFundoRepositorio,
+      this.enderecoRepositorio,
+      this.usuarioRepositorio,
+      this.usuarioFundoInvestimentoRepositorio,
+      this.fundoBackofficeRepositorio,
+      this.administradorFundoRepositorio,
+      this.representanteFundoRepositorio,
+      this.administradorFundoRepresentanteFundoRepositorio,
+      this.gestorFundoRepositorio,
+      this.statusFundoInvestimentoRepositorio,
+      this.contaRepasseRepositorio,
+      this.fundoInvestimentoGestorFundoRepositorio,
+      this.documentoRepositorio,
+      this.procuradorFundoFundoInvestimentoRepositorio,
+    ]);
 
     if (transacao) {
       return transacao;
     }
-
-    throw new InternalServerErrorException();
   }
 
   async criarFactoring(id: number, criarFundoDto: CriarFactoringDto[]) {
@@ -160,98 +119,45 @@ export class FundosService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    const transacao = await this.adaptadorDb.fazerTransacao(
-      async (contexto) => {
-        try {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-            contexto,
-          });
+    const transacao = await this.adaptadorDb.fazerTransacao(async () => {
+      const factoringsCriadas: FundoInvestimento[] = [];
 
-          const factoringsCriadas: FundoInvestimento[] = [];
+      for (const factoringDto of criarFundoDto) {
+        await this.verificarFundoJaExistente(factoringDto.cpf_cnpj);
 
-          for (const factoringDto of criarFundoDto) {
-            await this.verificarFundoJaExistente(factoringDto.cpf_cnpj);
+        const novaFactoring = await this.criarNovaFactoring(
+          factoringDto,
+          usuario,
+        );
 
-            const novaFactoring = await this.criarNovaFactoring(
-              factoringDto,
-              usuario,
-            );
+        factoringsCriadas.push(novaFactoring);
+      }
 
-            factoringsCriadas.push(novaFactoring);
-          }
-
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-          });
-
-          return {
-            mensagem: 'Factorings criadas com sucesso',
-            factorings_criadas: factoringsCriadas,
-          };
-        } catch (error) {
-          throw error;
-        } finally {
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-          });
-        }
-      },
-    );
+      return {
+        mensagem: 'Factorings criadas com sucesso',
+        factorings_criadas: factoringsCriadas,
+      };
+    }, [
+      this.fundoInvestimentoRepositorio,
+      this.procuradorFundoRepositorio,
+      this.enderecoRepositorio,
+      this.usuarioRepositorio,
+      this.usuarioFundoInvestimentoRepositorio,
+      this.fundoBackofficeRepositorio,
+      this.administradorFundoRepositorio,
+      this.representanteFundoRepositorio,
+      this.administradorFundoRepresentanteFundoRepositorio,
+      this.gestorFundoRepositorio,
+      this.statusFundoInvestimentoRepositorio,
+      this.contaRepasseRepositorio,
+      this.fundoInvestimentoGestorFundoRepositorio,
+      this.documentoRepositorio,
+      this.procuradorFundoFundoInvestimentoRepositorio,
+    ]);
 
     if (transacao) {
       return transacao;
     }
-
-    throw new InternalServerErrorException();
   }
 
   async criarSecuritizadora(
@@ -264,78 +170,45 @@ export class FundosService {
       throw new NotFoundException('Usuário não encontrado.');
     }
 
-    const transacao = await this.adaptadorDb.fazerTransacao(
-      async (contexto) => {
-        try {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-            contexto,
-          });
+    const transacao = await this.adaptadorDb.fazerTransacao(async () => {
+      const securitizadorasCriadas: FundoInvestimento[] = [];
 
-          const securitizadorasCriadas: FundoInvestimento[] = [];
+      for (const securitizadoraDto of criarFundoDto) {
+        await this.verificarFundoJaExistente(securitizadoraDto.cpf_cnpj);
 
-          for (const securitizadoraDto of criarFundoDto) {
-            await this.verificarFundoJaExistente(securitizadoraDto.cpf_cnpj);
+        const novaSecuritizadora = await this.criarNovaSecuritizadora(
+          securitizadoraDto,
+          usuario,
+        );
 
-            const novaSecuritizadora = await this.criarNovaSecuritizadora(
-              securitizadoraDto,
-              usuario,
-            );
+        securitizadorasCriadas.push(novaSecuritizadora);
+      }
 
-            securitizadorasCriadas.push(novaSecuritizadora);
-          }
-
-          return {
-            mensagem: 'Securitizadoras criadas com sucesso',
-            securitizadoras_criadas: securitizadorasCriadas,
-          };
-        } catch (error) {
-          throw error;
-        } finally {
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-          });
-        }
-      },
-    );
+      return {
+        mensagem: 'Securitizadoras criadas com sucesso',
+        securitizadoras_criadas: securitizadorasCriadas,
+      };
+    }, [
+      this.fundoInvestimentoRepositorio,
+      this.procuradorFundoRepositorio,
+      this.enderecoRepositorio,
+      this.usuarioRepositorio,
+      this.usuarioFundoInvestimentoRepositorio,
+      this.fundoBackofficeRepositorio,
+      this.administradorFundoRepositorio,
+      this.representanteFundoRepositorio,
+      this.administradorFundoRepresentanteFundoRepositorio,
+      this.gestorFundoRepositorio,
+      this.statusFundoInvestimentoRepositorio,
+      this.contaRepasseRepositorio,
+      this.fundoInvestimentoGestorFundoRepositorio,
+      this.documentoRepositorio,
+      this.procuradorFundoFundoInvestimentoRepositorio,
+    ]);
 
     if (transacao) {
       return transacao;
     }
-
-    throw new InternalServerErrorException();
   }
 
   async buscarFundos() {
@@ -434,128 +307,91 @@ export class FundosService {
 
     await this.verificarPropriedadeFundo(idUsuario, fundo.id);
 
-    const transacao = await this.adaptadorDb.fazerTransacao(
-      async (contexto) => {
-        try {
-          definirContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-            contexto,
-          });
+    const transacao = await this.adaptadorDb.fazerTransacao(async () => {
+      if (data.cpf_procurador) {
+        const telefoneCompleto = data.telefone_procurador.replace(/\D/g, '');
+        const ddd = telefoneCompleto.slice(0, 2);
+        const numero =
+          telefoneCompleto.slice(2).length === 11
+            ? telefoneCompleto.slice(3)
+            : telefoneCompleto.slice(2);
 
-          if (data.cpf_procurador) {
-            const telefoneCompleto = data.telefone_procurador.replace(
-              /\D/g,
-              '',
-            );
-            const ddd = telefoneCompleto.slice(0, 2);
-            const numero =
-              telefoneCompleto.slice(2).length === 11
-                ? telefoneCompleto.slice(3)
-                : telefoneCompleto.slice(2);
+        const procuradorInvestidor: atualizarProcuradorDto = {
+          nome: data.nome_procurador,
+          endereco: {
+            uf: data.estado_endereco_procurador,
+            cep: data.cep_endereco_procurador,
+            cidade: data.municipio_endereco_procurador,
+            bairro: data.bairro_endereco_procurador,
+            logradouro: data.rua_endereco_procurador,
+            numero: data.numero_endereco_procurador,
+            complemento: '',
+          },
+          telefone: {
+            numero,
+            ddd,
+          },
+          email: data.email_procurador,
+          dadosAssinatura: {
+            tipoAssinatura: 'C',
+            dataValidadeAssinatura: '2025-12-31',
+            possuiCertificadoDigital: true,
+            tipoDocumento: 'P',
+          },
+        };
 
-            const procuradorInvestidor: atualizarProcuradorDto = {
-              nome: data.nome_procurador,
-              endereco: {
-                uf: data.estado_endereco_procurador,
-                cep: data.cep_endereco_procurador,
-                cidade: data.municipio_endereco_procurador,
-                bairro: data.bairro_endereco_procurador,
-                logradouro: data.rua_endereco_procurador,
-                numero: data.numero_endereco_procurador,
-                complemento: '',
-              },
-              telefone: {
-                numero,
-                ddd,
-              },
-              email: data.email_procurador,
-              dadosAssinatura: {
-                tipoAssinatura: 'C',
-                dataValidadeAssinatura: '2025-12-31',
-                possuiCertificadoDigital: true,
-                tipoDocumento: 'P',
-              },
-            };
-
-            const procurador =
-              await this.procuradorFundoRepositorio.buscarProcuradorPorCpf(
-                data.cpf_procurador,
-              );
-
-            await this.atualizarProcurador(
-              fundo.cpf_cnpj,
-              data.cpf_procurador,
-              procuradorInvestidor,
-              procurador.id,
-              procurador.endereco.id,
-              data.telefone_procurador,
-            );
-          }
-
-          const statusFundo = await this.obterStatusFundoPatch(data.status);
-
-          if (data.status && Object.keys(data).length === 1) {
-            return this.atualizarStatusFundo(fundo.id, statusFundo);
-          }
-
-          await this.atualizarEntidadesAssociadas(fundo, data);
-
-          await this.fundoInvestimentoRepositorio.atualizar(
-            fundo.id,
-            this.transformarParaFundoSemVinculos(data),
+        const procurador =
+          await this.procuradorFundoRepositorio.buscarProcuradorPorCpf(
+            data.cpf_procurador,
           );
 
-          return {
-            mensagem: `${tipoEstrutura} atualizado`,
-          };
-        } catch (error) {
-          throw error;
-        } finally {
-          removerContextosDeTransacao({
-            repositorios: [
-              this.fundoInvestimentoRepositorio,
-              this.procuradorFundoRepositorio,
-              this.enderecoRepositorio,
-              this.usuarioRepositorio,
-              this.usuarioFundoInvestimentoRepositorio,
-              this.fundoBackofficeRepositorio,
-              this.administradorFundoRepositorio,
-              this.representanteFundoRepositorio,
-              this.administradorFundoRepresentanteFundoRepositorio,
-              this.gestorFundoRepositorio,
-              this.statusFundoInvestimentoRepositorio,
-              this.contaRepasseRepositorio,
-              this.fundoInvestimentoGestorFundoRepositorio,
-              this.documentoRepositorio,
-              this.procuradorFundoFundoInvestimentoRepositorio,
-            ],
-          });
-        }
-      },
-      { maxWait: 10000, timeout: 30000 },
-    );
+        await this.atualizarProcurador(
+          fundo.cpf_cnpj,
+          data.cpf_procurador,
+          procuradorInvestidor,
+          procurador.id,
+          procurador.endereco.id,
+          data.telefone_procurador,
+        );
+      }
+
+      const statusFundo = await this.obterStatusFundoPatch(data.status);
+
+      if (data.status && Object.keys(data).length === 1) {
+        return this.atualizarStatusFundo(fundo.id, statusFundo);
+      }
+
+      await this.atualizarEntidadesAssociadas(fundo, data);
+
+      await this.fundoInvestimentoRepositorio.atualizar(
+        fundo.id,
+        this.transformarParaFundoSemVinculos(data),
+      );
+
+      return {
+        mensagem: `${tipoEstrutura} atualizado`,
+      };
+    }, [
+      this.fundoInvestimentoRepositorio,
+      this.procuradorFundoRepositorio,
+      this.enderecoRepositorio,
+      this.usuarioRepositorio,
+      this.usuarioFundoInvestimentoRepositorio,
+      this.fundoBackofficeRepositorio,
+      this.administradorFundoRepositorio,
+      this.representanteFundoRepositorio,
+      this.administradorFundoRepresentanteFundoRepositorio,
+      this.gestorFundoRepositorio,
+      this.statusFundoInvestimentoRepositorio,
+      this.contaRepasseRepositorio,
+      this.fundoInvestimentoGestorFundoRepositorio,
+      this.documentoRepositorio,
+      this.procuradorFundoFundoInvestimentoRepositorio,
+    ]);
 
     if (transacao) {
       return transacao;
     }
-
-    throw new InternalServerErrorException();
   }
 
   private async atualizarProcurador(
@@ -1045,139 +881,110 @@ export class FundosService {
     fundo: FundoInvestimento,
     idGestorFundo: number,
   ) {
-    return await this.adaptadorDb.fazerTransacao(async (contexto) => {
-      try {
-        definirContextosDeTransacao({
-          repositorios: [
-            this.fundoInvestimentoRepositorio,
-            this.procuradorFundoRepositorio,
-            this.enderecoRepositorio,
-            this.usuarioRepositorio,
-            this.usuarioFundoInvestimentoRepositorio,
-            this.fundoBackofficeRepositorio,
-            this.administradorFundoRepositorio,
-            this.representanteFundoRepositorio,
-            this.administradorFundoRepresentanteFundoRepositorio,
-            this.gestorFundoRepositorio,
-            this.statusFundoInvestimentoRepositorio,
-            this.contaRepasseRepositorio,
-            this.fundoInvestimentoGestorFundoRepositorio,
-            this.documentoRepositorio,
-            this.procuradorFundoFundoInvestimentoRepositorio,
-          ],
-          contexto,
-        });
-
-        const fundosGestores =
-          await this.fundoInvestimentoGestorFundoRepositorio.buscarPorFundoEGestor(
-            fundo.id,
-            idGestorFundo,
-          );
-
-        for (const gestor of fundosGestores) {
-          await this.usuarioFundoInvestimentoRepositorio.removerPorFundoGestor(
-            gestor.id,
-          );
-          await this.fundoInvestimentoGestorFundoRepositorio.remover(gestor.id);
-        }
-
-        await this.contaRepasseRepositorio.removerPorFundo(fundo.id);
-
-        await this.documentoRepositorio.removerPorFundo(fundo.id);
-
-        const fundosComAdministrador =
-          await this.fundoInvestimentoRepositorio.buscarPorAdministrador(
-            fundo.id_administrador_fundo!,
-          );
-
-        await this.procuradorFundoFundoInvestimentoRepositorio.removerPorFundo(
+    return await this.adaptadorDb.fazerTransacao(async () => {
+      const fundosGestores =
+        await this.fundoInvestimentoGestorFundoRepositorio.buscarPorFundoEGestor(
           fundo.id,
+          idGestorFundo,
         );
 
-        if (fundo.tipo_estrutura === PerfisInvestimento.FUNDO) {
-          const procurador =
-            await this.procuradorFundoRepositorio.buscarProcuradorPorFundo(
-              fundo.id,
+      for (const gestor of fundosGestores) {
+        await this.usuarioFundoInvestimentoRepositorio.removerPorFundoGestor(
+          gestor.id,
+        );
+        await this.fundoInvestimentoGestorFundoRepositorio.remover(gestor.id);
+      }
+
+      await this.contaRepasseRepositorio.removerPorFundo(fundo.id);
+
+      await this.documentoRepositorio.removerPorFundo(fundo.id);
+
+      const fundosComAdministrador =
+        await this.fundoInvestimentoRepositorio.buscarPorAdministrador(
+          fundo.id_administrador_fundo!,
+        );
+
+      await this.procuradorFundoFundoInvestimentoRepositorio.removerPorFundo(
+        fundo.id,
+      );
+
+      if (fundo.tipo_estrutura === PerfisInvestimento.FUNDO) {
+        const procurador =
+          await this.procuradorFundoRepositorio.buscarProcuradorPorFundo(
+            fundo.id,
+          );
+
+        if (procurador) {
+          const procuradoresAssociados =
+            await this.procuradorFundoFundoInvestimentoRepositorio.buscarPorProcurador(
+              procurador.id,
             );
 
-          if (procurador) {
-            const procuradoresAssociados =
-              await this.procuradorFundoFundoInvestimentoRepositorio.buscarPorProcurador(
-                procurador.id,
-              );
-
-            if (procuradoresAssociados.length === 0) {
-              await this.procuradorFundoRepositorio.remover(procurador.id);
-              await this.enderecoRepositorio.remover(procurador.id_endereco);
-            }
+          if (procuradoresAssociados.length === 0) {
+            await this.procuradorFundoRepositorio.remover(procurador.id);
+            await this.enderecoRepositorio.remover(procurador.id_endereco);
           }
         }
+      }
 
-        const fundosComRepresentante =
-          await this.fundoInvestimentoRepositorio.buscarPorRepresentante(
+      const fundosComRepresentante =
+        await this.fundoInvestimentoRepositorio.buscarPorRepresentante(
+          fundo.id_representante_fundo!,
+        );
+
+      const fundosComBackoffice =
+        await this.fundoInvestimentoRepositorio.buscarPorBackoffice(
+          fundo.id_fundo_backoffice!,
+        );
+
+      if (!fundosComRepresentante[0]) {
+        await this.fundoInvestimentoRepositorio.remover(fundo.id);
+      }
+      await this.fundoInvestimentoRepositorio.remover(fundo.id);
+
+      if (fundosComAdministrador.length === 1) {
+        const administradorFundoRepresentante =
+          await this.administradorFundoRepresentanteFundoRepositorio.buscarPorAdministradorERepresentante(
+            fundo.id_administrador_fundo!,
             fundo.id_representante_fundo!,
           );
+        await this.administradorFundoRepresentanteFundoRepositorio.remover(
+          administradorFundoRepresentante.id,
+        );
 
-        const fundosComBackoffice =
-          await this.fundoInvestimentoRepositorio.buscarPorBackoffice(
+        await this.administradorFundoRepositorio.remover(
+          fundo.id_administrador_fundo!,
+        );
+
+        if (fundosComBackoffice.length === 1) {
+          await this.fundoBackofficeRepositorio.remover(
             fundo.id_fundo_backoffice!,
           );
-
-        if (!fundosComRepresentante[0]) {
-          await this.fundoInvestimentoRepositorio.remover(fundo.id);
         }
-        await this.fundoInvestimentoRepositorio.remover(fundo.id);
 
-        if (fundosComAdministrador.length === 1) {
-          const administradorFundoRepresentante =
-            await this.administradorFundoRepresentanteFundoRepositorio.buscarPorAdministradorERepresentante(
-              fundo.id_administrador_fundo!,
-              fundo.id_representante_fundo!,
-            );
-          await this.administradorFundoRepresentanteFundoRepositorio.remover(
-            administradorFundoRepresentante.id,
+        if (fundosComRepresentante.length === 1) {
+          await this.representanteFundoRepositorio.remover(
+            fundo.id_representante_fundo!,
           );
-
-          await this.administradorFundoRepositorio.remover(
-            fundo.id_administrador_fundo!,
-          );
-
-          if (fundosComBackoffice.length === 1) {
-            await this.fundoBackofficeRepositorio.remover(
-              fundo.id_fundo_backoffice!,
-            );
-          }
-
-          if (fundosComRepresentante.length === 1) {
-            await this.representanteFundoRepositorio.remover(
-              fundo.id_representante_fundo!,
-            );
-          }
         }
-      } catch (error) {
-        throw error;
-      } finally {
-        removerContextosDeTransacao({
-          repositorios: [
-            this.fundoInvestimentoRepositorio,
-            this.procuradorFundoRepositorio,
-            this.enderecoRepositorio,
-            this.usuarioRepositorio,
-            this.usuarioFundoInvestimentoRepositorio,
-            this.fundoBackofficeRepositorio,
-            this.administradorFundoRepositorio,
-            this.representanteFundoRepositorio,
-            this.administradorFundoRepresentanteFundoRepositorio,
-            this.gestorFundoRepositorio,
-            this.statusFundoInvestimentoRepositorio,
-            this.contaRepasseRepositorio,
-            this.fundoInvestimentoGestorFundoRepositorio,
-            this.documentoRepositorio,
-            this.procuradorFundoFundoInvestimentoRepositorio,
-          ],
-        });
       }
-    });
+    }, [
+      this.fundoInvestimentoRepositorio,
+      this.procuradorFundoRepositorio,
+      this.enderecoRepositorio,
+      this.usuarioRepositorio,
+      this.usuarioFundoInvestimentoRepositorio,
+      this.fundoBackofficeRepositorio,
+      this.administradorFundoRepositorio,
+      this.representanteFundoRepositorio,
+      this.administradorFundoRepresentanteFundoRepositorio,
+      this.gestorFundoRepositorio,
+      this.statusFundoInvestimentoRepositorio,
+      this.contaRepasseRepositorio,
+      this.fundoInvestimentoGestorFundoRepositorio,
+      this.documentoRepositorio,
+      this.procuradorFundoFundoInvestimentoRepositorio,
+    ]);
   }
 
   async verificarPropriedadeFundo(idUsuario: number, idFundo: number) {
@@ -1259,105 +1066,76 @@ export class FundosService {
     assetId: number,
     perfilInvestimento: string,
   ): Promise<void> {
-    return await this.adaptadorDb.fazerTransacao(async (contexto) => {
-      try {
-        definirContextosDeTransacao({
-          repositorios: [
-            this.fundoInvestimentoRepositorio,
-            this.procuradorFundoRepositorio,
-            this.enderecoRepositorio,
-            this.usuarioRepositorio,
-            this.usuarioFundoInvestimentoRepositorio,
-            this.fundoBackofficeRepositorio,
-            this.administradorFundoRepositorio,
-            this.representanteFundoRepositorio,
-            this.administradorFundoRepresentanteFundoRepositorio,
-            this.gestorFundoRepositorio,
-            this.statusFundoInvestimentoRepositorio,
-            this.contaRepasseRepositorio,
-            this.fundoInvestimentoGestorFundoRepositorio,
-            this.documentoRepositorio,
-            this.procuradorFundoFundoInvestimentoRepositorio,
-          ],
-          contexto,
-        });
+    return await this.adaptadorDb.fazerTransacao(async () => {
+      const fundo =
+        await this.fundoInvestimentoRepositorio.encontrarPorIdEPerfil(
+          id,
+          perfilInvestimento,
+        );
 
-        const fundo =
-          await this.fundoInvestimentoRepositorio.encontrarPorIdEPerfil(
-            id,
-            perfilInvestimento,
-          );
-
-        if (!fundo) {
-          throw new NotFoundException('Factoring não encontrada');
-        }
-        const gestores =
-          await this.fundoInvestimentoGestorFundoRepositorio.buscarPorFundoEGestor(
-            fundo.id,
-            assetId,
-          );
-
-        for (const gestor of gestores) {
-          const usuario =
-            await this.usuarioFundoInvestimentoRepositorio.buscarPorGestorFundo(
-              gestor.id,
-            );
-
-          if (usuario) {
-            await this.usuarioFundoInvestimentoRepositorio.remover(usuario.id);
-          }
-          await this.fundoInvestimentoGestorFundoRepositorio.remover(gestor.id);
-        }
-
-        await this.documentoRepositorio.removerPorFundo(fundo.id);
-        await this.contaRepasseRepositorio.removerPorFundo(fundo.id);
-
-        const fundosBackoffice =
-          await this.fundoInvestimentoRepositorio.buscarPorBackoffice(
-            fundo.id_fundo_backoffice,
-          );
-
-        const fundosRepresentante =
-          await this.fundoInvestimentoRepositorio.buscarPorRepresentante(
-            fundo.id_representante_fundo,
-          );
-        await this.fundoInvestimentoRepositorio.remover(fundo.id);
-
-        if (fundosRepresentante.length === 1) {
-          await this.representanteFundoRepositorio.remover(
-            fundo.id_representante_fundo!,
-          );
-        }
-
-        if (fundosBackoffice.length === 1) {
-          await this.fundoBackofficeRepositorio.remover(
-            fundo.id_fundo_backoffice!,
-          );
-        }
-      } catch (error) {
-        throw error;
-      } finally {
-        removerContextosDeTransacao({
-          repositorios: [
-            this.fundoInvestimentoRepositorio,
-            this.procuradorFundoRepositorio,
-            this.enderecoRepositorio,
-            this.usuarioRepositorio,
-            this.usuarioFundoInvestimentoRepositorio,
-            this.fundoBackofficeRepositorio,
-            this.administradorFundoRepositorio,
-            this.representanteFundoRepositorio,
-            this.administradorFundoRepresentanteFundoRepositorio,
-            this.gestorFundoRepositorio,
-            this.statusFundoInvestimentoRepositorio,
-            this.contaRepasseRepositorio,
-            this.fundoInvestimentoGestorFundoRepositorio,
-            this.documentoRepositorio,
-            this.procuradorFundoFundoInvestimentoRepositorio,
-          ],
-        });
+      if (!fundo) {
+        throw new NotFoundException('Factoring não encontrada');
       }
-    });
+      const gestores =
+        await this.fundoInvestimentoGestorFundoRepositorio.buscarPorFundoEGestor(
+          fundo.id,
+          assetId,
+        );
+
+      for (const gestor of gestores) {
+        const usuario =
+          await this.usuarioFundoInvestimentoRepositorio.buscarPorGestorFundo(
+            gestor.id,
+          );
+
+        if (usuario) {
+          await this.usuarioFundoInvestimentoRepositorio.remover(usuario.id);
+        }
+        await this.fundoInvestimentoGestorFundoRepositorio.remover(gestor.id);
+      }
+
+      await this.documentoRepositorio.removerPorFundo(fundo.id);
+      await this.contaRepasseRepositorio.removerPorFundo(fundo.id);
+
+      const fundosBackoffice =
+        await this.fundoInvestimentoRepositorio.buscarPorBackoffice(
+          fundo.id_fundo_backoffice,
+        );
+
+      const fundosRepresentante =
+        await this.fundoInvestimentoRepositorio.buscarPorRepresentante(
+          fundo.id_representante_fundo,
+        );
+      await this.fundoInvestimentoRepositorio.remover(fundo.id);
+
+      if (fundosRepresentante.length === 1) {
+        await this.representanteFundoRepositorio.remover(
+          fundo.id_representante_fundo!,
+        );
+      }
+
+      if (fundosBackoffice.length === 1) {
+        await this.fundoBackofficeRepositorio.remover(
+          fundo.id_fundo_backoffice!,
+        );
+      }
+    }, [
+      this.fundoInvestimentoRepositorio,
+      this.procuradorFundoRepositorio,
+      this.enderecoRepositorio,
+      this.usuarioRepositorio,
+      this.usuarioFundoInvestimentoRepositorio,
+      this.fundoBackofficeRepositorio,
+      this.administradorFundoRepositorio,
+      this.representanteFundoRepositorio,
+      this.administradorFundoRepresentanteFundoRepositorio,
+      this.gestorFundoRepositorio,
+      this.statusFundoInvestimentoRepositorio,
+      this.contaRepasseRepositorio,
+      this.fundoInvestimentoGestorFundoRepositorio,
+      this.documentoRepositorio,
+      this.procuradorFundoFundoInvestimentoRepositorio,
+    ]);
   }
 
   async buscarEstaAptoADebenture(id: number) {
