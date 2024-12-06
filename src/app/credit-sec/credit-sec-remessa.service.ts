@@ -24,6 +24,7 @@ import { SigmaService } from '../sigma/sigma.service';
 import { statusRetornoCreditSecDicionario } from './const';
 import { OperacaoDebentureSemVinculo } from 'src/@types/entities/operacaoDebenture';
 import { DebentureSerieService } from '../debentures/debentures-serie.service';
+import { PagamentoOperacaoService } from '../sigma/sigma.pagamentoOperacao.service';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -32,8 +33,9 @@ export class CreditSecRemessaService {
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
-    private readonly sigma: SigmaService,
+    private readonly sigmaService: SigmaService,
     private readonly debentureSerieService: DebentureSerieService,
+    private readonly pagamentoOperacaoService: PagamentoOperacaoService,
   ) {}
   @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoRemessa() {
@@ -152,7 +154,16 @@ export class CreditSecRemessaService {
 
       const statusRetorno = statusRetornoCreditSecDicionario[data.status];
       if (statusRetorno === 'APROVADO') {
-        //CHAMAR OUTRO SERVIÇO QUE O LORENZO FEZ, NA RN17, SOBRE A CONTA DO CEDENTE
+        const debentureSerieInvestidor =
+          await this.debentureSerieInvestidorRepositorio.encontrarPorId(
+            operacaoPendente.id_debenture_serie_investidor,
+          );
+
+        await this.pagamentoOperacaoService.incluirPagamento(
+          +data.numero_remessa,
+          debentureSerieInvestidor.id_conta_investidor,
+        );
+
         await this.destravarOperacaoDebentureSigma(data.numero_remessa);
 
         const bodyAtualizarOperacao = {
@@ -191,7 +202,7 @@ export class CreditSecRemessaService {
           bodyAtualizarOperacao,
           operacaoPendente.id,
         );
-        await this.sigma.excluirOperacaoDebentureSigma({
+        await this.sigmaService.excluirOperacaoDebentureSigma({
           codigoOperacao: data.numero_remessa,
           complementoStatusOperacao:
             'A emissão da Remessa foi Recusada pela CreditSec',
