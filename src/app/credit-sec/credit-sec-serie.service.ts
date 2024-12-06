@@ -92,7 +92,6 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie',
         mensagem: 'Erro ao buscar status de solicitação de série',
-        erro: error.message,
         informacaoAdicional: {
           error,
         },
@@ -148,7 +147,6 @@ export class CreditSecSerieService {
         throw new ErroServidorInterno({
           acao: 'creditSecSerieService.solicitarSerie',
           mensagem: 'Erro ao solicitar série no CreditSec',
-          erro: error.message,
           informacaoAdicional: {
             bodySolicitarSerie,
             error,
@@ -162,7 +160,6 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerie',
         mensagem: 'Erro ao solicitar série no CreditSec',
-        erro: error.message,
         informacaoAdicional: {
           debentureSerieInvestidorId,
           error,
@@ -228,11 +225,10 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.registrarRetornoCreditSec',
         mensagem: 'Erro ao registrar retorno do CreditSec',
-        erro: error.message,
         informacaoAdicional: {
           data,
-          error,
           retornoCreditSec: data,
+          error,
         },
       });
     }
@@ -328,7 +324,6 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerieCreditSec',
         mensagem: 'Erro ao solicitar série no CreditSec',
-        erro: error.message,
         informacaoAdicional: {
           body,
           error,

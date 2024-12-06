@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   Inject,
-  BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ErroAplicacao } from '../erroAplicacao';
@@ -20,15 +19,23 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     if (exception instanceof ErroAplicacao) {
-      const { message, codigoStatus, informacaoAdicional, acao, salvarEmLog } =
-        exception;
+      const {
+        message,
+        codigoStatus,
+        informacaoAdicional,
+        acao,
+        salvarEmLog,
+        stack,
+      } = exception;
 
       const payload = {
         mensagem: message,
         acao,
-        informacaoAdicional: informacaoAdicional
-          ? { ...informacaoAdicional, statusCode: codigoStatus }
-          : undefined,
+        informacaoAdicional: {
+          ...informacaoAdicional,
+          codigoStatus,
+          stack,
+        },
       };
 
       if (salvarEmLog) {
@@ -36,37 +43,66 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
       }
 
       return response.status(codigoStatus).json({
-        error: { message, action: acao },
+        erro: { messagem: message, acao },
       });
     }
 
-    if (exception instanceof BadRequestException) {
-      const responseBody = exception.getResponse() as any;
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        error: responseBody,
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+      const responseBody = exception.getResponse();
+
+      await this.logService.erro({
+        mensagem: responseBody.toString(),
+        acao: 'desconhecida',
+        informacaoAdicional: {
+          codigoStatus: status,
+          detalhes: exception,
+          stack: exception.stack,
+          nomeExcecao: exception.name,
+          causa: exception.cause,
+        },
+      });
+
+      return response.status(status).json({
+        erro: responseBody,
       });
     }
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message =
-      exception instanceof Error ? exception.message : 'Erro desconhecido';
+    if (exception instanceof Error) {
+      const mensagem = exception.message ?? 'Erro desconhecido';
+      const acao = exception.stack ?? 'desconhecida';
+
+      await this.logService.erro({
+        mensagem,
+        acao,
+        informacaoAdicional: {
+          codigoStatus: status,
+          excecao: exception,
+          nomeExcecao: exception.name,
+        },
+      });
+
+      return response.status(status).json({
+        erro: {
+          mensagem: `Erro interno do servidor: ${mensagem}`,
+        },
+      });
+    }
 
     await this.logService.erro({
-      mensagem: message,
-      acao: 'unknown',
+      mensagem: 'erro desconhecido',
+      acao: 'desconhecida',
       informacaoAdicional: {
-        statusCode: status,
-        details: exception,
+        codigoStatus: status,
+        excecao: exception,
       },
     });
 
     return response.status(status).json({
-      error: {
-        message: `Erro interno do servidor: ${message}`,
+      erro: {
+        mensagem: `Erro interno do servidor`,
       },
     });
   }
