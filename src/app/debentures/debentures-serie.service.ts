@@ -615,24 +615,6 @@ export class DebentureSerieService {
     ]);
   }
 
-  private async filtrarSeriesValidas({
-    seriesId,
-    debentureId,
-    dataDeCorte,
-  }: FiltrarSeriesValidasProps): Promise<DebentureSerie[]> {
-    const seriesValidas = await Promise.all(
-      seriesId.map(async (serieId) => {
-        const serie =
-          await this.debentureSerieRepositorio.encontrarPorId(serieId);
-        const atendeCriteriosBasicos =
-          pertenceADebentureAtual({ serie, debentureId }) &&
-          ehValidaPorData({ serie, dataDeCorte });
-        return atendeCriteriosBasicos ? serie : null;
-      }),
-    );
-    return seriesValidas.filter((serie) => serie !== null);
-  }
-
   async estornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
     return this.atualizarValorSerie(
       numeroSerie,
