@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   formatarCNPJ,
   formatarCPF,
@@ -46,6 +40,12 @@ import { DocumentoRepositorio } from 'src/repositorios/contratos/documentoReposi
 import { StatusFundoInvestimento as statusFundo } from 'src/@types/entities/fundos';
 import { ProcuradorFundoFundoInvestimentoRepositorio } from 'src/repositorios/contratos/procuradorFundoFundoInvestimentoRepositorio';
 import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
+import {
+  ErroAplicacao,
+  ErroConflitoRequisicao,
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class FundosService {
@@ -116,7 +116,10 @@ export class FundosService {
     const usuario = await this.obterUsuario(id);
 
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado.');
+      throw new ErroNaoEncontrado({
+        mensagem: 'Usuario não encontrado',
+        acao: 'FundosService.criarFactoring',
+      });
     }
 
     const transacao = await this.adaptadorDb.fazerTransacao(async () => {
@@ -167,7 +170,10 @@ export class FundosService {
     const usuario = await this.obterUsuario(id);
 
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado.');
+      throw new ErroNaoEncontrado({
+        mensagem: 'Usuario não encontrado',
+        acao: 'FundosService.criarSecuritizadora',
+      });
     }
 
     const transacao = await this.adaptadorDb.fazerTransacao(async () => {
@@ -302,7 +308,10 @@ export class FundosService {
       );
 
     if (!fundo) {
-      throw new NotFoundException(`${tipoEstrutura} não encontrado`);
+      throw new ErroNaoEncontrado({
+        mensagem: `${tipoEstrutura} não encontrado`,
+        acao: 'FundosService.patchFundo',
+      });
     }
 
     await this.verificarPropriedadeFundo(idUsuario, fundo.id);
@@ -444,8 +453,9 @@ export class FundosService {
   ) {
     tipoEstrutura = tipoEstrutura ? tipoEstrutura : PerfisInvestimento.FUNDO;
     if (!idGestorFundo) {
-      throw new BadRequestException({
+      throw new ErroRequisicaoInvalida({
         mensagem: 'Id do gestor do fundo necessário',
+        acao: 'FundosService.deleteFundo',
       });
     }
     const fundo =
@@ -455,7 +465,10 @@ export class FundosService {
       );
 
     if (!fundo) {
-      throw new NotFoundException(`${tipoEstrutura} não encontrado`);
+      throw new ErroNaoEncontrado({
+        mensagem: `${tipoEstrutura} não encontrado`,
+        acao: 'FundosService.atualizaEndereco',
+      });
     }
 
     await this.verificarPropriedadeFundo(idUsuario, fundo.id);
@@ -623,7 +636,10 @@ export class FundosService {
   private async obterUsuario(id: number) {
     const usuario = await this.usuarioRepositorio.encontrarPorId(id);
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new ErroNaoEncontrado({
+        mensagem: 'Usuário não encontrado',
+        acao: 'FundosService.criarNovaSecuritizadora',
+      });
     }
     return usuario;
   }
@@ -633,7 +649,10 @@ export class FundosService {
       await this.gestorFundoRepositorio.encontrarPorCnpj(cnpj);
 
     if (!gestorFundo) {
-      throw new NotFoundException('Gestor não encontrado.');
+      throw new ErroNaoEncontrado({
+        mensagem: 'Gestor não encontrado.',
+        acao: 'FundosService.obterGestorFundo',
+      });
     }
     return gestorFundo;
   }
@@ -705,8 +724,9 @@ export class FundosService {
           representante.id,
         ))
       ) {
-        throw new BadRequestException({
+        throw new ErroRequisicaoInvalida({
           mensagem: 'Representante associado a outro administrador',
+          acao: 'FundosService.obterOuCriarRepresentante',
         });
       }
 
@@ -994,8 +1014,9 @@ export class FundosService {
       );
 
     if (!fundoGestor) {
-      throw new NotFoundException({
+      throw new ErroNaoEncontrado({
         mensagem: 'Fundo de investimento não encontrado.',
+        acao: 'FundosService.verificarPropriedadeFundo',
       });
     }
 
@@ -1010,8 +1031,10 @@ export class FundosService {
       !usuarioFundo &&
       usuario.tipo_usuario.tipo !== TipoUsuarioEnum.BACKOFFICE
     ) {
-      throw new ForbiddenException({
+      throw new ErroAplicacao({
         mensagem: 'Acesso negado. Você não é o proprietário deste fundo.',
+        codigoStatus: 403,
+        acao: 'FundosService.verificarPropriedadeFundo',
       });
     }
 
@@ -1055,8 +1078,9 @@ export class FundosService {
       await this.fundoInvestimentoRepositorio.encontrarPorCpfCnpj(cnpjFundo);
 
     if (fundoJaExiste) {
-      throw new ConflictException({
+      throw new ErroConflitoRequisicao({
         mensagem: `Fundo com o cpf_cnpj ${cnpjFundo} já existe`,
+        acao: 'FundosService.verificarFundoJaExistente',
       });
     }
   }
@@ -1074,7 +1098,10 @@ export class FundosService {
         );
 
       if (!fundo) {
-        throw new NotFoundException('Factoring não encontrada');
+        throw new ErroNaoEncontrado({
+          mensagem: 'Factoring não encontrada',
+          acao: 'FundosService.removerEntidadesAssociadasEFactoringOuSecuritizadora',
+        });
       }
       const gestores =
         await this.fundoInvestimentoGestorFundoRepositorio.buscarPorFundoEGestor(
