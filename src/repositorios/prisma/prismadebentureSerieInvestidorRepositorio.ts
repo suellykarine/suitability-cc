@@ -228,12 +228,32 @@ export class PrismaDebentureSerieInvestidorRepositorio
 
   async atualizar({
     id,
-    ...props
+    id_conta_investidor,
+    id_debenture_serie,
+    id_fundo_investimento,
+    ...data
   }: AtualizarProps): Promise<DebentureSerieInvestidor> {
     const serieInvestidorData =
       await this.prisma.debenture_serie_investidor.update({
         where: { id },
-        data: props,
+        data: {
+          ...data,
+          ...(id_conta_investidor && {
+            conta_investidor: {
+              connect: { id: id_conta_investidor },
+            },
+          }),
+          ...(id_debenture_serie && {
+            debenture_serie: {
+              connect: { id: id_debenture_serie },
+            },
+          }),
+          ...(id_fundo_investimento && {
+            fundo_investimento: {
+              connect: { id: id_fundo_investimento },
+            },
+          }),
+        },
       });
 
     return serieInvestidorData;
@@ -317,7 +337,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
 
     return debentureSerieInvestidor;
   }
-  async buscarTodasDebentureSerieValidas(
+  async buscarTodasSeriesAptasParaInvestir(
     idFundoInvestimento: number,
   ): Promise<number[]> {
     const debentures = await this.prisma.debenture_serie_investidor.findMany({
@@ -325,8 +345,8 @@ export class PrismaDebentureSerieInvestidorRepositorio
         id_fundo_investimento: idFundoInvestimento,
         data_encerramento: null,
         data_desvinculo: null,
-        status_retorno_laqus: 'Aprovado',
-        status_retorno_creditsec: 'SUCCESS',
+        status_retorno_laqus: 'APROVADO',
+        status_retorno_creditsec: 'APROVADO',
       },
       select: {
         id_debenture_serie: true,

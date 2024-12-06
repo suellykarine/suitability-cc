@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cedente } from 'src/@types/entities/cedente';
 import { EnderecoCedente } from 'src/@types/entities/cedente';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
@@ -16,15 +11,19 @@ import { Usuario } from 'src/@types/entities/usuario';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
-import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoGestorFundoRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
-import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+
 import { BodyRetornoCriacaoSerieDto } from './dto/serie-callback.dto';
 import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { statusRetornoCreditSecDicionario } from './const';
+import {
+  ErroAplicacao,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
+import { LogService } from '../global/logs/log.service';
 
 @Injectable()
 export class CreditSecSerieService {
@@ -34,9 +33,7 @@ export class CreditSecSerieService {
   private baseUrlCadastroSigma: string;
   constructor(
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
-    private readonly fundoInvestimentoGestorFundoRepositorio: FundoInvestimentoGestorFundoRepositorio,
-    private readonly usuarioFundoInvestimentoRepositorio: UsuarioFundoInvestimentoRepositorio,
-    private readonly usuarioRepositorio: UsuarioRepositorio,
+    private readonly logService: LogService,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly configService: ConfigService,
@@ -91,7 +88,15 @@ export class CreditSecSerieService {
       );
       return todasSeriesAtualizadas;
     } catch (error) {
-      throw error;
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie',
+        mensagem: 'Erro ao buscar status de solicitação de série',
+        erro: error.message,
+        informacaoAdicional: {
+          error,
+        },
+      });
     }
   }
 
@@ -102,7 +107,10 @@ export class CreditSecSerieService {
           debentureSerieInvestidorId,
         );
       if (!debentureSerieInvestidor)
-        throw new BadRequestException('Série não encontrada');
+        throw new ErroRequisicaoInvalida({
+          acao: 'creditSecSerieService.solicitarSerie',
+          mensagem: 'Debenture Serie Investidor não encontrado',
+        });
 
       const usuario =
         debentureSerieInvestidor.fundo_investimento
@@ -136,18 +144,37 @@ export class CreditSecSerieService {
           status_retorno_creditsec: 'ERRO',
           mensagem_retorno_creditsec: 'Falha ao cadastrar série no CreditSec',
         });
-        throw error;
+        if (error instanceof ErroAplicacao) throw error;
+        throw new ErroServidorInterno({
+          acao: 'creditSecSerieService.solicitarSerie',
+          mensagem: 'Erro ao solicitar série no CreditSec',
+          erro: error.message,
+          informacaoAdicional: {
+            bodySolicitarSerie,
+            error,
+          },
+        });
       }
 
       return;
     } catch (error) {
-      throw error;
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        acao: 'creditSecSerieService.solicitarSerie',
+        mensagem: 'Erro ao solicitar série no CreditSec',
+        erro: error.message,
+        informacaoAdicional: {
+          debentureSerieInvestidorId,
+          error,
+        },
+      });
     }
   }
   async registrarRetornoCreditSec(data: BodyRetornoCriacaoSerieDto) {
     try {
       const debentureSerie =
-        await this.debentureSerieRepositorio.encontrarSeriePorNumeroSerie(
+        await this.debentureSerieRepositorio.encontrarSeriePorNumeroEmissaoNumeroSerie(
+          +data.numero_emissao,
           +data.numero_serie,
         );
       const ultimoVinculoDSI =
@@ -169,19 +196,45 @@ export class CreditSecSerieService {
           status_retorno_creditsec: status,
         });
 
-      if (status === 'APROVADO')
+      if (status === 'APROVADO') {
         await this.registrarDataEmissaoSerie(debentureSerie.id);
+        this.logService.info({
+          acao: 'creditSecSerieService.registrarRetornoCreditSec',
+          mensagem: 'Retorno CreditSec de APROVACÃO registrado com sucesso',
+          informacaoAdicional: {
+            data,
+            retornoCreditSec: data,
+          },
+        });
+      }
 
-      if (status === 'REPROVADO')
+      if (status === 'REPROVADO') {
         await this.desabilitarDebentureFundoInvestimento(
           ultimoVinculoDSI.id_fundo_investimento,
         );
+        this.logService.info({
+          acao: 'creditSecSerieService.registrarRetornoCreditSec',
+          mensagem: 'Retorno CreditSec de REPROVACÃO registrado com sucesso',
+          informacaoAdicional: {
+            data,
+            retornoCreditSec: data,
+          },
+        });
+      }
 
       return debentureSerieInvestidorAtualizado;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Ocorreu um erro ao registrar os dados',
-      );
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        acao: 'creditSecSerieService.registrarRetornoCreditSec',
+        mensagem: 'Erro ao registrar retorno do CreditSec',
+        erro: error.message,
+        informacaoAdicional: {
+          data,
+          error,
+          retornoCreditSec: data,
+        },
+      });
     }
   }
 
@@ -224,17 +277,20 @@ export class CreditSecSerieService {
     );
 
     if (req.ok) return await req.json();
-    throw new HttpException(
-      `Erro ao buscar serie: ${req.status} ${req.statusText}`,
-      req.status,
-    );
+    throw new ErroServidorInterno({
+      acao: 'creditSecSerieService.buscarStatusSerieCreditSec',
+      mensagem: `Erro ao buscar serie: ${req.status} ${req.statusText}`,
+      informacaoAdicional: {
+        numero_emissao,
+        numero_serie,
+        url: req.url,
+        req,
+      },
+    });
   }
   private async solicitarSerieCreditSec(body: SolicitarSerieType) {
     try {
-      console.log('body #solicitarSerieCreditSec'); //TO-DO: apagar após testes
-      console.log(body); //TO-DO: apagar após testes
       const url = `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`;
-      console.log('disparando para :', url); //TO-DO: apagar após testes
       const req = await fetch(url, {
         method: 'POST',
         body: JSON.stringify(body),
@@ -243,20 +299,44 @@ export class CreditSecSerieService {
           Authorization: `Bearer ${this.tokenCreditSecSolicitarSerie}`,
         },
       });
-      if (req.ok) return;
+      if (req.ok) {
+        this.logService.info({
+          acao: 'creditSecSerieService.solicitarSerieCreditSec',
+          mensagem: 'Série solicitada com sucesso no CreditSec',
+          informacaoAdicional: {
+            url,
+            req,
+            body,
+          },
+        });
+        return;
+      }
+
       const creditSecData = await req.json();
-      console.log('erroResponse #solicitarSerieCreditSec'); //TO-DO: apagar após testes
-      console.log(creditSecData[0]); //TO-DO: apagar após testes
-      throw new HttpException(
-        `Erro ao criar serie: ${req.status} ${req.statusText}, ${creditSecData[0]}`,
-        req.status,
-      );
+      throw new ErroServidorInterno({
+        acao: 'creditSecSerieService.solicitarSerieCreditSec',
+        mensagem: 'Erro ao solicitar série no CreditSec: ' + creditSecData[0],
+        informacaoAdicional: {
+          url,
+          req,
+          body,
+          creditSecData,
+        },
+      });
     } catch (error) {
-      console.log('erroCatch #solicitarSerieCreditSec');
-      const errorData = await error.json();
-      console.log(errorData);
-      console.log(error);
-      throw error;
+      console.log('error.message');
+      console.log(error.message);
+      if (error instanceof ErroAplicacao) throw error;
+
+      throw new ErroServidorInterno({
+        acao: 'creditSecSerieService.solicitarSerieCreditSec',
+        mensagem: 'Erro ao solicitar série no CreditSec',
+        erro: error.message,
+        informacaoAdicional: {
+          body,
+          error,
+        },
+      });
     }
   }
 
@@ -271,10 +351,15 @@ export class CreditSecSerieService {
 
     if (req.ok) return response;
 
-    throw new HttpException(
-      `Erro ao buscar cedente no sigma: ${req.status} ${req.statusText}`,
-      req.status,
-    );
+    throw new ErroServidorInterno({
+      acao: 'creditSecSerieService.buscarCedenteSigma',
+      mensagem: `Erro ao buscar cedente no sigma: ${req.status} ${req.statusText}`,
+      informacaoAdicional: {
+        identificador,
+        url: req.url,
+        req,
+      },
+    });
   }
 
   private async montarBodySolicitarSerie(

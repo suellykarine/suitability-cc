@@ -9,6 +9,7 @@ type LogProps = Omit<
 > &
   Partial<{
     informacaoAdicional: Record<string, unknown>;
+    formatoInformacaoAdicional?: 'json' | 'string';
     exibirNoConsole?: boolean;
   }>;
 
@@ -17,11 +18,19 @@ export class LogService {
   private readonly logger = new Logger('LogService');
   constructor(private readonly logsRepository: LogsRepositorio) {}
 
-  async log({ exibirNoConsole = false, ...log }: LogProps) {
+  async log({
+    exibirNoConsole = false,
+    formatoInformacaoAdicional = 'json',
+    ...log
+  }: LogProps) {
+    const manterFormato = formatoInformacaoAdicional === 'json';
+    const informacaoAdicional = manterFormato
+      ? log.informacaoAdicional
+      : JSON.stringify(log.informacaoAdicional);
     const payload = {
       ...log,
       criadoEm: new Date().toISOString(),
-      informacaoAdicional: JSON.stringify(log.informacaoAdicional),
+      informacaoAdicional: informacaoAdicional,
     };
     if (exibirNoConsole) this.logger.log(payload.mensagem);
     await this.logsRepository.criarLog(payload);

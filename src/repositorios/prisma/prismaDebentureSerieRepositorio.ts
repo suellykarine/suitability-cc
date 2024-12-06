@@ -88,11 +88,15 @@ export class PrismaDebentureSerieRepositorio
     return seriesExistentes.map(converterCamposDecimais);
   }
 
-  async encontrarSeriePorNumeroSerie(
+  async encontrarSeriePorNumeroEmissaoNumeroSerie(
+    numero_emissao: number,
     numero_serie: number,
   ): Promise<DebentureSerie | null> {
     const debenture_serie = await this.prisma.debenture_serie.findFirst({
-      where: { numero_serie: numero_serie },
+      where: {
+        numero_serie: numero_serie,
+        debenture: { numero_debenture: numero_emissao },
+      },
     });
     return converterCamposDecimais(debenture_serie);
   }
