@@ -20,6 +20,6 @@ export abstract class OperacaoDebentureRepositorio {
   abstract buscarOperacoesPeloCodigoOperacao(
     cofigoOperacao: string,
   ): Promise<OperacaoDebenture[]>;
-  
+
   abstract buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]>;
 }

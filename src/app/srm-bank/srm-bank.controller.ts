@@ -10,11 +10,12 @@ import { SrmBankService } from './srm-bank.service';
 export class SrmBankController {
   constructor(private readonly srmBankService: SrmBankService) {}
 
-  @UseGuards(JwtAuthGuardBackoffice)
+  //@UseGuards(JwtAuthGuardBackoffice)
   @Post(':id_cedente')
   criarContaSrmBank(@Param('id_cedente') id_cedente: string) {
     return this.srmBankService.criarContaInvestidor(Number(id_cedente));
   }
+
   @UseGuards(JwtAuthGuardPremium)
   @Get('conta/:id_fundo_investidor')
   buscarContaInvestidor(
