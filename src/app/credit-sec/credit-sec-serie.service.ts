@@ -323,8 +323,6 @@ export class CreditSecSerieService {
         },
       });
     } catch (error) {
-      console.log('error.message');
-      console.log(error.message);
       if (error instanceof ErroAplicacao) throw error;
 
       throw new ErroServidorInterno({
