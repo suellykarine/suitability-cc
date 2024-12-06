@@ -15,10 +15,13 @@ export type FeedbackBackoffice = {
   usuario_investidor?: Usuario;
 };
 
-export type FundoBackoffice = {
+export type FundoBackofficeSemVinculo = {
   id: number;
   nome: string;
   email: string;
   telefone?: string;
+};
+
+export type FundoBackoffice = FundoBackofficeSemVinculo & {
   fundo_investimento?: FundoInvestimento[];
 };
