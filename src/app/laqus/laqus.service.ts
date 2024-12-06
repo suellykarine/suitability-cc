@@ -175,7 +175,6 @@ export class LaqusService {
     const retornoLaqus = (await response.json()) as { id: string };
 
     if (!response.ok) {
-      console.log(retornoLaqus);
       throw new ErroServidorInterno({
         acao: 'laqus.cadastrarInvestidor',
         mensagem: 'Erro ao cadastrar investidor no Laqus',

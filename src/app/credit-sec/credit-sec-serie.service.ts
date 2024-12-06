@@ -240,10 +240,9 @@ export class CreditSecSerieService {
     dataVencimento.setMonth(dataAtual.getMonth() + 6);
 
     const debentureSerieAtualizado =
-      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie({
+      await this.debentureSerieRepositorio.atualizar(id_debenture_serie, {
         data_emissao: dataAtual,
         data_vencimento: dataVencimento,
-        id_debenture_serie,
       });
     return debentureSerieAtualizado;
   }
@@ -320,8 +319,6 @@ export class CreditSecSerieService {
         },
       });
     } catch (error) {
-      console.log('error.message');
-      console.log(error.message);
       if (error instanceof ErroAplicacao) throw error;
 
       throw new ErroServidorInterno({

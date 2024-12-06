@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import {
-  atualizarDatasDebentureSerie,
   DebentureSerie,
+  DebentureSerieSemVinculo,
 } from 'src/@types/entities/debenture';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
 import { DebentureSerieRepositorio } from '../contratos/debenturesSerieRepositorio';
-import { AtualizarDebentureSerieDto } from 'src/app/debentures/dto/atualizar-debenture-serie.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -59,11 +58,18 @@ export class PrismaDebentureSerieRepositorio
 
   async atualizar(
     id: number,
-    debentureSerie: AtualizarDebentureSerieDto,
+    { id_debenture, ...dados }: Partial<Omit<DebentureSerieSemVinculo, 'id'>>,
   ): Promise<DebentureSerie | null> {
     const updatedDebentureSerie = await this.prisma.debenture_serie.update({
       where: { id },
-      data: debentureSerie,
+      data: {
+        ...dados,
+        ...(id_debenture && {
+          debenture: {
+            connect: { id: id_debenture },
+          },
+        }),
+      },
     });
 
     return converterCamposDecimais(updatedDebentureSerie);
@@ -99,20 +105,6 @@ export class PrismaDebentureSerieRepositorio
       },
     });
     return converterCamposDecimais(debenture_serie);
-  }
-
-  async atualizaDatasDebentureSerie(
-    data: atualizarDatasDebentureSerie,
-  ): Promise<DebentureSerie> {
-    const atualizaDatasDebentureSerie =
-      await this.prisma.debenture_serie.update({
-        where: { id: data.id_debenture_serie },
-        data: {
-          data_emissao: data.data_emissao,
-          data_vencimento: data.data_vencimento,
-        },
-      });
-    return converterCamposDecimais(atualizaDatasDebentureSerie);
   }
 
   async buscarPorNumeroSerie(
