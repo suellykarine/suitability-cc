@@ -15,7 +15,7 @@ import { LogService } from 'src/app/global/logs/log.service';
 export class TratamentoExcessoesFiltro implements ExceptionFilter {
   constructor(@Inject(LogService) private readonly logService: LogService) {}
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  async catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
@@ -32,7 +32,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
       };
 
       if (salvarEmLog) {
-        this.logService.erro(payload);
+        await this.logService.erro(payload);
       }
 
       return response.status(codigoStatus).json({
@@ -55,7 +55,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
     const message =
       exception instanceof Error ? exception.message : 'Erro desconhecido';
 
-    this.logService.erro({
+    await this.logService.erro({
       mensagem: message,
       acao: 'unknown',
       informacaoAdicional: {

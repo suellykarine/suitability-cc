@@ -12,7 +12,8 @@ export abstract class DebentureSerieRepositorio extends Repositorio {
 
   abstract encontrarPorId(id: number): Promise<DebentureSerie | null>;
 
-  abstract encontrarSeriePorNumeroSerie(
+  abstract encontrarSeriePorNumeroEmissaoNumeroSerie(
+    numero_emissao: number,
     numero_serie: number,
   ): Promise<DebentureSerie | null>;
 
