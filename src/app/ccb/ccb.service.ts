@@ -1,41 +1,38 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { sigmaHeaders } from '../autenticacao/constants';
 
 @Injectable()
 export class CcbService {
-  private readonly urlBase: string;
-
-  constructor(private configService: ConfigService) {
-    this.urlBase = this.configService.get<string>('CCB_BASE_URL');
+  private baseUrlCCBs: string;
+  constructor(private readonly configService: ConfigService) {
+    this.baseUrlCCBs = this.configService.get('BASE_URL_CCB');
   }
 
-  async obterAssinaturaDigital(codigoOperacao: string) {
-    const endpoint = `/operacoes/${codigoOperacao}/assinatura-digital`;
-    const url = `${this.urlBase}${endpoint}?modo=OPERACAO&codigosDocumento=20,21,33,35,39,46,50,54`;
-
-    const resultado = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-API-KEY': sigmaHeaders['X-API-KEY'],
+  public async buscarCCCBAssinada(codigoAtivo: number) {
+    const req = await fetch(
+      `${this.baseUrlCCBs}arquivo/v1/arquivos/invest/assinado?codigoOperacao=${codigoAtivo}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
 
-    if (!resultado.ok) {
-      throw new HttpException('Erro ao buscar dados', 502);
-    }
+    if (!req.ok)
+      throw new HttpException(`erro ao buscar CCB assinada`, req.status);
 
-    const buffer = await resultado.arrayBuffer();
+    return await req.json();
+  }
 
-    const contentType =
-      resultado.headers.get('Content-Type') || 'application/octet-stream';
-    const contentDisposition =
-      resultado.headers.get('Content-Disposition') || 'attachment';
+  public async buscarCCBParaExternalizar(codigoAtivo: number) {
+    const buscaCCB = await this.buscarCCCBAssinada(codigoAtivo);
+    const baseUrlExternalizarCCB = process.env.BASE_URL_EXTERALIZAR_CCB;
 
-    return {
-      buffer,
-      contentType,
-      contentDisposition,
-    };
+    const url = new URL(buscaCCB.url);
+    const chaveAcesso = url.searchParams.get('chaveAcesso');
+
+    const urlParaExternalizar = `${baseUrlExternalizarCCB}arquivos/hash?chaveAcesso=${chaveAcesso}`;
+
+    return urlParaExternalizar;
   }
 }
