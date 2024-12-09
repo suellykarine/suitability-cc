@@ -6,7 +6,7 @@ import {
 } from './fundos';
 import { Usuario } from './usuario';
 
-export type Endereco = {
+export type EnderecoSemVinculo = {
   id: number;
   cep?: string;
   logradouro?: string;
@@ -16,6 +16,9 @@ export type Endereco = {
   cidade?: string;
   estado?: string;
   pais?: string;
+};
+
+export type Endereco = EnderecoSemVinculo & {
   administrador_fundo?: AdministradorFundo[];
   gestor_fundo?: GestorFundo[];
   procurador_fundo?: ProcuradorFundo[];

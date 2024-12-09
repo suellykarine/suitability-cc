@@ -22,6 +22,13 @@ import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operaca
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
 import { SigmaService } from '../sigma/sigma.service';
+import { DebentureSerieService } from '../debentures/debentures-serie.service';
+import { PagamentoOperacaoService } from '../sigma/sigma.pagamentoOperacao.service';
+import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
+import { LaqusService } from '../laqus/laqus.service';
+import { SrmBankService } from '../srm-bank/srm-bank.service';
+import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -32,6 +39,11 @@ import { SigmaService } from '../sigma/sigma.service';
     CreditSecRemessaService,
     PrismaService,
     SigmaService,
+    DebentureSerieService,
+    LaqusService,
+    PagamentoOperacaoService,
+    SrmBankService,
+    CadastroCedenteService,
     {
       provide: DebentureRepositorio,
       useClass: PrismaDebentureRepositorio,
@@ -63,6 +75,10 @@ import { SigmaService } from '../sigma/sigma.service';
     {
       provide: OperacaoDebentureRepositorio,
       useClass: PrismaOperacaoDebentureRepositorio,
+    },
+    {
+      provide: ContaInvestidorRepositorio,
+      useClass: PrismaContaInvestidorRepositorio,
     },
   ],
   exports: [CreditSecSerieService, CreditSecRemessaService],

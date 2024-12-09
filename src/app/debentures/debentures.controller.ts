@@ -12,10 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
-import {
-  AtualizarDebentureSerieDto,
-  AtualizarValorDaSerieDto,
-} from './dto/atualizar-debenture-serie.dto';
+import { AtualizarValorDaSerieDto } from './dto/atualizar-debenture-serie.dto';
 import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
@@ -76,18 +73,6 @@ export class DebenturesController {
   @Post('serie/backoffice')
   async solicitarSerie(@Body() payload: CriarDebentureSerieDto) {
     return this.debenturesSerieService.solicitarSerieBackOffice(payload);
-  }
-
-  @UseGuards(JwtAuthGuardBackoffice)
-  @Patch('serie/:id')
-  async atualizar(
-    @Param('id') id: string,
-    @Body() atualizarDebentureSerieDto: AtualizarDebentureSerieDto,
-  ) {
-    return this.debenturesSerieService.atualizar(
-      +id,
-      atualizarDebentureSerieDto,
-    );
   }
 
   @UseGuards(JwtAuthGuardPremium)

@@ -215,7 +215,7 @@ export class EstruturacaoCarrinhoService {
     };
 
     const req = await fetch(
-      `${process.env.BASE_URL_PAGAMENTO}pagamento-operacao/v1/pagamentos-operacao/${codigoOperacao}`,
+      `${process.env.BASE_URL_PAGAMENTO}/pagamentos-operacao/${codigoOperacao}`,
       {
         method: 'POST',
         body: JSON.stringify(body),
@@ -236,7 +236,7 @@ export class EstruturacaoCarrinhoService {
     codigoOperacao: number,
   ) {
     const req = await fetch(
-      `${process.env.BASE_URL_PAGAMENTO}pagamento-operacao/v1/pagamentos-operacao/${codigoOperacao}`,
+      `${process.env.BASE_URL_PAGAMENTO}/pagamentos-operacao/${codigoOperacao}`,
       {
         method: 'DELETE',
         headers: {

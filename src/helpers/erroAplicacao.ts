@@ -2,7 +2,6 @@ import { HttpException } from '@nestjs/common';
 
 type AppErrorProps = {
   mensagem: string;
-  erro?: unknown | Error;
   codigoStatus: number;
   acao: string;
   informacaoAdicional?: Record<string, unknown>;
@@ -18,16 +17,14 @@ export class ErroAplicacao extends HttpException {
   constructor({
     mensagem,
     codigoStatus,
-    erro,
     informacaoAdicional,
     acao,
     salvarEmLog = true,
   }: AppErrorProps) {
-    const erroTipado = erro as Error;
     super(mensagem, codigoStatus);
     this.codigoStatus = codigoStatus;
     this.acao = acao;
-    this.informacaoAdicional = { erro: erroTipado, ...informacaoAdicional };
+    this.informacaoAdicional = informacaoAdicional;
     this.salvarEmLog = salvarEmLog;
   }
 }

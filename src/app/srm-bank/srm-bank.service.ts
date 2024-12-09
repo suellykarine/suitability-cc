@@ -28,7 +28,7 @@ export class SrmBankService {
       const criarConta = await this.CriarContaSRMBank(identificador);
       const buscarConta = await this.buscarContaSrmBank(
         identificador,
-        criarConta.conta.slice(0, 9),
+        criarConta.conta,
       );
 
       const objRegistrarContaCC: RegistrarContaNoCC = {
@@ -86,7 +86,7 @@ export class SrmBankService {
     numeroConta: string,
   ): Promise<RespostaBuscarContaSrmBank> {
     const req = await fetch(
-      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente`,
+      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente?numeroContaCorrente=${numeroConta}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -103,15 +103,10 @@ export class SrmBankService {
 
     const res = await req.json();
 
-    const findConta = res.find(
-      (ele: RespostaBuscarContaSrmBank) =>
-        ele.dadosBancarios.contaCorrente == numeroConta,
-    );
-
-    if (!findConta) {
+    if (res.length === 0) {
       return await this.buscarContaSrmBank(identificador, numeroConta);
     }
-    return findConta;
+    return res[0];
   }
   async buscarContaSrmBankAtivaPorCnpj(identificador: string) {
     const req = await fetch(

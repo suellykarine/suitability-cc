@@ -51,7 +51,7 @@ export class AnbimaService {
         fundo.codigo_fundo,
       );
       const patrimonioLiquido =
-        serieHistorica?.content?.[0].valor_patrimonio_liquido ?? 1;
+        serieHistorica?.content?.[0].valor_patrimonio_liquido || 1;
 
       if (!detalhesFundo) return null;
       const regulamento = detalhesFundo.documentos?.find(
