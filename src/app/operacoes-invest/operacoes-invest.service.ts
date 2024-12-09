@@ -1,9 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OperacoesInvestService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor() {}
 
   async buscarTransacaoPorCodigoOperacao(codigoOperacao: number) {
     try {
