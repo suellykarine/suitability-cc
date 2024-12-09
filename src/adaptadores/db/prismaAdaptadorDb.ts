@@ -34,7 +34,7 @@ export class PrismaAdaptadorDb implements AdaptadorDb {
         }
       },
       {
-        timeout: 10000,
+        timeout: 30000,
         maxWait: 5000,
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         ...config,
