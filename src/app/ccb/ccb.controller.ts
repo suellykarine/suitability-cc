@@ -1,14 +1,5 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Res,
-  HttpException,
-  HttpStatus,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { CcbService } from './ccb.service';
-import { Response } from 'express';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -19,20 +10,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class CcbController {
   constructor(private readonly ccbService: CcbService) {}
 
-  @Get(':codigoOperacao/assinatura-digital')
-  async obterAssinaturaDigital(
-    @Param('codigoOperacao') codigoOperacao: string,
-    @Res() resposta: Response,
-  ) {
-    try {
-      const { buffer, contentType, contentDisposition } =
-        await this.ccbService.obterAssinaturaDigital(codigoOperacao);
-
-      resposta.setHeader('Content-Type', contentType);
-      resposta.setHeader('Content-Disposition', contentDisposition);
-      resposta.status(HttpStatus.OK).send(Buffer.from(buffer));
-    } catch (erro) {
-      throw new HttpException(erro.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  @Get(':codigoOperacao/')
+  async obterCCBAssinada(@Param('codigoOperacao') codigoOperacao: number) {
+    return await this.ccbService.buscarCCCBAssinada(codigoOperacao);
   }
 }
