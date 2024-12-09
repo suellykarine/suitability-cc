@@ -6,7 +6,6 @@ import {
   Delete,
   HttpCode,
   UseGuards,
-  Get,
   BadRequestException,
 } from '@nestjs/common';
 import { EstruturacaoCarrinhoService } from './estruturacao-carrinho.service';
@@ -81,7 +80,7 @@ export class EstruturacaoCarrinhoController {
     return this.estruturacaoCarrinhoService.removerAtivoCarteira(id, ativoId);
   }
 
-  @Get('direto/:identificador/:codigoOperacao')
+  @Post('direto/:identificador/:codigoOperacao')
   @ApiResponse({
     status: 200,
     description: 'Compra formalizada com sucesso',

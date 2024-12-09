@@ -53,33 +53,39 @@ export type StatusFundoInvestimento = {
   fundo_investimento?: FundoInvestimento[];
 };
 
-export type AdministradorFundo = {
+export type AdministradorFundoSemVinculo = {
   id: number;
   nome?: string;
   email?: string;
   telefone?: string;
   id_endereco?: number;
   cnpj?: string;
-  endereco?: Endereco;
+};
+
+export type AdministradorFundo = AdministradorFundoSemVinculo & {
   administrador_fundo_representante_fundo?: AdministradorFundoRepresentanteFundo[];
   fundo_investimento?: FundoInvestimento[];
+  endereco?: Endereco;
 };
 
 export type AdministradorFundoRepresentanteFundo = {
   id: number;
   id_administrador_fundo: number;
   id_representante_fundo: number;
-  administrador_fundo: AdministradorFundo;
-  representante_fundo: RepresentanteFundo;
+  administrador_fundo?: AdministradorFundo;
+  representante_fundo?: RepresentanteFundo;
 };
 
-export type RepresentanteFundo = {
+export type RepresentanteFundoSemVinculo = {
   id: number;
   nome?: string;
   cpf?: string;
   telefone?: string;
   email?: string;
   id_endereco?: number;
+};
+
+export type RepresentanteFundo = RepresentanteFundoSemVinculo & {
   administrador_fundo_representante_fundo?: AdministradorFundoRepresentanteFundo[];
   fundo_investimento?: FundoInvestimento[];
   endereco?: Endereco;
@@ -110,24 +116,31 @@ export type StatusGestorFundo = {
   gestor_fundo?: GestorFundo[];
 };
 
-export type ProcuradorFundo = {
+export type ProcuradorFundoSemVinculo = {
   id: number;
   nome?: string;
   cpf?: string;
   telefone?: string;
   email?: string;
   id_endereco?: number;
+};
+
+export type ProcuradorFundo = ProcuradorFundoSemVinculo & {
   endereco?: Endereco;
   procurador_fundo_fundo_investimento?: ProcuradorFundoFundoInvestimento[];
 };
 
-export type ProcuradorFundoFundoInvestimento = {
+export type ProcuradorFundoFundoInvestimentoSemVinculo = {
   id: number;
   id_fundo_investimento: number;
   id_procurador_fundo: number;
-  fundo_investimento: FundoInvestimento;
-  procurador_fundo: ProcuradorFundo;
 };
+
+export type ProcuradorFundoFundoInvestimento =
+  ProcuradorFundoFundoInvestimentoSemVinculo & {
+    fundo_investimento?: FundoInvestimento;
+    procurador_fundo?: ProcuradorFundo;
+  };
 
 export type FundoInvestimentoGestorFundo = {
   id: number;

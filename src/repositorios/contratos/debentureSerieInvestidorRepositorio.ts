@@ -1,9 +1,8 @@
 import {
   AtualizaDebentureSerieInvestidorCreditSec,
-  AtualizarDebentureSerieInvestidorLaqus,
+  DebentureSerie,
   DebentureSerieInvestidor,
 } from 'src/@types/entities/debenture';
-import { RetornoMultiplos } from 'src/utils/prisma/types';
 import { Repositorio } from './repositorio';
 
 export type AtualizarProps = Omit<
@@ -49,9 +48,6 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
     props: AtualizarProps,
   ): Promise<DebentureSerieInvestidor | null>;
 
-  abstract atualizarStatusLaqus(
-    props: AtualizarDebentureSerieInvestidorLaqus,
-  ): Promise<RetornoMultiplos>;
   abstract encontrarMaisRecentePorIdDebentureSerie(
     idDebentureSerie: number,
   ): Promise<DebentureSerieInvestidor | null>;
@@ -63,7 +59,11 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   abstract todosStatusCreditSecNull(): Promise<
     DebentureSerieInvestidor[] | null
   >;
-  abstract buscarTodasDebentureSerieValidas(
-    idFundoInvestimento: number,
-  ): Promise<number[]>;
+  abstract buscarTodasSeriesAptasParaInvestir({
+    idFundoInvestimento,
+    idDebenture,
+  }: {
+    idFundoInvestimento: number;
+    idDebenture: number;
+  }): Promise<DebentureSerie[]>;
 }

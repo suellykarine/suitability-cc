@@ -15,6 +15,7 @@ export class SrmBankController {
   criarContaSrmBank(@Param('id_cedente') id_cedente: string) {
     return this.srmBankService.criarContaInvestidor(Number(id_cedente));
   }
+
   @UseGuards(JwtAuthGuardPremium)
   @Get('conta/:id_fundo_investidor')
   buscarContaInvestidor(

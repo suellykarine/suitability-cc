@@ -12,4 +12,6 @@ export abstract class DocumentoRepositorio extends Repositorio {
     idDocumento: number,
     dadosDocumento: Partial<DocumentoSemVinculo>,
   ): Promise<Documento | null>;
+
+  abstract removerPorFundo(idFundo: number): Promise<void>;
 }
