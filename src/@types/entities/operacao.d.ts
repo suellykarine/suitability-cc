@@ -61,7 +61,7 @@ export type OperacaoInvest = {
   ativosInvest: AtivoInvest[];
 };
 
-type ControleOperacao = {
+export type ControleOperacao = {
   tipoOperacaoPagamento: string;
   codigoOperacaoPagamento: number;
   codigoContaCedente: number;
