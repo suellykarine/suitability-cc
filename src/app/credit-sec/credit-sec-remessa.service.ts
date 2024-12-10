@@ -32,6 +32,7 @@ import {
 } from 'src/helpers/erroAplicacao';
 import { OperacoesInvestService } from '../operacoes-invest/operacoes-invest.service';
 import { LogService } from '../global/logs/log.service';
+import { CcbService } from '../ccb/ccb.service';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -45,6 +46,7 @@ export class CreditSecRemessaService {
     private readonly pagamentoOperacaoService: PagamentoOperacaoService,
     private readonly operacaoInvestService: OperacoesInvestService,
     private readonly logService: LogService,
+    private readonly ccbService: CcbService,
   ) {}
   @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoRemessa() {
@@ -95,7 +97,7 @@ export class CreditSecRemessaService {
       const operacaoCedente = await this.encontrarOperacoesCedenteSigma(
         String(data.codigo_operacao),
       );
-      const body = this.montarBodySolicitarRemessa(
+      const body = await this.montarBodySolicitarRemessa(
         {
           numero_emissao: data.numero_debenture,
           numero_serie: data.numero_serie,
@@ -346,26 +348,6 @@ export class CreditSecRemessaService {
     const res = await req.json();
     return res;
   }
-  private async encontrarCCBAtivos(codigoAtivo: string) {
-    const req = await fetch(
-      `${process.env.CCB_BASE_URL}/operacoes/${codigoAtivo}/assinatura-digital?modo=OPERACAO&codigosDocumento=20,21,33,35,39,46,50,54`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': sigmaHeaders['X-API-KEY'],
-        },
-      },
-    );
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao encontrar CCBs da operação: ${req.status} ${req.statusText}`,
-        req.status,
-      );
-
-    const res = await req.json();
-    return res;
-  }
 
   private async criarRegistroDeOperacaoSigma(
     codigoOperacao: string,
@@ -426,7 +408,7 @@ export class CreditSecRemessaService {
     return criarOperacaoDebenture;
   }
 
-  private montarBodySolicitarRemessa(
+  private async montarBodySolicitarRemessa(
     {
       numero_remessa,
       numero_emissao,
@@ -434,13 +416,16 @@ export class CreditSecRemessaService {
       data_operacao,
     }: NumerosSolicitarRemessa,
     dadosAtivo: AtivosInvest[],
-  ): SolicitarRemessaType {
+  ): Promise<SolicitarRemessaType> {
     const isLocalhost = process.env.AMBIENTE === 'development';
     const baseUrl = isLocalhost
       ? 'http://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
       : process.env.BASE_URL;
 
-    const ativos = dadosAtivo.map((ativo) => {
+    const promiseAtivos = dadosAtivo.map(async (ativo) => {
+      const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
+        ativo.codigoAtivo,
+      );
       const taxa_cessao =
         ativo.taxaAtivo === 'PRÉ'
           ? { tipo: 'prefixada', valor: ativo.tir }
@@ -459,9 +444,8 @@ export class CreditSecRemessaService {
           nome_fantasia: null,
         },
         data_emissao: data_operacao,
-        //pendente
         lastro: {
-          url: 'https://drive.google.com/file/d/1RGaQcxpmaa5tGUHcyglWRj1iDnQ_unK5/view?usp=drive_link',
+          url: ccbAssinada,
         },
         parcelas: ativo.recebiveis.map((parcelas) => {
           return {
@@ -472,6 +456,7 @@ export class CreditSecRemessaService {
         }),
       };
     });
+    const ativos = await Promise.all(promiseAtivos);
     return {
       numero_remessa: String(numero_remessa),
       numero_emissao,

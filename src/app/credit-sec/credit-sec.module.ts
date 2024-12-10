@@ -30,6 +30,7 @@ import { LaqusService } from '../laqus/laqus.service';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 import { OperacoesInvestModule } from '../operacoes-invest/operacoes-invest.module';
+import { CcbService } from '../ccb/ccb.service';
 
 @Module({
   imports: [ScheduleModule.forRoot(), OperacoesInvestModule],
@@ -42,6 +43,7 @@ import { OperacoesInvestModule } from '../operacoes-invest/operacoes-invest.modu
     SigmaService,
     DebentureSerieService,
     LaqusService,
+    CcbService,
     PagamentoOperacaoService,
     SrmBankService,
     CadastroCedenteService,
