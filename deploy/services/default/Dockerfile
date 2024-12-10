@@ -9,6 +9,7 @@ RUN npm install dotenv --global
 
 USER node
 WORKDIR /app
+RUN apk add --no-cache openssl
 
 # COPY package*.json ./
 COPY node_modules/ ./node_modules/
