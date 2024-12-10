@@ -200,6 +200,18 @@ export class CreditSecRemessaService {
       }
 
       if (statusRetorno === 'REPROVADO') {
+        const motivos = data.titulos_rejeitados.reduce((acc, curr) => {
+          return `${acc} | ${curr.motivo_rejeicao}`;
+        }, '');
+
+        this.logService.aviso({
+          mensagem: 'Remessa Recusada pela CreditSec',
+          acao: 'creditSecRemessaService.registrarRetornoCreditSec.reprovado',
+          informacaoAdicional: {
+            data,
+            motivos,
+          },
+        });
         const debentureSerieInvestidor =
           await this.debentureSerieInvestidorRepositorio.encontrarPorId(
             operacao.id_debenture_serie_investidor,
@@ -217,27 +229,18 @@ export class CreditSecRemessaService {
           valorOperacao,
         );
 
-        const motivos = data.titulos_rejeitados.reduce((acc, curr) => {
-          return `${acc} | ${curr.motivo_rejeicao}`;
-        }, '');
         await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
           status_retorno_creditsec: statusRetorno,
           data_exclusao: new Date(),
           mensagem_retorno_creditsec: motivos,
         });
+
         await this.sigmaService.excluirOperacaoDebentureSigma({
           codigoOperacao: data.numero_remessa,
           complementoStatusOperacao:
             'A emissão da Remessa foi Recusada pela CreditSec',
         });
-        this.logService.aviso({
-          mensagem: 'Remessa Recusada pela CreditSec',
-          acao: 'creditSecRemessaService.registrarRetornoCreditSec.reprovado',
-          informacaoAdicional: {
-            data,
-            motivos,
-          },
-        });
+
         return;
       }
       return;
