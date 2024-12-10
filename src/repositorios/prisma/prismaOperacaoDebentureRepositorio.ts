@@ -22,11 +22,11 @@ export class PrismaOperacaoDebentureRepositorio
   }
 
   async atualizar(
+    id: number,
     {
       id_debenture_serie_investidor,
       ...data
     }: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
-    id: number,
   ): Promise<OperacaoDebenture> {
     return await this.prisma.operacao_debenture.update({
       where: { id },
@@ -41,10 +41,10 @@ export class PrismaOperacaoDebentureRepositorio
     });
   }
 
-  async buscarOperacoesPeloCodigoOperacao(
+  async buscarOperacaoPeloCodigoOperacao(
     codigo_operacao: string,
-  ): Promise<OperacaoDebenture[]> {
-    return await this.prisma.operacao_debenture.findMany({
+  ): Promise<OperacaoDebenture> {
+    return await this.prisma.operacao_debenture.findFirst({
       where: { codigo_operacao: Number(codigo_operacao) },
     });
   }
