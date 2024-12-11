@@ -27,6 +27,9 @@ export class CedenteService {
       throw new ErroServidorInterno({
         acao: logAcao,
         mensagem: `Erro ao buscar bancos: ${req.statusText}`,
+        informacaoAdicional: {
+          req,
+        },
       });
     }
 

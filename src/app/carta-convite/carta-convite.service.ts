@@ -18,6 +18,7 @@ import { CartaConvite } from './entities/carta-convite.entity';
 import { PrismaService } from 'prisma/prisma.service';
 import { fazerNada } from 'src/utils/funcoes/geral';
 import {
+  ErroAplicacao,
   ErroConflitoRequisicao,
   ErroNaoEncontrado,
   ErroRequisicaoInvalida,
@@ -136,6 +137,7 @@ export class CartaConviteService {
           });
         }
       } catch (erro) {
+        if (erro instanceof ErroAplicacao) throw erro;
         throw new ErroServidorInterno({
           acao: logAcao,
           mensagem: 'Serviço indisponível',
@@ -293,7 +295,8 @@ export class CartaConviteService {
       });
 
       return;
-    } catch {
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
       throw new ErroNaoEncontrado({
         acao: logAcao,
         mensagem: 'Carta convite não encontrada',
@@ -317,6 +320,9 @@ export class CartaConviteService {
       throw new ErroRequisicaoInvalida({
         acao: logAcao,
         mensagem: 'Código não encontrado',
+        informacaoAdicional: {
+          dados: verificarCodigoCartaConviteDto,
+        },
       });
     }
 

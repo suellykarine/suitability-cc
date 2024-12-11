@@ -123,6 +123,9 @@ export class CadastroCedenteService {
       throw new ErroRequisicaoInvalida({
         acao: logAcao,
         mensagem: 'Erro na comunicação com o serviço externo',
+        informacaoAdicional: {
+          dados,
+        },
       });
     }
     return dados;

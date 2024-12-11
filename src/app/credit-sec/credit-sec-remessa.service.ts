@@ -378,6 +378,7 @@ export class CreditSecRemessaService {
     );
 
     if (!req.ok) {
+      const reqDados = await req.json();
       throw new ErroServidorInterno({
         mensagem: `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
         acao: 'creditSecRemessaService.criarRegistroDeOperacaoSigma',
@@ -387,7 +388,7 @@ export class CreditSecRemessaService {
             body: req.body,
             texto: req.statusText,
           },
-          req,
+          reqDados,
         },
       });
     }
@@ -408,6 +409,7 @@ export class CreditSecRemessaService {
       },
     );
     if (!req.ok) {
+      const reqDados = await req.json();
       throw new ErroServidorInterno({
         mensagem: `Erro ao destravar operacao debenture no sigma: ${req.status} ${req.statusText}`,
         acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
@@ -417,7 +419,7 @@ export class CreditSecRemessaService {
             body: req.body,
             texto: req.statusText,
           },
-          req,
+          reqDados,
         },
       });
     }

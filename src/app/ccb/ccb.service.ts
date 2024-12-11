@@ -21,12 +21,14 @@ export class CcbService {
     );
 
     if (!req.ok) {
+      const reqDados = await req.json();
       throw new ErroNaoEncontrado({
         acao: logAcao,
         mensagem: `erro ao buscar CCB assinada`,
         informacaoAdicional: {
           status: req.status,
           codigoAtivo,
+          reqDados,
         },
       });
     }
