@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
@@ -7,7 +7,10 @@ import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
 import { Cedente } from 'src/@types/entities/cedente';
-import { ErroServidorInterno } from 'src/helpers/erroAplicacao';
+import {
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class CadastroCedenteService {
@@ -107,17 +110,17 @@ export class CadastroCedenteService {
     const logAcao = 'cedenteCadastro.buscarDadosPJ';
     const url = `${this.urlBase}/${identificadorFundo}`;
 
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         'X-API-KEY': sigmaHeaders['X-API-KEY'],
       },
     });
 
-    const dados = (await resposta.json()) as Cedente;
+    const dados = (await req.json()) as Cedente;
 
-    if (!resposta.ok) {
-      throw new BadRequestException({
+    if (!req.ok) {
+      throw new ErroRequisicaoInvalida({
         acao: logAcao,
         mensagem: 'Erro na comunicação com o serviço externo',
       });
