@@ -445,7 +445,7 @@ export class CreditSecRemessaService {
         },
         data_emissao: data_operacao,
         lastro: {
-          url: ccbAssinada,
+          url: ccbAssinada.url,
         },
         parcelas: ativo.recebiveis.map((parcelas) => {
           return {
