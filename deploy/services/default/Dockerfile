@@ -7,10 +7,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV NODE_ENV=production
 RUN npm install dotenv --global
 
-RUN set -ex; \
-    apk update; \
-    apk add --no-cache \
-    openssl
+RUN apk add --no-cache openssl
 
 USER node
 WORKDIR /app
