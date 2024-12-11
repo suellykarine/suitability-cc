@@ -69,6 +69,16 @@ export class LaqusService {
     const debentureSerieInvestidorAtualizado =
       await this.adaptadorDb.fazerTransacao(async () => {
         if (status === 'Reprovado') {
+          await this.logService.aviso({
+            acao: 'laqus.AtualizarInvestidorDebenture',
+            mensagem: 'Investidor reprovado no Laqus',
+            informacaoAdicional: {
+              fundoInvestimento,
+              identificadorInvestidor,
+              justificativa,
+              status,
+            },
+          });
           await this.desabilitarDebentureDoFundoDeInvestimento(
             fundoInvestimento.id,
           );

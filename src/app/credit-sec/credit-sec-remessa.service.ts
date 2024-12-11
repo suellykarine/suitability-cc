@@ -25,6 +25,13 @@ import { statusRetornoCreditSecDicionario } from './const';
 import { OperacaoDebentureSemVinculo } from 'src/@types/entities/operacaoDebenture';
 import { DebentureSerieService } from '../debentures/debentures-serie.service';
 import { PagamentoOperacaoService } from '../sigma/sigma.pagamentoOperacao.service';
+import {
+  ErroAplicacao,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
+import { OperacoesInvestService } from '../operacoes-invest/operacoes-invest.service';
+import { LogService } from '../global/logs/log.service';
 import { CcbService } from '../ccb/ccb.service';
 
 @Injectable()
@@ -37,6 +44,8 @@ export class CreditSecRemessaService {
     private readonly sigmaService: SigmaService,
     private readonly debentureSerieService: DebentureSerieService,
     private readonly pagamentoOperacaoService: PagamentoOperacaoService,
+    private readonly operacaoInvestService: OperacoesInvestService,
+    private readonly logService: LogService,
     private readonly ccbService: CcbService,
   ) {}
   @Cron('0 0 10 * * 1-5')
@@ -57,7 +66,7 @@ export class CreditSecRemessaService {
 
         const buscarStatusRemessa = await this.buscarStatusRemessa({
           numero_emissao: debenture.numero_debenture,
-          numero_remessa: remessa.codigo_operacao,
+          numero_remessa: String(remessa.codigo_operacao),
           numero_serie: debentureSerie.numero_serie,
         });
 
@@ -92,7 +101,7 @@ export class CreditSecRemessaService {
         {
           numero_emissao: data.numero_debenture,
           numero_serie: data.numero_serie,
-          numero_remessa: operacaoCedente.codigoOperacao,
+          numero_remessa: String(operacaoCedente.codigoOperacao),
           data_operacao: operacaoCedente.dataOperacao,
         },
         operacaoCedente.ativosInvest,
@@ -100,29 +109,17 @@ export class CreditSecRemessaService {
 
       const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
 
-      /*Em conversa com o Éder foi identificado que o serviço abaixo (RN24) foi construido de forma
-        errada, ele não pode solicitar o valor a ser realizado a baixa, esse valor tem que ser identificado
-        de alguma forma dentro do próprio serviço. Ficou decidido que no momento em que estiver fazendo
-        a amarração dos serviços isso será corrigido pelo Thalys*/
-
       await this.debentureSerieService.registroBaixaValorSerie(
         debenture_serie.id,
         operacaoCedente.valorLiquido,
       );
 
-      const dataCriarOperacaoDebentureCreditConnect: Omit<
-        OperacaoDebentureSemVinculo,
-        'id'
-      > = {
+      await this.criarOperacaoDebentureCreditConnect({
         codigo_operacao: data.codigo_operacao,
         status_retorno_creditsec: 'PENDENTE',
         id_debenture_serie_investidor: debentureSerieInvestidor.id,
         data_inclusao: new Date(),
-      };
-
-      await this.criarOperacaoDebentureCreditConnect(
-        dataCriarOperacaoDebentureCreditConnect,
-      );
+      });
 
       const bodyCriarOperacaoSigma: BodyCriarRegistroOperacao = {
         cedenteIdentificador: '49947676000186',
@@ -141,24 +138,49 @@ export class CreditSecRemessaService {
         data: solicitarRemessa,
       };
     } catch (error) {
-      throw error;
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        mensagem: 'Erro ao solicitar remessa',
+        acao: 'creditSecRemessaService.solicitarRemessa',
+        informacaoAdicional: { data, erro: error },
+      });
     }
   }
   async registrarRetornoCreditSec(data: BodyRetornoRemessaDto) {
     try {
-      const encontrarOperacoesdebenture =
-        await this.operacaoDebentureRepositorio.buscarOperacoesPeloCodigoOperacao(
+      const operacao =
+        await this.operacaoDebentureRepositorio.buscarOperacaoPeloCodigoOperacao(
           data.numero_remessa,
         );
-      const operacaoPendente = encontrarOperacoesdebenture.find(
-        (operacao) => operacao.status_retorno_creditsec === 'PENDENTE',
-      );
+
+      if (!operacao) {
+        throw new ErroRequisicaoInvalida({
+          acao: 'creditSecRemessaService.registrarRetornoCreditSec',
+          mensagem: 'Operação não encontrada',
+          informacaoAdicional: {
+            data,
+          },
+        });
+      }
+
+      const operacaoEhPendente =
+        operacao.status_retorno_creditsec === 'PENDENTE';
+
+      if (!operacaoEhPendente) {
+        throw new ErroRequisicaoInvalida({
+          acao: 'creditSecRemessaService.registrarRetornoCreditSec',
+          mensagem: 'Operação não está pedente',
+          informacaoAdicional: {
+            numero_remessa: data.numero_remessa,
+          },
+        });
+      }
 
       const statusRetorno = statusRetornoCreditSecDicionario[data.status];
       if (statusRetorno === 'APROVADO') {
         const debentureSerieInvestidor =
           await this.debentureSerieInvestidorRepositorio.encontrarPorId(
-            operacaoPendente.id_debenture_serie_investidor,
+            operacao.id_debenture_serie_investidor,
           );
 
         await this.pagamentoOperacaoService.incluirPagamento(
@@ -168,52 +190,69 @@ export class CreditSecRemessaService {
 
         await this.destravarOperacaoDebentureSigma(data.numero_remessa);
 
-        const bodyAtualizarOperacao = {
+        await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
           status_retorno_creditsec: statusRetorno,
-        };
-        await this.operacaoDebentureRepositorio.atualizar(
-          bodyAtualizarOperacao,
-          operacaoPendente.id,
-        );
+        });
+        await this.logService.info({
+          mensagem: 'Remessa Aprovada pela CreditSec',
+          acao: 'creditSecRemessaService.registrarRetornoCreditSec.aprovado',
+          informacaoAdicional: { data },
+        });
         return;
       }
 
       if (statusRetorno === 'REPROVADO') {
+        const motivos = data.titulos_rejeitados.reduce((acc, curr) => {
+          return `${acc} | ${curr.motivo_rejeicao}`;
+        }, '');
+
+        this.logService.aviso({
+          mensagem: 'Remessa Recusada pela CreditSec',
+          acao: 'creditSecRemessaService.registrarRetornoCreditSec.reprovado',
+          informacaoAdicional: {
+            data,
+            motivos,
+          },
+        });
         const debentureSerieInvestidor =
           await this.debentureSerieInvestidorRepositorio.encontrarPorId(
-            operacaoPendente.id_debenture_serie_investidor,
+            operacao.id_debenture_serie_investidor,
           );
         const debentureSerie = debentureSerieInvestidor.debenture_serie;
-        const debenture = debentureSerieInvestidor.debenture_serie.debenture;
+        const operacaoDetalhada =
+          await this.operacaoInvestService.buscarTransacaoPorCodigoOperacao(
+            operacao.codigo_operacao,
+          );
 
-        /*Em conversa com o Éder foi identificado que o serviço abaixo (RN25) foi construido de forma
-        errada, ele não pode solicitar o valor a ser estornado, esse valor tem que ser identificado
-        de alguma forma dentro do próprio serviço. Ficou decidido que no momento em que estiver fazendo
-        a amarração dos serviços isso será corrigido pelo Thalys*/
+        const valorOperacao = operacaoDetalhada.valorLiquido;
 
         await this.debentureSerieService.estornoBaixaValorSerie(
           debentureSerie.id,
-          1,
+          valorOperacao,
         );
 
-        const bodyAtualizarOperacao = {
+        await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
           status_retorno_creditsec: statusRetorno,
           data_exclusao: new Date(),
-        };
-        await this.operacaoDebentureRepositorio.atualizar(
-          bodyAtualizarOperacao,
-          operacaoPendente.id,
-        );
+          mensagem_retorno_creditsec: motivos,
+        });
+
         await this.sigmaService.excluirOperacaoDebentureSigma({
           codigoOperacao: data.numero_remessa,
           complementoStatusOperacao:
             'A emissão da Remessa foi Recusada pela CreditSec',
         });
+
         return;
       }
       return;
     } catch (error) {
-      throw error;
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        mensagem: 'Erro ao registrar retorno da CreditSec',
+        acao: 'creditSecRemessaService.registrarRetornoCreditSec.catch',
+        informacaoAdicional: { data, erro: error },
+      });
     }
   }
 
@@ -231,10 +270,20 @@ export class CreditSecRemessaService {
     );
 
     if (!req.ok) {
-      throw new HttpException(
-        `Erro ao criar remessa: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+      const erro = await req.json();
+      const motivos = erro.errors[0].motivo_rejeicao as string[];
+      const motivosConcatenado = motivos.reduce((acc, curr) => {
+        return `${acc} | ${curr}`;
+      }, '');
+      throw new ErroServidorInterno({
+        mensagem: `Erro ao criar remessa: ${motivosConcatenado}`,
+        acao: 'creditSecRemessaService.solicitarRemessaCreditSec',
+        informacaoAdicional: {
+          erro,
+          body,
+          req,
+        },
+      });
     }
 
     const res = await req.json();
@@ -242,7 +291,7 @@ export class CreditSecRemessaService {
     return res;
   }
 
-  private async buscarStatusRemessa({
+  async buscarStatusRemessa({
     numero_emissao,
     numero_remessa,
     numero_serie,
@@ -257,12 +306,20 @@ export class CreditSecRemessaService {
         },
       },
     );
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao buscar remessa: ${req.status} ${req.statusText}`,
-        req.status,
-      );
-
+    if (!req.ok) {
+      throw new ErroServidorInterno({
+        mensagem: `Erro ao buscar remessa: ${req.status} ${req.statusText}`,
+        acao: 'creditSecRemessaService.buscarStatusRemessa',
+        informacaoAdicional: {
+          data: {
+            numero_emissao,
+            numero_remessa,
+            numero_serie,
+          },
+          req,
+        },
+      });
+    }
     const res = await req.json();
 
     return res;
@@ -360,6 +417,11 @@ export class CreditSecRemessaService {
     }: NumerosSolicitarRemessa,
     dadosAtivo: AtivosInvest[],
   ): Promise<SolicitarRemessaType> {
+    const isLocalhost = process.env.AMBIENTE === 'development';
+    const baseUrl = isLocalhost
+      ? 'http://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
+      : process.env.BASE_URL;
+
     const promiseAtivos = dadosAtivo.map(async (ativo) => {
       const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
         ativo.codigoAtivo,
@@ -396,10 +458,10 @@ export class CreditSecRemessaService {
     });
     const ativos = await Promise.all(promiseAtivos);
     return {
-      numero_remessa,
+      numero_remessa: String(numero_remessa),
       numero_emissao,
       numero_serie,
-      callback_url: `${process.env.BASE_URL}api/credit-sec/solicitar-remessa/retorno/criacao-remessa`,
+      callback_url: `${baseUrl}api/credit-sec/solicitar-remessa/retorno/criacao-remessa`,
       titulos: ativos,
     };
   }

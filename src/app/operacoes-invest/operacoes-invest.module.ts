@@ -9,4 +9,4 @@ import { OperacoesInvestController } from './operacoes-invest.controller';
   providers: [OperacoesInvestService],
   exports: [OperacoesInvestService],
 })
-export class OperacaoInvestModule {}
+export class OperacoesInvestModule {}

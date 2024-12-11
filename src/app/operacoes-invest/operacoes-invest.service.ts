@@ -1,4 +1,6 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { OperacaoInvest } from 'src/@types/entities/operacao';
+import { ErroAplicacao, ErroServidorInterno } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class OperacoesInvestService {
@@ -11,22 +13,27 @@ export class OperacoesInvestService {
       const req = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': process.env.X_API_KEY,
+          'X-API-KEY': process.env.FLUXO_OPERACIONAL_SECRET_KEY,
         },
       });
 
       if (!req.ok) {
-        throw new InternalServerErrorException(
-          'Ocorreu um erro ao buscar as operações',
-        );
+        throw new ErroServidorInterno({
+          mensagem: 'Ocorreu um erro ao buscar as operações',
+          acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao',
+          informacaoAdicional: { codigoOperacao },
+        });
       }
 
-      const result = await req.json();
+      const result = (await req.json()) as OperacaoInvest;
       return result;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Ocorreu um erro ao buscar as operações',
-      );
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        mensagem: 'Ocorreu um erro ao buscar as operações',
+        acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao.catch',
+        informacaoAdicional: { codigoOperacao },
+      });
     }
   }
 
@@ -37,22 +44,25 @@ export class OperacoesInvestService {
       const req = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': process.env.X_API_KEY,
+          'X-API-KEY': process.env.FLUXO_OPERACIONAL_SECRET_KEY,
         },
       });
 
       if (!req.ok) {
-        throw new InternalServerErrorException(
-          'Ocorreu um erro ao buscar as operações',
-        );
+        throw new ErroServidorInterno({
+          mensagem: 'Ocorreu um erro ao buscar as operações',
+          acao: 'operacoesInvest.buscarTodasOperacoes',
+        });
       }
 
-      const result = await req.json();
+      const result = (await req.json()) as OperacaoInvest[];
       return result;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Ocorreu um erro ao buscar as operações',
-      );
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        mensagem: 'Ocorreu um erro ao buscar as operações',
+        acao: 'operacoesInvest.buscarTodasOperacoes.catch',
+      });
     }
   }
 }
