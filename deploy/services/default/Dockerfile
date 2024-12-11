@@ -12,7 +12,6 @@ USER node
 RUN apk add --no-cache openssl
 
 WORKDIR /app
-COPY --chown=node:node /app
 
 # COPY package*.json ./
 COPY node_modules/ ./node_modules/
