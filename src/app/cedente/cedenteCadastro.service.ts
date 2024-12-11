@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
@@ -7,6 +7,7 @@ import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
 import { Cedente } from 'src/@types/entities/cedente';
+import { ErroServidorInterno } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class CadastroCedenteService {
@@ -69,6 +70,7 @@ export class CadastroCedenteService {
       | CreateRepresentanteLegalDto,
     identificadorGerente?: string,
   ) {
+    const logAcao = 'cedenteEnviarRequisicao';
     const cabecalhos = {
       'Content-Type': 'application/json',
       'X-API-KEY': sigmaHeaders['X-API-KEY'],
@@ -84,21 +86,25 @@ export class CadastroCedenteService {
       body: JSON.stringify(corpo),
     };
 
-    const resposta = await fetch(url, opcoes);
+    const requisicao = await fetch(url, opcoes);
+    const resposta = await requisicao.json();
 
-    const dados = await resposta.json();
-
-    if (!resposta.ok) {
-      throw new HttpException(
-        dados.message || 'Erro na comunicação com o serviço externo',
-        dados.statusCode || 502,
-      );
+    if (!requisicao.ok) {
+      throw new ErroServidorInterno({
+        acao: logAcao,
+        mensagem: 'Erro ao solicitar informacoes do cedente',
+        informacaoAdicional: {
+          requisicao,
+          resposta,
+        },
+      });
     }
 
-    return dados;
+    return resposta;
   }
 
   async buscarDadosPJ(identificadorFundo: string): Promise<Cedente> {
+    const logAcao = 'cedente-buscar-dados-pj';
     const url = `${this.urlBase}/${identificadorFundo}`;
 
     const resposta = await fetch(url, {
@@ -111,9 +117,10 @@ export class CadastroCedenteService {
     const dados = (await resposta.json()) as Cedente;
 
     if (!resposta.ok) {
-      throw new BadRequestException(
-        'Erro na comunicação com o serviço externo',
-      );
+      throw new BadRequestException({
+        acao: logAcao,
+        mensagem: 'Erro na comunicação com o serviço externo',
+      });
     }
 
     return dados;

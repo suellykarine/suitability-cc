@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CriarCartaConviteDto } from './dto/create-invitation-letter.dto';
 import { AtualizarCartaConviteDto } from './dto/update-invitation-letter.dto';
 import { status_carta_convite, usuario } from '@prisma/client';
@@ -23,6 +17,12 @@ import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface'
 import { CartaConvite } from './entities/carta-convite.entity';
 import { PrismaService } from 'prisma/prisma.service';
 import { fazerNada } from 'src/utils/funcoes/geral';
+import {
+  ErroConflitoRequisicao,
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class CartaConviteService {
@@ -37,9 +37,10 @@ export class CartaConviteService {
     criarCartaConviteDto.telefone = somenteNumeros(
       criarCartaConviteDto.telefone,
     );
-
+    const logAcao = 'cartaConviteCriarCartaConvite';
     if (!criarCartaConviteDto.termosAceito) {
-      throw new BadRequestException({
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
         mensagem:
           'Você precisa aceitar os termos de uso e as políticas de privacidade para continuar.',
       });
@@ -53,7 +54,8 @@ export class CartaConviteService {
     });
 
     if (perfilExistente) {
-      throw new BadRequestException({
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
         mensagem: 'Carta convite já existente',
       });
     }
@@ -84,10 +86,7 @@ export class CartaConviteService {
         connect: { id: statusCartaConvite!.id },
       };
     } else {
-      const nanoid = customAlphabet(
-        '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        6,
-      );
+      const nanoid = customAlphabet('1234567890', 6);
       const codigo = nanoid();
 
       const solicitacaoBase: SolicitacaoBase = {
@@ -137,7 +136,8 @@ export class CartaConviteService {
           });
         }
       } catch (erro) {
-        throw new ServiceUnavailableException({
+        throw new ErroServidorInterno({
+          acao: logAcao,
           mensagem: 'Serviço indisponível',
         });
       }
@@ -184,6 +184,7 @@ export class CartaConviteService {
   }
 
   async encontrarUmaCartaConvite(id: number) {
+    const logAcao = 'cartaConviteEncontrarCartaConvite';
     const cartaConvite = await this.prisma.carta_convite.findFirst({
       where: {
         id,
@@ -191,7 +192,8 @@ export class CartaConviteService {
     });
 
     if (!cartaConvite) {
-      throw new NotFoundException({
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
         mensagem: 'Carta convite não encontrada',
       });
     }
@@ -202,6 +204,7 @@ export class CartaConviteService {
     id: number,
     atualizarCartaConviteDto: AtualizarCartaConviteDto,
   ) {
+    const logAcao = 'cartaConviteAtualizarCartaConvite';
     const cartaConvite = await this.prisma.carta_convite.findUnique({
       where: {
         id: id,
@@ -209,7 +212,10 @@ export class CartaConviteService {
     });
 
     if (!cartaConvite) {
-      throw new NotFoundException({ erro: 'Carta convite não encontrada' });
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Carta convite não encontrada',
+      });
     }
 
     if (
@@ -217,8 +223,9 @@ export class CartaConviteService {
       atualizarCartaConviteDto.idBackoffice &&
       cartaConvite.id_usuario !== atualizarCartaConviteDto.idBackoffice
     ) {
-      throw new ConflictException({
-        error: 'Usuário já está sendo analisado',
+      throw new ErroConflitoRequisicao({
+        acao: logAcao,
+        mensagem: 'Usuário já está sendo analisado',
       });
     }
 
@@ -277,6 +284,7 @@ export class CartaConviteService {
   }
 
   async removerCartaConvite(id: number) {
+    const logAcao = 'cartaConviteRemoverCartaConvite';
     try {
       await this.prisma.carta_convite.delete({
         where: {
@@ -286,7 +294,8 @@ export class CartaConviteService {
 
       return;
     } catch {
-      throw new NotFoundException({
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
         mensagem: 'Carta convite não encontrada',
       });
     }
@@ -295,6 +304,7 @@ export class CartaConviteService {
   async verificarCodigo(
     verificarCodigoCartaConviteDto: VerificarCodigoCartaConviteDto,
   ) {
+    const logAcao = 'cartaConviteVerificarCodigo2auth';
     const encontrarCodigoDeVerificacao =
       await this.prisma.codigo_verificacao.findFirst({
         where: {
@@ -304,7 +314,10 @@ export class CartaConviteService {
       });
 
     if (!encontrarCodigoDeVerificacao) {
-      throw new BadRequestException({ mensagem: 'Código não encontrado' });
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
+        mensagem: 'Código não encontrado',
+      });
     }
 
     const encontrarCartaConvite = await this.prisma.carta_convite.findFirst({
@@ -332,25 +345,27 @@ export class CartaConviteService {
       return { cartaConviteAtualizada };
     }
 
-    throw new BadRequestException({
+    throw new ErroRequisicaoInvalida({
+      acao: logAcao,
       mensagem: 'Carta convite já verificada',
     });
   }
 
   async reenviarCodigo(reenviarCodigoDto: ReenviarCodigoDto) {
+    const logAcao = 'cartaConviteReenviarCodigo2auth';
     const codigoDeVerificacaoExistente =
       await this.prisma.codigo_verificacao.findFirst({
         where: { email: reenviarCodigoDto.email },
       });
 
     if (!codigoDeVerificacaoExistente) {
-      throw new NotFoundException({ mensagem: 'Usuário não encontrado.' });
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Usuário não encontrado.',
+      });
     }
 
-    const nanoid = customAlphabet(
-      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      6,
-    );
+    const nanoid = customAlphabet('1234567890', 6);
     const novoCodigo = nanoid();
 
     await this.prisma.codigo_verificacao.update({
@@ -386,6 +401,7 @@ export class CartaConviteService {
     criarCartaConviteDto: CriarCartaConviteDto | AtualizarCartaConviteDto,
     cartaConvite?: any,
   ) {
+    const logAcao = 'cartaConviteVerificarCamposUnicos';
     const cartaConviteExistente = await this.prisma.carta_convite.findFirst({
       where: {
         OR: [
@@ -476,7 +492,7 @@ export class CartaConviteService {
     for (const { condition, message } of duplicateChecks) {
       const response = checkDuplicate(condition, message);
       if (response) {
-        throw new BadRequestException({ mensagem: response });
+        throw new ErroRequisicaoInvalida({ acao: logAcao, mensagem: response });
       }
     }
   }

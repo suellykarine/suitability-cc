@@ -64,3 +64,9 @@ export class ErroNaoEncontrado extends ErroAplicacao {
     super({ codigoStatus: 404, ...erroAplicacao });
   }
 }
+
+export class ErroNaoProcessavel extends ErroAplicacao {
+  constructor(erroAplicacao: Omit<AppErrorProps, 'codigoStatus'>) {
+    super({ codigoStatus: 422, ...erroAplicacao });
+  }
+}

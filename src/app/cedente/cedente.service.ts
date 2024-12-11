@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
+import { ErroServidorInterno } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class CedenteService {
   constructor(private configService: ConfigService) {}
 
   async buscarBancos() {
+    const logAcao = 'cedenteBuscarBancos';
     const baseUrl = this.configService.get<string>(
       'BASE_URL_CADASTRO_CEDENTE_SIGMA',
     );
@@ -22,7 +24,10 @@ export class CedenteService {
     });
 
     if (!resposta.ok) {
-      throw new Error(`Erro ao buscar bancos: ${resposta.statusText}`);
+      throw new ErroServidorInterno({
+        acao: logAcao,
+        mensagem: `Erro ao buscar bancos: ${resposta.statusText}`,
+      });
     }
 
     const dados = await resposta.json();
