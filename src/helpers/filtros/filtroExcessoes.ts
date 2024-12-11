@@ -43,7 +43,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
       }
 
       return response.status(codigoStatus).json({
-        erro: { messagem: message, acao },
+        erro: { mensagem: message, acao },
       });
     }
 
@@ -64,7 +64,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
       });
 
       return response.status(status).json({
-        erro: responseBody,
+        erro: { mensagem: responseBody },
       });
     }
 

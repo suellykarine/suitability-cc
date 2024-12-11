@@ -11,6 +11,7 @@ import {
 } from './dto/estruturar-investimento-direto.dto';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { controleDeCadastroContaCedenteOperaçõesDiretasProps } from './types/estruturacaoCarrinho';
+import { ControleOperacao } from 'src/@types/entities/operacao';
 
 @Injectable()
 export class EstruturacaoCarrinhoService {
@@ -230,7 +231,7 @@ export class EstruturacaoCarrinhoService {
         'Houve um erro ao cadastrar o metodo de controle da operacao',
       );
     }
-    return await req.json();
+    return (await req.json()) as ControleOperacao;
   }
   private async deletarControleDeCadastroContaCedenteOperacaoDireta(
     codigoOperacao: number,
