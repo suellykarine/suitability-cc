@@ -1,5 +1,5 @@
-import { Controller, UseGuards, Get, Param } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Controller, UseGuards, Get, Param, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { OperacoesInvestService } from './operacoes-invest.service';
 
@@ -12,6 +12,10 @@ export class OperacoesInvestController {
   ) {}
 
   @UseGuards(JwtAuthGuardPremium)
+  @ApiParam({
+    name: 'codigoOperacao',
+    description: 'codigo de operação para busca',
+  })
   @Get(':codigoOperacao')
   async buscarTransacaoPorCodigoOperacao(
     @Param('codigoOperacao') codigoOperacao: string,
@@ -22,8 +26,18 @@ export class OperacoesInvestController {
   }
 
   @UseGuards(JwtAuthGuardPremium)
+  @ApiQuery({
+    name: 'identificadorInvestidor',
+    required: false,
+    example: 1,
+    description: 'Identificador do fundo favorecido',
+  })
   @Get()
-  async buscarTodasOperacoes() {
-    return this.operacoesInvestService.buscarTodasOperacoes();
+  async buscarTodasOperacoes(
+    @Query('identificadorInvestidor') identificadorInvestidor: string,
+  ) {
+    return this.operacoesInvestService.buscarTodasOperacoes(
+      identificadorInvestidor,
+    );
   }
 }
