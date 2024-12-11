@@ -8,7 +8,7 @@ export class CedenteService {
   constructor(private configService: ConfigService) {}
 
   async buscarBancos() {
-    const logAcao = 'cedenteBuscarBancos';
+    const logAcao = 'cedente.buscarBancos';
     const baseUrl = this.configService.get<string>(
       'BASE_URL_CADASTRO_CEDENTE_SIGMA',
     );
@@ -18,19 +18,19 @@ export class CedenteService {
       'Content-Type': 'application/json',
       'X-API-KEY': sigmaHeaders['X-API-KEY'],
     };
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       method: 'GET',
       headers: headers,
     });
 
-    if (!resposta.ok) {
+    if (!req.ok) {
       throw new ErroServidorInterno({
         acao: logAcao,
-        mensagem: `Erro ao buscar bancos: ${resposta.statusText}`,
+        mensagem: `Erro ao buscar bancos: ${req.statusText}`,
       });
     }
 
-    const dados = await resposta.json();
+    const dados = await req.json();
 
     return dados;
   }

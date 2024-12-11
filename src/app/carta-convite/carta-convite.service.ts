@@ -184,7 +184,7 @@ export class CartaConviteService {
   }
 
   async encontrarUmaCartaConvite(id: number) {
-    const logAcao = 'cartaConviteEncontrarCartaConvite';
+    const logAcao = 'cartaConvite.encontrarCartaConvite';
     const cartaConvite = await this.prisma.carta_convite.findFirst({
       where: {
         id,
@@ -204,7 +204,7 @@ export class CartaConviteService {
     id: number,
     atualizarCartaConviteDto: AtualizarCartaConviteDto,
   ) {
-    const logAcao = 'cartaConviteAtualizarCartaConvite';
+    const logAcao = 'cartaConvite.atualizarCartaConvite';
     const cartaConvite = await this.prisma.carta_convite.findUnique({
       where: {
         id: id,
@@ -284,7 +284,7 @@ export class CartaConviteService {
   }
 
   async removerCartaConvite(id: number) {
-    const logAcao = 'cartaConviteRemoverCartaConvite';
+    const logAcao = 'cartaConvite.removerCartaConvite';
     try {
       await this.prisma.carta_convite.delete({
         where: {
@@ -304,7 +304,7 @@ export class CartaConviteService {
   async verificarCodigo(
     verificarCodigoCartaConviteDto: VerificarCodigoCartaConviteDto,
   ) {
-    const logAcao = 'cartaConviteVerificarCodigo2auth';
+    const logAcao = 'cartaConvite.verificarCodigo2auth';
     const encontrarCodigoDeVerificacao =
       await this.prisma.codigo_verificacao.findFirst({
         where: {
@@ -352,7 +352,7 @@ export class CartaConviteService {
   }
 
   async reenviarCodigo(reenviarCodigoDto: ReenviarCodigoDto) {
-    const logAcao = 'cartaConviteReenviarCodigo2auth';
+    const logAcao = 'cartaConvite.reenviarCodigo2auth';
     const codigoDeVerificacaoExistente =
       await this.prisma.codigo_verificacao.findFirst({
         where: { email: reenviarCodigoDto.email },
@@ -401,7 +401,7 @@ export class CartaConviteService {
     criarCartaConviteDto: CriarCartaConviteDto | AtualizarCartaConviteDto,
     cartaConvite?: any,
   ) {
-    const logAcao = 'cartaConviteVerificarCamposUnicos';
+    const logAcao = 'cartaConvite.verificarCamposUnicos';
     const cartaConviteExistente = await this.prisma.carta_convite.findFirst({
       where: {
         OR: [

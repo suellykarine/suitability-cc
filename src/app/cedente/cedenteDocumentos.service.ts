@@ -69,15 +69,15 @@ export class DocumentoCedenteService {
     return this.tratarResposta(resposta);
   }
 
-  private async tratarResposta(resposta: Response) {
-    const dadosResposta = await resposta.json();
-    if (!resposta.ok) {
+  private async tratarResposta(req: Response) {
+    const dadosResposta = await req.json();
+    if (!req.ok) {
       throw new ErroServidorInterno({
-        acao: 'cedenteDocumentos',
+        acao: 'cedenteDocumentos.tratarResposta',
         mensagem: 'Erro ao solicitar informacoes do cedente',
         informacaoAdicional: {
           dadosResposta,
-          status: resposta.status || 500,
+          status: req.status || 500,
         },
       });
     }

@@ -70,7 +70,7 @@ export class CadastroCedenteService {
       | CreateRepresentanteLegalDto,
     identificadorGerente?: string,
   ) {
-    const logAcao = 'cedenteEnviarRequisicao';
+    const logAcao = 'cedenteCadastro.enviarRequisicao';
     const cabecalhos = {
       'Content-Type': 'application/json',
       'X-API-KEY': sigmaHeaders['X-API-KEY'],
@@ -86,15 +86,15 @@ export class CadastroCedenteService {
       body: JSON.stringify(corpo),
     };
 
-    const requisicao = await fetch(url, opcoes);
-    const resposta = await requisicao.json();
+    const req = await fetch(url, opcoes);
+    const resposta = await req.json();
 
-    if (!requisicao.ok) {
+    if (!req.ok) {
       throw new ErroServidorInterno({
         acao: logAcao,
         mensagem: 'Erro ao solicitar informacoes do cedente',
         informacaoAdicional: {
-          requisicao,
+          req,
           resposta,
         },
       });
@@ -104,7 +104,7 @@ export class CadastroCedenteService {
   }
 
   async buscarDadosPJ(identificadorFundo: string): Promise<Cedente> {
-    const logAcao = 'cedente-buscar-dados-pj';
+    const logAcao = 'cedenteCadastro.buscarDadosPJ';
     const url = `${this.urlBase}/${identificadorFundo}`;
 
     const resposta = await fetch(url, {
@@ -122,7 +122,6 @@ export class CadastroCedenteService {
         mensagem: 'Erro na comunicação com o serviço externo',
       });
     }
-
     return dados;
   }
 }

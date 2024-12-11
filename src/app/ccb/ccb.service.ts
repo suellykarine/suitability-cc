@@ -10,7 +10,7 @@ export class CcbService {
   }
 
   public async buscarCCCBAssinada(codigoAtivo: number) {
-    const logAcao = 'ccbBuscarCcbAssinada';
+    const logAcao = 'ccb.buscarCcbAssinada';
     const req = await fetch(
       `${this.baseUrlCCBs}arquivo/v1/arquivos/invest/assinado?codigoOperacao=${codigoAtivo}`,
       {
@@ -26,6 +26,7 @@ export class CcbService {
         mensagem: `erro ao buscar CCB assinada`,
         informacaoAdicional: {
           status: req.status,
+          codigoAtivo,
         },
       });
     }

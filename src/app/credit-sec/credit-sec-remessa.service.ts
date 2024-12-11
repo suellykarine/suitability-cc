@@ -1,8 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -73,7 +69,14 @@ export class CreditSecRemessaService {
         await this.registrarRetornoCreditSec(buscarStatusRemessa);
       }
     } catch (error) {
-      throw error;
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        acao: 'creditSecRemessa.buscarStatusSolicitacaoRemessa',
+        mensagem: `Erro ao buscar status solicitação da remessa`,
+        informacaoAdicional: {
+          error,
+        },
+      });
     }
   }
 
@@ -339,11 +342,20 @@ export class CreditSecRemessaService {
       },
     );
 
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao encontrar operações do cedente: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+    if (!req.ok) {
+      throw new ErroServidorInterno({
+        mensagem: `Erro ao encontrar operações do cedente no sigma: ${req.status} ${req.statusText}`,
+        acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
+        informacaoAdicional: {
+          data: {
+            codigoOperacao,
+            body: req.body,
+            texto: req.statusText,
+          },
+          req,
+        },
+      });
+    }
 
     const res = await req.json();
     return res;
@@ -365,11 +377,20 @@ export class CreditSecRemessaService {
       },
     );
 
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+    if (!req.ok) {
+      throw new ErroServidorInterno({
+        mensagem: `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
+        acao: 'creditSecRemessaService.criarRegistroDeOperacaoSigma',
+        informacaoAdicional: {
+          data: {
+            codigoOperacao,
+            body: req.body,
+            texto: req.statusText,
+          },
+          req,
+        },
+      });
+    }
 
     const res = { sucesso: true, codigoOperacao };
     return res;
@@ -386,11 +407,20 @@ export class CreditSecRemessaService {
         },
       },
     );
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao destravar operação no sigma: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+    if (!req.ok) {
+      throw new ErroServidorInterno({
+        mensagem: `Erro ao destravar operacao debenture no sigma: ${req.status} ${req.statusText}`,
+        acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
+        informacaoAdicional: {
+          data: {
+            codigoOperacao,
+            body: req.body,
+            texto: req.statusText,
+          },
+          req,
+        },
+      });
+    }
 
     const res = { sucesso: true, codigoOperacao };
     return res;
