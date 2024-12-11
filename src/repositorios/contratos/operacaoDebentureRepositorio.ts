@@ -9,17 +9,17 @@ export abstract class OperacaoDebentureRepositorio {
   ): Promise<OperacaoDebenture>;
 
   abstract atualizar(
-    data: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
     id: number,
+    data: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
   ): Promise<OperacaoDebenture>;
 
   abstract buscarOperacoesPeloStatusCreditSec(
     statusCreditSec: string,
   ): Promise<OperacaoDebenture[]>;
 
-  abstract buscarOperacoesPeloCodigoOperacao(
+  abstract buscarOperacaoPeloCodigoOperacao(
     cofigoOperacao: string,
-  ): Promise<OperacaoDebenture[]>;
+  ): Promise<OperacaoDebenture>;
 
   abstract buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]>;
 }

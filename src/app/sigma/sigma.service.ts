@@ -14,6 +14,7 @@ export class SigmaService {
       'BASE_URL_OPERACOES_INVEST',
     );
   }
+
   public async excluirOperacaoDebentureSigma({
     codigoOperacao,
     complementoStatusOperacao,

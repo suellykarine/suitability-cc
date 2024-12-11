@@ -92,7 +92,14 @@ export class PrismaDebentureSerieInvestidorRepositorio
       await this.prisma.debenture_serie_investidor.findFirst({
         where: { id_fundo_investimento },
         orderBy: { data_vinculo: 'desc' },
-        include: { debenture_serie: true, conta_investidor: true },
+        include: {
+          debenture_serie: {
+            include: {
+              debenture: true,
+            },
+          },
+          conta_investidor: true,
+        },
       });
 
     return converterCamposDecimais(serieInvestidorData);
@@ -218,7 +225,11 @@ export class PrismaDebentureSerieInvestidorRepositorio
         },
         include: {
           conta_investidor: true,
-          debenture_serie: true,
+          debenture_serie: {
+            include: {
+              debenture: true,
+            },
+          },
         },
       });
 
@@ -323,22 +334,20 @@ export class PrismaDebentureSerieInvestidorRepositorio
     const debentureSeries =
       await this.prisma.debenture_serie_investidor.findMany({
         where: {
+          id_fundo_investimento: idFundoInvestimento,
+          debenture_serie: {
+            id_debenture: idDebenture,
+          },
           OR: [
             {
-              id_fundo_investimento: idFundoInvestimento,
-              debenture_serie: {
-                id_debenture: idDebenture,
-              },
               status_retorno_creditsec: 'LIBERADO',
             },
             {
-              id_fundo_investimento: idFundoInvestimento,
               data_encerramento: null,
               data_desvinculo: null,
               status_retorno_laqus: 'APROVADO',
               status_retorno_creditsec: 'APROVADO',
               debenture_serie: {
-                id_debenture: idDebenture,
                 data_vencimento: {
                   gte: new Date(),
                 },
@@ -346,8 +355,12 @@ export class PrismaDebentureSerieInvestidorRepositorio
             },
           ],
         },
-        select: {
-          debenture_serie: true,
+        include: {
+          debenture_serie: {
+            include: {
+              debenture: true,
+            },
+          },
         },
       });
     return converterCamposDecimais(

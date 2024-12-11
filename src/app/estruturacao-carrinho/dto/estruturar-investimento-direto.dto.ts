@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
+import { ControleOperacao } from 'src/@types/entities/operacao';
 
 export class EstruturarInvestimentodiretoDto {
   @ApiProperty({
@@ -29,7 +30,7 @@ export class EstruturarInvestimentoDiretoResponseDto {
   })
   data: {
     operacao: number;
-    controle: string;
+    controle: ControleOperacao;
   };
 }
 
