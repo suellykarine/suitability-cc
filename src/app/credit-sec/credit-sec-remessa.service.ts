@@ -272,9 +272,7 @@ export class CreditSecRemessaService {
     if (!req.ok) {
       const erro = await req.json();
       const motivos = erro.errors[0].motivo_rejeicao as string[];
-      const motivosConcatenado = motivos.reduce((acc, curr) => {
-        return `${acc} | ${curr}`;
-      }, '');
+      const motivosConcatenado = motivos.join(' | ');
       throw new ErroServidorInterno({
         mensagem: `Erro ao criar remessa: ${motivosConcatenado}`,
         acao: 'creditSecRemessaService.solicitarRemessaCreditSec',
@@ -419,12 +417,12 @@ export class CreditSecRemessaService {
   ): Promise<SolicitarRemessaType> {
     const isLocalhost = process.env.AMBIENTE === 'development';
     const baseUrl = isLocalhost
-      ? 'http://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
+      ? 'https://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
       : process.env.BASE_URL;
 
     const promiseAtivos = dadosAtivo.map(async (ativo) => {
       const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
-        ativo.codigoAtivo,
+        1364997, // TO-DO: Retirar hard coded, retornar utilizando ativo.codigoAtivo,
       );
       const taxa_cessao =
         ativo.taxaAtivo === 'PRÉ'
