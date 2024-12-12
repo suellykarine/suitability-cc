@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
-import { ErroServidorInterno } from 'src/helpers/erroAplicacao';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CedenteService {
@@ -24,11 +24,14 @@ export class CedenteService {
     });
 
     if (!req.ok) {
-      throw new ErroServidorInterno({
+      await tratarErroRequisicao({
+        status: req.status,
         acao: logAcao,
-        mensagem: `Erro ao buscar bancos: ${req.statusText}`,
-        informacaoAdicional: {
-          req,
+        mensagem: `Erro ao buscar bancos: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
         },
       });
     }

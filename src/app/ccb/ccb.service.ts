@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ErroNaoEncontrado } from 'src/helpers/erroAplicacao';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CcbService {
@@ -21,14 +21,15 @@ export class CcbService {
     );
 
     if (!req.ok) {
-      const reqDados = await req.json();
-      throw new ErroNaoEncontrado({
+      await tratarErroRequisicao({
+        status: 404,
         acao: logAcao,
-        mensagem: `erro ao buscar CCB assinada`,
-        informacaoAdicional: {
+        mensagem: `erro ao buscar CCB assinada: ${req.status}`,
+        req,
+        infoAdicional: {
           status: req.status,
+          texto: req.statusText,
           codigoAtivo,
-          reqDados,
         },
       });
     }

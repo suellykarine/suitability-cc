@@ -7,10 +7,7 @@ import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
 import { Cedente } from 'src/@types/entities/cedente';
-import {
-  ErroRequisicaoInvalida,
-  ErroServidorInterno,
-} from 'src/helpers/erroAplicacao';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CadastroCedenteService {
@@ -93,12 +90,17 @@ export class CadastroCedenteService {
     const resposta = await req.json();
 
     if (!req.ok) {
-      throw new ErroServidorInterno({
+      await tratarErroRequisicao({
+        status: req.status,
         acao: logAcao,
-        mensagem: 'Erro ao solicitar informacoes do cedente',
-        informacaoAdicional: {
-          req,
-          resposta,
+        mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          body,
+          identificadorGerente,
+          url,
         },
       });
     }
@@ -120,11 +122,16 @@ export class CadastroCedenteService {
     const dados = (await req.json()) as Cedente;
 
     if (!req.ok) {
-      throw new ErroRequisicaoInvalida({
+      await tratarErroRequisicao({
+        status: req.status,
         acao: logAcao,
-        mensagem: 'Erro na comunicação com o serviço externo',
-        informacaoAdicional: {
-          dados,
+        mensagem: `Erro ao buscar os dados PJ: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          identificadorFundo,
+          url,
         },
       });
     }

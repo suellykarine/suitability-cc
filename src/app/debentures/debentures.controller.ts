@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
@@ -18,6 +17,7 @@ import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
+import { ErroRequisicaoInvalida } from 'src/helpers/erroAplicacao';
 
 @ApiTags('Debentures')
 @ApiBearerAuth('access-token')
@@ -111,8 +111,16 @@ export class DebenturesController {
   ) {
     const valorEntrada = Number(valor);
     const idInvestidor = Number(id);
-    if (!valorEntrada) throw new BadRequestException('valor inválido');
-    if (!idInvestidor) throw new BadRequestException('id inválido');
+    if (!valorEntrada)
+      throw new ErroRequisicaoInvalida({
+        acao: 'debenture.controller.serie-investidor/:id/:valor',
+        mensagem: 'valor inválido',
+      });
+    if (!idInvestidor)
+      throw new ErroRequisicaoInvalida({
+        acao: 'debenture.controller.serie-investidor/:id/:valor',
+        mensagem: 'id inválido',
+      });
 
     const service = await this.debenturesSerieService.estaAptoAEstruturar(
       idInvestidor,

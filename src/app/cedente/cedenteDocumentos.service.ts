@@ -4,7 +4,7 @@ import { sigmaHeaders } from '../autenticacao/constants';
 import { AprovarDocumentoDto } from './dto/aprovar-documento.dto';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { File } from 'buffer';
-import { ErroServidorInterno } from 'src/helpers/erroAplicacao';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class DocumentoCedenteService {
@@ -72,12 +72,14 @@ export class DocumentoCedenteService {
   private async tratarResposta(req: Response) {
     const dadosResposta = await req.json();
     if (!req.ok) {
-      throw new ErroServidorInterno({
+      await tratarErroRequisicao({
+        status: req.status,
         acao: 'cedenteDocumentos.tratarResposta',
-        mensagem: 'Erro ao solicitar informacoes do cedente',
-        informacaoAdicional: {
-          dadosResposta,
-          status: req.status || 500,
+        mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
         },
       });
     }

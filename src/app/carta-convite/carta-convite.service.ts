@@ -44,6 +44,9 @@ export class CartaConviteService {
         acao: logAcao,
         mensagem:
           'Você precisa aceitar os termos de uso e as políticas de privacidade para continuar.',
+        informacaoAdicional: {
+          criarCartaConviteDto,
+        },
       });
     }
 
@@ -58,6 +61,9 @@ export class CartaConviteService {
       throw new ErroRequisicaoInvalida({
         acao: logAcao,
         mensagem: 'Carta convite já existente',
+        informacaoAdicional: {
+          criarCartaConviteDto,
+        },
       });
     }
 
@@ -141,6 +147,10 @@ export class CartaConviteService {
         throw new ErroServidorInterno({
           acao: logAcao,
           mensagem: 'Serviço indisponível',
+          informacaoAdicional: {
+            erro,
+            criarCartaConviteDto,
+          },
         });
       }
     }
@@ -197,6 +207,10 @@ export class CartaConviteService {
       throw new ErroNaoEncontrado({
         acao: logAcao,
         mensagem: 'Carta convite não encontrada',
+        informacaoAdicional: {
+          id,
+          cartaConvite,
+        },
       });
     }
     return cartaConvite;
@@ -217,6 +231,10 @@ export class CartaConviteService {
       throw new ErroNaoEncontrado({
         acao: logAcao,
         mensagem: 'Carta convite não encontrada',
+        informacaoAdicional: {
+          cartaConvite,
+          atualizarCartaConviteDto,
+        },
       });
     }
 
@@ -228,6 +246,9 @@ export class CartaConviteService {
       throw new ErroConflitoRequisicao({
         acao: logAcao,
         mensagem: 'Usuário já está sendo analisado',
+        informacaoAdicional: {
+          cartaConvite,
+        },
       });
     }
 
@@ -300,6 +321,10 @@ export class CartaConviteService {
       throw new ErroNaoEncontrado({
         acao: logAcao,
         mensagem: 'Carta convite não encontrada',
+        informacaoAdicional: {
+          erro,
+          id,
+        },
       });
     }
   }
@@ -354,6 +379,9 @@ export class CartaConviteService {
     throw new ErroRequisicaoInvalida({
       acao: logAcao,
       mensagem: 'Carta convite já verificada',
+      informacaoAdicional: {
+        verificarCodigoCartaConviteDto,
+      },
     });
   }
 
@@ -368,6 +396,9 @@ export class CartaConviteService {
       throw new ErroNaoEncontrado({
         acao: logAcao,
         mensagem: 'Usuário não encontrado.',
+        informacaoAdicional: {
+          reenviarCodigoDto,
+        },
       });
     }
 

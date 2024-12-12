@@ -1,6 +1,6 @@
 import { HttpException } from '@nestjs/common';
 
-type AppErrorProps = {
+export type AppErrorProps = {
   mensagem: string;
   codigoStatus: number;
   acao: string;
