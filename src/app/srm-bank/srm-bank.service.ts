@@ -63,7 +63,7 @@ export class SrmBankService {
     };
 
     const req = await fetch(
-      `${process.env.BASE_URL_SRM_BANK}gestao/contas/serie`,
+      `${process.env.BASE_URL_SRM_BANK}/gestao/contas/serie`,
       {
         method: 'POST',
         body: JSON.stringify(body),
@@ -166,9 +166,9 @@ export class SrmBankService {
     }
   }
 
-  async buscarSaldoContaInvestidor(numeroConta: number) {
+  async buscarSaldoContaInvestidor(numeroConta: string) {
     try {
-      const url = `${process.env.BASE_URL_SALDO_CONTA_INVESTIDOR}${numeroConta}`;
+      const url = `${process.env.BASE_URL_SRM_BANK}/consultas/saldo?numeroConta=${numeroConta}`;
 
       const req = await fetch(url, {
         headers: {
