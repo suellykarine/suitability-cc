@@ -9,7 +9,8 @@ export class CcbService {
     this.baseUrlCCBs = this.configService.get('BASE_URL_CCB');
   }
 
-  public async buscarCCCBAssinada(codigoAtivo: number) {
+
+  public async buscarCCBAssinada(codigoAtivo: number) {
     const logAcao = 'ccb.buscarCcbAssinada';
     const req = await fetch(
       `${this.baseUrlCCBs}arquivo/v1/arquivos/invest/assinado?codigoOperacao=${codigoAtivo}`,
@@ -38,7 +39,7 @@ export class CcbService {
   }
 
   public async buscarCCBParaExternalizar(codigoAtivo: number) {
-    const buscaCCB = await this.buscarCCCBAssinada(codigoAtivo);
+    const buscaCCB = await this.buscarCCBAssinada(codigoAtivo);
     const baseUrlExternalizarCCB = process.env.BASE_URL_EXTERALIZAR_CCB;
 
     const url = new URL(buscaCCB.url);
@@ -46,6 +47,6 @@ export class CcbService {
 
     const urlParaExternalizar = `${baseUrlExternalizarCCB}arquivos/hash?chaveAcesso=${chaveAcesso}`;
 
-    return urlParaExternalizar;
+    return { url: urlParaExternalizar };
   }
 }
