@@ -24,6 +24,7 @@ import {
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
 import { LogService } from '../global/logs/log.service';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CreditSecSerieService {
@@ -272,14 +273,18 @@ export class CreditSecSerieService {
     );
 
     if (req.ok) return await req.json();
-    throw new ErroServidorInterno({
+    await tratarErroRequisicao({
+      status: req.status,
       acao: 'creditSecSerieService.buscarStatusSerieCreditSec',
       mensagem: `Erro ao buscar serie: ${req.status} ${req.statusText}`,
-      informacaoAdicional: {
+      req,
+      infoAdicional: {
+        status: req.status,
+        texto: req.statusText,
+        body: req.body,
         numero_emissao,
         numero_serie,
         url: req.url,
-        req,
       },
     });
   }
@@ -342,14 +347,16 @@ export class CreditSecSerieService {
     const response = await req.json();
 
     if (req.ok) return response;
-
-    throw new ErroServidorInterno({
+    await tratarErroRequisicao({
+      status: req.status,
       acao: 'creditSecSerieService.buscarCedenteSigma',
       mensagem: `Erro ao buscar cedente no sigma: ${req.status} ${req.statusText}`,
-      informacaoAdicional: {
+      req,
+      infoAdicional: {
+        status: req.status,
+        texto: req.statusText,
         identificador,
         url: req.url,
-        req,
       },
     });
   }

@@ -1,5 +1,6 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CcbService {
@@ -9,6 +10,7 @@ export class CcbService {
   }
 
   public async buscarCCCBAssinada(codigoAtivo: number) {
+    const logAcao = 'ccb.buscarCcbAssinada';
     const req = await fetch(
       `${this.baseUrlCCBs}arquivo/v1/arquivos/invest/assinado?codigoOperacao=${codigoAtivo}`,
       {
@@ -18,8 +20,19 @@ export class CcbService {
       },
     );
 
-    if (!req.ok)
-      throw new HttpException(`erro ao buscar CCB assinada`, req.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: 404,
+        acao: logAcao,
+        mensagem: `erro ao buscar CCB assinada: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          codigoAtivo,
+        },
+      });
+    }
 
     return await req.json();
   }

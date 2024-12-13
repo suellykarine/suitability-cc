@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCedenteDto } from './dto/create-cedente.dto';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
@@ -7,6 +7,7 @@ import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
 import { Cedente } from 'src/@types/entities/cedente';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CadastroCedenteService {
@@ -69,6 +70,7 @@ export class CadastroCedenteService {
       | CreateRepresentanteLegalDto,
     identificadorGerente?: string,
   ) {
+    const logAcao = 'cedenteCadastro.enviarRequisicao';
     const cabecalhos = {
       'Content-Type': 'application/json',
       'X-API-KEY': sigmaHeaders['X-API-KEY'],
@@ -84,38 +86,55 @@ export class CadastroCedenteService {
       body: JSON.stringify(corpo),
     };
 
-    const resposta = await fetch(url, opcoes);
+    const req = await fetch(url, opcoes);
+    const resposta = await req.json();
 
-    const dados = await resposta.json();
-
-    if (!resposta.ok) {
-      throw new HttpException(
-        dados.message || 'Erro na comunicação com o serviço externo',
-        dados.statusCode || 502,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: logAcao,
+        mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          body,
+          identificadorGerente,
+          url,
+        },
+      });
     }
 
-    return dados;
+    return resposta;
   }
 
   async buscarDadosPJ(identificadorFundo: string): Promise<Cedente> {
+    const logAcao = 'cedenteCadastro.buscarDadosPJ';
     const url = `${this.urlBase}/${identificadorFundo}`;
 
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         'X-API-KEY': sigmaHeaders['X-API-KEY'],
       },
     });
 
-    const dados = (await resposta.json()) as Cedente;
+    const dados = (await req.json()) as Cedente;
 
-    if (!resposta.ok) {
-      throw new BadRequestException(
-        'Erro na comunicação com o serviço externo',
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: logAcao,
+        mensagem: `Erro ao buscar os dados PJ: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          identificadorFundo,
+          url,
+        },
+      });
     }
-
     return dados;
   }
 }

@@ -668,7 +668,8 @@ export class DebentureSerieService {
   async listarOperacoesPorGestorFundo(id: number) {
     try {
       return await this.operacaoDebentureRepositorio.buscarPorGestorFundo(id);
-    } catch (error) {
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
       throw new ErroServidorInterno({
         acao: 'debentureSerieService.listarOperacoesPorGestorFundo',
         mensagem: 'Erro ao buscar operações por gestor fundo',
