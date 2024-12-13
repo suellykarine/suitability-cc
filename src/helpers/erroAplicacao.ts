@@ -1,6 +1,6 @@
 import { HttpException } from '@nestjs/common';
 
-type AppErrorProps = {
+export type AppErrorProps = {
   mensagem: string;
   codigoStatus: number;
   acao: string;
@@ -62,5 +62,11 @@ export class ErroNaoAutorizado extends ErroAplicacao {
 export class ErroNaoEncontrado extends ErroAplicacao {
   constructor(erroAplicacao: Omit<AppErrorProps, 'codigoStatus'>) {
     super({ codigoStatus: 404, ...erroAplicacao });
+  }
+}
+
+export class ErroNaoProcessavel extends ErroAplicacao {
+  constructor(erroAplicacao: Omit<AppErrorProps, 'codigoStatus'>) {
+    super({ codigoStatus: 422, ...erroAplicacao });
   }
 }

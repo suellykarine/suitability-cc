@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CedenteService {
   constructor(private configService: ConfigService) {}
 
   async buscarBancos() {
+    const logAcao = 'cedente.buscarBancos';
     const baseUrl = this.configService.get<string>(
       'BASE_URL_CADASTRO_CEDENTE_SIGMA',
     );
@@ -16,16 +18,25 @@ export class CedenteService {
       'Content-Type': 'application/json',
       'X-API-KEY': sigmaHeaders['X-API-KEY'],
     };
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       method: 'GET',
       headers: headers,
     });
 
-    if (!resposta.ok) {
-      throw new Error(`Erro ao buscar bancos: ${resposta.statusText}`);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: logAcao,
+        mensagem: `Erro ao buscar bancos: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+        },
+      });
     }
 
-    const dados = await resposta.json();
+    const dados = await req.json();
 
     return dados;
   }
