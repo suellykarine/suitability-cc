@@ -49,10 +49,14 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
-      const responseBody = exception.getResponse();
+      const responseBody = exception.getResponse() as {
+        message: string;
+        statusCode: number;
+        error: string;
+      };
 
       await this.logService.erro({
-        mensagem: responseBody.toString(),
+        mensagem: responseBody.message,
         acao: 'desconhecida',
         informacaoAdicional: {
           codigoStatus: status,
@@ -60,11 +64,12 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
           stack: exception.stack,
           nomeExcecao: exception.name,
           causa: exception.cause,
+          objetoErro: responseBody.message,
         },
       });
 
       return response.status(status).json({
-        erro: { mensagem: responseBody },
+        erro: { mensagem: responseBody.message },
       });
     }
 

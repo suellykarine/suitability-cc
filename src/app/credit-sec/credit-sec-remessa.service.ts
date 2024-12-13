@@ -1,8 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -33,6 +29,7 @@ import {
 import { OperacoesInvestService } from '../operacoes-invest/operacoes-invest.service';
 import { LogService } from '../global/logs/log.service';
 import { CcbService } from '../ccb/ccb.service';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -73,7 +70,14 @@ export class CreditSecRemessaService {
         await this.registrarRetornoCreditSec(buscarStatusRemessa);
       }
     } catch (error) {
-      throw error;
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        acao: 'creditSecRemessa.buscarStatusSolicitacaoRemessa',
+        mensagem: `Erro ao buscar status solicitação da remessa`,
+        informacaoAdicional: {
+          error,
+        },
+      });
     }
   }
 
@@ -272,13 +276,16 @@ export class CreditSecRemessaService {
     if (!req.ok) {
       const erro = await req.json();
       const motivos = erro.errors[0].motivo_rejeicao as string[];
-      const motivosConcatenado = motivos.reduce((acc, curr) => {
-        return `${acc} | ${curr}`;
-      }, '');
-      throw new ErroServidorInterno({
+
+      const motivosConcatenado = motivos.join(' | ');
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'creditSecRemessaService.buscarStatusRemessa',
         mensagem: `Erro ao criar remessa: ${motivosConcatenado}`,
-        acao: 'creditSecRemessaService.solicitarRemessaCreditSec',
-        informacaoAdicional: {
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
           erro,
           body,
           req,
@@ -307,16 +314,17 @@ export class CreditSecRemessaService {
       },
     );
     if (!req.ok) {
-      throw new ErroServidorInterno({
-        mensagem: `Erro ao buscar remessa: ${req.status} ${req.statusText}`,
+      await tratarErroRequisicao({
+        status: req.status,
         acao: 'creditSecRemessaService.buscarStatusRemessa',
-        informacaoAdicional: {
-          data: {
-            numero_emissao,
-            numero_remessa,
-            numero_serie,
-          },
-          req,
+        mensagem: `Erro ao buscar remessa: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          emissao: numero_emissao,
+          remessa: numero_remessa,
+          serie: numero_serie,
         },
       });
     }
@@ -339,11 +347,20 @@ export class CreditSecRemessaService {
       },
     );
 
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao encontrar operações do cedente: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
+        mensagem: `Erro ao encontrar operações do cedente no sigma: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          codigoOperacao,
+          body: req.body,
+        },
+      });
+    }
 
     const res = await req.json();
     return res;
@@ -365,11 +382,20 @@ export class CreditSecRemessaService {
       },
     );
 
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'creditSecRemessaService.criarRegistroDeOperacaoSigma',
+        mensagem: `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          codigoOperacao,
+          body: req.body,
+        },
+      });
+    }
 
     const res = { sucesso: true, codigoOperacao };
     return res;
@@ -386,11 +412,20 @@ export class CreditSecRemessaService {
         },
       },
     );
-    if (!req.ok)
-      throw new HttpException(
-        `Erro ao destravar operação no sigma: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
+        mensagem: `Erro ao destravar operacao debenture no sigma: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          codigoOperacao,
+          status: req.status,
+          texto: req.statusText,
+          body: req.body,
+        },
+      });
+    }
 
     const res = { sucesso: true, codigoOperacao };
     return res;
@@ -419,12 +454,12 @@ export class CreditSecRemessaService {
   ): Promise<SolicitarRemessaType> {
     const isLocalhost = process.env.AMBIENTE === 'development';
     const baseUrl = isLocalhost
-      ? 'http://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
+      ? 'https://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
       : process.env.BASE_URL;
 
     const promiseAtivos = dadosAtivo.map(async (ativo) => {
       const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
-        ativo.codigoAtivo,
+        1364997, // TO-DO: Retirar hard coded, retornar utilizando ativo.codigoAtivo,
       );
       const taxa_cessao =
         ativo.taxaAtivo === 'PRÉ'

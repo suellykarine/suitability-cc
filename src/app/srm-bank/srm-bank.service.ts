@@ -12,6 +12,7 @@ import {
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { ConfigService } from '@nestjs/config';
+import { ErroAplicacao, ErroServidorInterno } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class SrmBankService {
@@ -62,7 +63,7 @@ export class SrmBankService {
     };
 
     const req = await fetch(
-      `${process.env.BASE_URL_SRM_BANK}gestao/contas/serie`,
+      `${process.env.BASE_URL_SRM_BANK}/gestao/contas/serie`,
       {
         method: 'POST',
         body: JSON.stringify(body),
@@ -165,9 +166,9 @@ export class SrmBankService {
     }
   }
 
-  async buscarSaldoContaInvestidor(numeroConta: number) {
+  async buscarSaldoContaInvestidor(numeroConta: string) {
     try {
-      const url = `${process.env.BASE_URL_SALDO_CONTA_INVESTIDOR}${numeroConta}`;
+      const url = `${process.env.BASE_URL_SRM_BANK}/consultas/saldo?numeroConta=${numeroConta}`;
 
       const req = await fetch(url, {
         headers: {
@@ -175,18 +176,23 @@ export class SrmBankService {
         },
       });
 
+      const resposta = await req.json();
       if (!req.ok) {
-        throw new InternalServerErrorException(
-          'Ocorreu um erro ao buscar o saldo',
-        );
+        throw new ErroServidorInterno({
+          mensagem: 'Ocorreu um erro ao buscar o saldo',
+          acao: 'srmBankService.buscarSaldoContaInvestidor',
+          informacaoAdicional: { numeroConta, resposta, req },
+        });
       }
 
-      const result = await req.json();
-      return { saldoEmConta: result.saldoEmConta };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Ocorreu um erro ao buscar o saldo',
-      );
+      return { saldoEmConta: resposta.saldoEmConta };
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
+      throw new ErroServidorInterno({
+        acao: 'srmBankService.buscarSaldoContaInvestidor.catch',
+        mensagem: 'Ocorreu um erro ao buscar o saldo',
+        informacaoAdicional: { numeroConta, erro, mensagemErro: erro.message },
+      });
     }
   }
 }
