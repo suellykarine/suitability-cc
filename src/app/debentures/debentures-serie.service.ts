@@ -352,7 +352,7 @@ export class DebentureSerieService {
       id_fundo_investimento: idFundoInvestimento,
       data_vinculo: new Date(),
       codigo_investidor_laqus: idLaqus,
-      status_retorno_laqus: statusLaqus ?? 'Pendente',
+      status_retorno_laqus: statusLaqus || 'PENDENTE',
     });
   }
 
