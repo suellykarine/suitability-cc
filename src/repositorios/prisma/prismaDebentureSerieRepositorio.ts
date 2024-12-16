@@ -109,7 +109,7 @@ export class PrismaDebentureSerieRepositorio
 
   async buscarPorNumeroSerie(
     idDebenture: number,
-    numeroSerie: any,
+    numeroSerie: number,
   ): Promise<DebentureSerie> {
     const debentureSerie = await this.prisma.debenture_serie.findFirst({
       where: {

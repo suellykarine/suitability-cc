@@ -6,12 +6,21 @@ import {
   OperacaoDebentureSemVinculo,
 } from 'src/@types/entities/operacaoDebenture';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaOperacaoDebentureRepositorio
   implements OperacaoDebentureRepositorio
 {
   constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async criar(
     data: Omit<OperacaoDebentureSemVinculo, 'id'>,

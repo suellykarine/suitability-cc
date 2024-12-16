@@ -30,6 +30,7 @@ import { OperacoesInvestService } from '../operacoes-invest/operacoes-invest.ser
 import { LogService } from '../global/logs/log.service';
 import { CcbService } from '../ccb/ccb.service';
 import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -44,6 +45,7 @@ export class CreditSecRemessaService {
     private readonly operacaoInvestService: OperacoesInvestService,
     private readonly logService: LogService,
     private readonly ccbService: CcbService,
+    private readonly adaptadorDb: AdaptadorDb,
   ) {}
   @Cron('0 0 10 * * 1-5')
   async buscarStatusSolicitacaoRemessa() {
@@ -111,30 +113,33 @@ export class CreditSecRemessaService {
         operacaoCedente.ativosInvest,
       );
 
-      const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
+      const solicitarRemessa =
+        await this.adaptadorDb.fazerTransacao(async () => {
+          await this.debentureSerieService.registroBaixaValorSerie(
+            debenture_serie.id,
+            operacaoCedente.valorLiquido,
+          );
 
-      await this.debentureSerieService.registroBaixaValorSerie(
-        debenture_serie.id,
-        operacaoCedente.valorLiquido,
-      );
+          await this.criarOperacaoDebentureCreditConnect({
+            codigo_operacao: data.codigo_operacao,
+            status_retorno_creditsec: 'PENDENTE',
+            id_debenture_serie_investidor: debentureSerieInvestidor.id,
+            data_inclusao: new Date(),
+          });
 
-      await this.criarOperacaoDebentureCreditConnect({
-        codigo_operacao: data.codigo_operacao,
-        status_retorno_creditsec: 'PENDENTE',
-        id_debenture_serie_investidor: debentureSerieInvestidor.id,
-        data_inclusao: new Date(),
-      });
-
-      const bodyCriarOperacaoSigma: BodyCriarRegistroOperacao = {
-        cedenteIdentificador: '49947676000186',
-        codigoControleParceiroValor: operacaoCedente.codigoControleParceiro,
-        investidorIdentificador: fundoInvestimento.cpf_cnpj,
-        produtoSigla: 'DEBINVEST',
-      };
-      await this.criarRegistroDeOperacaoSigma(
-        String(data.codigo_operacao),
-        bodyCriarOperacaoSigma,
-      );
+          const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
+          const bodyCriarOperacaoSigma: BodyCriarRegistroOperacao = {
+            cedenteIdentificador: '49947676000186',
+            codigoControleParceiroValor: operacaoCedente.codigoControleParceiro,
+            investidorIdentificador: fundoInvestimento.cpf_cnpj,
+            produtoSigla: 'DEBINVEST',
+          };
+          await this.criarRegistroDeOperacaoSigma(
+            String(data.codigo_operacao),
+            bodyCriarOperacaoSigma,
+          );
+          return solicitarRemessa;
+        }, [this.operacaoDebentureRepositorio, this.debentureSerieRepositorio]);
 
       return {
         sucesso: true,
@@ -230,22 +235,24 @@ export class CreditSecRemessaService {
 
         const valorOperacao = operacaoDetalhada.valorLiquido;
 
-        await this.debentureSerieService.estornoBaixaValorSerie(
-          debentureSerie.id,
-          valorOperacao,
-        );
+        await this.adaptadorDb.fazerTransacao(async () => {
+          await this.debentureSerieService.estornoBaixaValorSerie(
+            debentureSerie.id,
+            valorOperacao,
+          );
 
-        await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
-          status_retorno_creditsec: statusRetorno,
-          data_exclusao: new Date(),
-          mensagem_retorno_creditsec: motivos,
-        });
+          await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+            status_retorno_creditsec: statusRetorno,
+            data_exclusao: new Date(),
+            mensagem_retorno_creditsec: motivos,
+          });
 
-        await this.sigmaService.excluirOperacaoDebentureSigma({
-          codigoOperacao: data.numero_remessa,
-          complementoStatusOperacao:
-            'A emissão da Remessa foi Recusada pela CreditSec',
-        });
+          await this.sigmaService.excluirOperacaoDebentureSigma({
+            codigoOperacao: data.numero_remessa,
+            complementoStatusOperacao:
+              'A emissão da Remessa foi Recusada pela CreditSec',
+          });
+        }, [this.debentureSerieRepositorio, this.operacaoDebentureRepositorio]);
 
         return;
       }

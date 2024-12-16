@@ -615,16 +615,19 @@ export class DebentureSerieService {
     ]);
   }
 
-  async estornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+  async estornoBaixaValorSerie(idDebentureSerie: number, valorEntrada: number) {
     return this.atualizarValorSerie(
-      numeroSerie,
+      idDebentureSerie,
       (valorAtual) => valorAtual - valorEntrada,
     );
   }
 
-  async registroBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+  async registroBaixaValorSerie(
+    idDebentureSerie: number,
+    valorEntrada: number,
+  ) {
     return this.atualizarValorSerie(
-      numeroSerie,
+      idDebentureSerie,
       (valorAtual) => valorAtual + valorEntrada,
     );
   }
@@ -681,33 +684,18 @@ export class DebentureSerieService {
   }
 
   private async atualizarValorSerie(
-    numeroSerie: number,
+    idDebentureSerie: number,
     calcularNovoValor: (valorAtual: number) => number,
   ) {
-    const debentureId = (await this.debentureRepositorio.buscarAtiva())?.id;
-
-    if (!debentureId) {
-      throw new ErroNaoEncontrado({
-        acao: 'debentureSerieService.atualizarValorSerie',
-        mensagem: 'Debenture não encontrada',
-        informacaoAdicional: {
-          numeroSerie,
-        },
-      });
-    }
-
     const debentureSerie =
-      await this.debentureSerieRepositorio.buscarPorNumeroSerie(
-        debentureId,
-        numeroSerie,
-      );
+      await this.debentureSerieRepositorio.encontrarPorId(idDebentureSerie);
 
     if (!debentureSerie) {
       throw new ErroNaoEncontrado({
         acao: 'debentureSerieService.atualizarValorSerie',
         mensagem: 'Debenture série não encontrada',
         informacaoAdicional: {
-          numeroSerie,
+          idDebentureSerie,
         },
       });
     }
