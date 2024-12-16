@@ -126,8 +126,17 @@ export class CreditSecRemessaService {
             id_debenture_serie_investidor: debentureSerieInvestidor.id,
             data_inclusao: new Date(),
           });
-
+          await this.logService.info({
+            mensagem: 'Solicitando remessa na CreditSec',
+            acao: 'creditSecRemessaService.solicitarRemessa.creditSec.solicitar',
+            informacaoAdicional: { data },
+          });
           const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
+          await this.logService.info({
+            mensagem: 'Remessa solicitada com sucesso na CreditSec',
+            acao: 'creditSecRemessaService.solicitarRemessa.creditSec.solicitado',
+            informacaoAdicional: { data, solicitarRemessa },
+          });
           const bodyCriarOperacaoSigma: BodyCriarRegistroOperacao = {
             cedenteIdentificador: '49947676000186',
             codigoControleParceiroValor: operacaoCedente.codigoControleParceiro,
