@@ -113,8 +113,8 @@ export class CreditSecRemessaService {
         operacaoCedente.ativosInvest,
       );
 
-      const solicitarRemessa =
-        await this.adaptadorDb.fazerTransacao(async () => {
+      const solicitarRemessa = await this.adaptadorDb.fazerTransacao(
+        async () => {
           await this.debentureSerieService.registroBaixaValorSerie(
             debenture_serie.id,
             operacaoCedente.valorLiquido,
@@ -126,17 +126,6 @@ export class CreditSecRemessaService {
             id_debenture_serie_investidor: debentureSerieInvestidor.id,
             data_inclusao: new Date(),
           });
-          await this.logService.info({
-            mensagem: 'Solicitando remessa na CreditSec',
-            acao: 'creditSecRemessaService.solicitarRemessa.creditSec.solicitar',
-            informacaoAdicional: { data },
-          });
-          const solicitarRemessa = await this.solicitarRemessaCreditSec(body);
-          await this.logService.info({
-            mensagem: 'Remessa solicitada com sucesso na CreditSec',
-            acao: 'creditSecRemessaService.solicitarRemessa.creditSec.solicitado',
-            informacaoAdicional: { data, solicitarRemessa },
-          });
           const bodyCriarOperacaoSigma: BodyCriarRegistroOperacao = {
             cedenteIdentificador: '49947676000186',
             codigoControleParceiroValor: operacaoCedente.codigoControleParceiro,
@@ -147,8 +136,40 @@ export class CreditSecRemessaService {
             String(data.codigo_operacao),
             bodyCriarOperacaoSigma,
           );
-          return solicitarRemessa;
-        }, [this.operacaoDebentureRepositorio, this.debentureSerieRepositorio]);
+
+          try {
+            return await this.solicitarRemessaCreditSec(body);
+          } catch (error) {
+            await this.sigmaService.excluirOperacaoDebentureSigma({
+              codigoOperacao: String(data.codigo_operacao),
+              complementoStatusOperacao:
+                'A emissão da Remessa não foi realizada pela CreditSec',
+            });
+            if (error instanceof ErroAplicacao) {
+              const { message, acao, informacaoAdicional, ...erro } = error;
+              throw new ErroServidorInterno({
+                mensagem: message,
+                acao:
+                  acao +
+                  ' | ' +
+                  'creditSecRemessaService.solicitarRemessa.creditSec.catch',
+                informacaoAdicional: {
+                  ...informacaoAdicional,
+                  data,
+                  erro,
+                },
+              });
+            }
+            throw new ErroServidorInterno({
+              mensagem: 'Erro ao solicitar remessa',
+              acao: 'creditSecRemessaService.solicitarRemessa.creditSec.catch',
+              informacaoAdicional: { data, erro: error },
+            });
+          }
+        },
+        [this.operacaoDebentureRepositorio, this.debentureSerieRepositorio],
+        { timeout: 80000 }, // TO-KNOW: Timeout de 80 segundos devido a lentidão do SIGMA, tentar tratar isso posteriormente com a respectiva equipe
+      );
 
       return {
         sucesso: true,
