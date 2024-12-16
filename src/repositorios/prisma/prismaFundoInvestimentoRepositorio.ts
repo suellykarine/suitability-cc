@@ -8,8 +8,6 @@ import {
 } from 'src/@types/entities/fundos';
 import { Prisma } from '@prisma/client';
 import { AtualizarFundoInvestimentoAptoDebenture } from 'src/@types/entities/debenture';
-import { Fundo } from 'src/@types/entities/banco';
-import { formatarCNPJ } from 'src/utils/formatar';
 
 @Injectable()
 export class PrismaFundoInvestimentoRepositorio
