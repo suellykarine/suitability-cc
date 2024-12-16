@@ -300,7 +300,7 @@ export class PrismaDebentureSerieInvestidorRepositorio
         debenture_serie: {
           id_debenture: idDebenture,
         },
-        status_retorno_creditsec: null,
+        status_retorno_creditsec: 'PENDENTE',
         data_desvinculo: null,
         data_encerramento: null,
         status_retorno_laqus: 'APROVADO',
