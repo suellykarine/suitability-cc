@@ -46,6 +46,7 @@ export class OperacoesInvestService {
         (identificadorInvestidor
           ? `?identificadorInvestidor=${identificadorInvestidor}`
           : '');
+
       const req = await fetch(urlMontada, {
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@ import { Controller, UseGuards, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { OperacoesInvestService } from './operacoes-invest.service';
+import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 
 @ApiTags('operacao-invest')
 @ApiBearerAuth('access-token')

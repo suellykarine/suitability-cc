@@ -1,6 +1,6 @@
 import { Controller, Post, UseGuards, Param, Get } from '@nestjs/common';
 import { JwtAuthGuardBackoffice } from 'src/app/autenticacao/guards/backoffice-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { SrmBankService } from './srm-bank.service';
 
@@ -17,18 +17,15 @@ export class SrmBankController {
   }
 
   @UseGuards(JwtAuthGuardPremium)
-  @Get('conta/:id_fundo_investidor')
-  buscarContaInvestidor(
-    @Param('id_fundo_investidor') id_fundo_investidor: string,
+  @ApiParam({
+    name: 'idContaInvestidor',
+    example: '123456',
+    required: true,
+  })
+  @Get('saldo/:idContaInvestidor')
+  async buscarSaldoContaInvestidor(
+    @Param('idContaInvestidor') idContaInvestidor: string,
   ) {
-    return this.srmBankService.buscarContaInvestidor(
-      Number(id_fundo_investidor),
-    );
-  }
-
-  @UseGuards(JwtAuthGuardPremium)
-  @Get('saldo/:numeroConta')
-  async buscarSaldoContaInvestidor(@Param('numeroConta') numeroConta: string) {
-    return this.srmBankService.buscarSaldoContaInvestidor(numeroConta);
+    return this.srmBankService.buscarSaldoContaInvestidor(idContaInvestidor);
   }
 }

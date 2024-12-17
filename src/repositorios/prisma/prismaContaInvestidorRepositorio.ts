@@ -56,19 +56,9 @@ export class PrismaContaInvestidorRepositorio
       data: dadosCriacao,
     });
   }
-  async buscarContaInvestidorPorIdentificadorFundo(
-    idenficadorFundo: number,
-  ): Promise<ContaInvestidor | null> {
-    const contaInvestidor = await this.prisma.conta_investidor.findFirst({
-      where: {
-        id_fundo_investidor: idenficadorFundo,
-      },
-    });
-    return contaInvestidor;
-  }
 
   async buscarContaPorId(id: number): Promise<ContaInvestidor | null> {
-    const contaInvestidor = await this.prisma.conta_investidor.findUnique({
+    const contaInvestidor = await this.prisma.conta_investidor.findFirst({
       where: { id },
     });
     return contaInvestidor;
