@@ -54,9 +54,15 @@ export class OperacoesInvestService {
 
   async buscarTodasOperacoes(identificadorInvestidor: string) {
     try {
-      const url = `${process.env.BASE_URL_OPERACAO_INVEST}?identificadorCedente=${identificadorInvestidor}`;
+      const credictConnectCedente = process.env.IDENTIFICADOR_CEDENTE;
+      const url = `${process.env.BASE_URL_OPERACAO_INVEST}?identificadorCedente=${credictConnectCedente}`;
+      const urlMontada =
+        url +
+        (identificadorInvestidor
+          ? `?identificadorInvestidor=${identificadorInvestidor}`
+          : '');
 
-      const req = await fetch(url, {
+      const req = await fetch(urlMontada, {
         headers: {
           'Content-Type': 'application/json',
           'X-API-KEY': process.env.FLUXO_OPERACIONAL_SECRET_KEY,

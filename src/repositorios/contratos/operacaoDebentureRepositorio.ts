@@ -23,4 +23,6 @@ export abstract class OperacaoDebentureRepositorio extends Repositorio {
   ): Promise<OperacaoDebenture>;
 
   abstract buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]>;
+
+  abstract buscarTodasOperacoes(): Promise<OperacaoDebenture[]>;
 }

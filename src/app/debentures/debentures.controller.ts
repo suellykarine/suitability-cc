@@ -96,14 +96,22 @@ export class DebenturesController {
     return this.debenturesSerieService.deletar(+id);
   }
   @UseGuards(JwtAuthGuardPremium)
+  @ApiQuery({
+    required: false,
+    name: 'idGestorFundo',
+    example: '12345',
+  })
   @Get('operacao-debenture')
   async listarOperacoesPorGestorFundo(
     @Query('idGestorFundo') idGestorFundo: string,
   ) {
-    return await this.debenturesSerieService.listarOperacoesPorGestorFundo(
-      Number(idGestorFundo),
-    );
+    if (idGestorFundo)
+      return await this.debenturesSerieService.listarOperacoesPorGestorFundo(
+        Number(idGestorFundo),
+      );
+    return await this.debenturesSerieService.listarTodasOperacoes();
   }
+
   @Get('serie-investidor/:id/:valor')
   async temDebentureSerieComSaldo(
     @Param('id') id: string,

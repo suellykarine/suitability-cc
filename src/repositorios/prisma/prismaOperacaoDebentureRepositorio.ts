@@ -95,4 +95,23 @@ export class PrismaOperacaoDebentureRepositorio
     });
     return converterCamposDecimais(operacoes);
   }
+
+  async buscarTodasOperacoes(): Promise<OperacaoDebenture[]> {
+    const todasOperacoes = await this.prisma.operacao_debenture.findMany({
+      include: {
+        debenture_serie_investidor: {
+          include: {
+            fundo_investimento: true,
+            debenture_serie: {
+              include: {
+                debenture: true,
+              },
+            },
+            conta_investidor: true,
+          },
+        },
+      },
+    });
+    return converterCamposDecimais(todasOperacoes);
+  }
 }

@@ -683,6 +683,17 @@ export class DebentureSerieService {
     }
   }
 
+  async listarTodasOperacoes() {
+    try {
+      return await this.operacaoDebentureRepositorio.buscarTodasOperacoes();
+    } catch (error) {
+      throw new ErroServidorInterno({
+        acao: 'debentureSerieService.listarTodasOperacoes',
+        mensagem: 'Erro ao buscar todas as operações.',
+      });
+    }
+  }
+
   private async atualizarValorSerie(
     idDebentureSerie: number,
     calcularNovoValor: (valorAtual: number) => number,
