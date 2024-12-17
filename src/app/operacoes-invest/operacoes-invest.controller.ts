@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { OrganizaCarteirasParamsDto } from './dto/organizaCarteiras.dto';
 import { OperacoesInvestService } from './operacoes-invest.service';
-import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 
 @ApiTags('operacao-invest')
 @ApiBearerAuth('access-token')
