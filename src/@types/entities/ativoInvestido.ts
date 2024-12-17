@@ -23,12 +23,13 @@ export type AtivoInvestido = {
   carteira_investimento?: CarteiraInvestimento;
 };
 
-type Recebiveis = {
+export type Recebiveis = {
   codigoRecebivel: number;
   valorOriginal: number;
   valorPresente: number;
   valorFuturo: number;
   dataVencimento: string;
+  dataLiquidacao?: string;
 };
 type Cedente = {
   identificador: string;
