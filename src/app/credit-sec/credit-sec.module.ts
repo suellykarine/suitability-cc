@@ -31,6 +31,8 @@ import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 import { OperacoesInvestModule } from '../operacoes-invest/operacoes-invest.module';
 import { CcbService } from '../ccb/ccb.service';
+import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
 
 @Module({
   imports: [ScheduleModule.forRoot(), OperacoesInvestModule],
@@ -82,6 +84,10 @@ import { CcbService } from '../ccb/ccb.service';
     {
       provide: ContaInvestidorRepositorio,
       useClass: PrismaContaInvestidorRepositorio,
+    },
+    {
+      provide: AdaptadorDb,
+      useClass: PrismaAdaptadorDb,
     },
   ],
   exports: [CreditSecSerieService, CreditSecRemessaService],
