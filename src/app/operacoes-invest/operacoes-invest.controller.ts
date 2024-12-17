@@ -5,7 +5,7 @@ import { OrganizaCarteirasParamsDto } from './dto/organizaCarteiras.dto';
 import { OperacoesInvestService } from './operacoes-invest.service';
 
 @ApiTags('operacao-invest')
-//@ApiBearerAuth('access-token')
+@ApiBearerAuth('access-token')
 @Controller('api/operacoes-invest')
 export class OperacoesInvestController {
   constructor(
@@ -42,7 +42,7 @@ export class OperacoesInvestController {
     );
   }
 
-  // @UseGuards(JwtAuthGuardPremium)
+  @UseGuards(JwtAuthGuardPremium)
   @Get('/organizarCarteiras/:identificadorInvestidor')
   async organizaCarteiras(
     @Param('identificadorInvestidor') identificadorInvestidor: string,
