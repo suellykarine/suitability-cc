@@ -292,9 +292,19 @@ export class PrismaDebentureSerieInvestidorRepositorio
     return atualizaDebentureSerieInvestidor;
   }
 
-  async todosStatusCreditSecNull(): Promise<DebentureSerieInvestidor[] | null> {
+  async buscarDSIPendenteCreditSec(
+    idDebenture: number,
+  ): Promise<DebentureSerieInvestidor[] | null> {
     const data = await this.prisma.debenture_serie_investidor.findMany({
-      where: { status_retorno_creditsec: null },
+      where: {
+        debenture_serie: {
+          id_debenture: idDebenture,
+        },
+        status_retorno_creditsec: 'PENDENTE',
+        data_desvinculo: null,
+        data_encerramento: null,
+        status_retorno_laqus: 'APROVADO',
+      },
       include: {
         debenture_serie: {
           include: {

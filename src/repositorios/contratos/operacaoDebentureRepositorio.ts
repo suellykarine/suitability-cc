@@ -2,8 +2,9 @@ import {
   OperacaoDebentureSemVinculo,
   OperacaoDebenture,
 } from 'src/@types/entities/operacaoDebenture';
+import { Repositorio } from './repositorio';
 
-export abstract class OperacaoDebentureRepositorio {
+export abstract class OperacaoDebentureRepositorio extends Repositorio {
   abstract criar(
     data: Omit<OperacaoDebentureSemVinculo, 'id'>,
   ): Promise<OperacaoDebenture>;

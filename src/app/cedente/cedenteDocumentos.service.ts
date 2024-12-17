@@ -1,9 +1,10 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
 import { AprovarDocumentoDto } from './dto/aprovar-documento.dto';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { File } from 'buffer';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
 
 @Injectable()
 export class DocumentoCedenteService {
@@ -68,13 +69,19 @@ export class DocumentoCedenteService {
     return this.tratarResposta(resposta);
   }
 
-  private async tratarResposta(resposta: Response) {
-    const dadosResposta = await resposta.json();
-    if (!resposta.ok) {
-      throw new HttpException(
-        dadosResposta.mensagem || 'Erro na comunicação com o serviço externo',
-        resposta.status || 502,
-      );
+  private async tratarResposta(req: Response) {
+    const dadosResposta = await req.json();
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'cedenteDocumentos.tratarResposta',
+        mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+        },
+      });
     }
     return dadosResposta;
   }

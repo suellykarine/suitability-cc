@@ -1,14 +1,14 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EnviarEmailDto } from './dto/create-enviar-email.dto';
 import { SolicitacaoBase } from 'src/utils/interfaces/solicitacaoBase.interface';
 import { jwtConstants } from '../autenticacao/constants';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'prisma/prisma.service';
+import {
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class EnviarEmailService {
@@ -29,10 +29,16 @@ export class EnviarEmailService {
       usuario,
     );
 
-    const resposta = await this.serviceEmailSrm(solicitacaoBase);
-    if (!resposta) {
-      throw new ServiceUnavailableException({
+    const req = await this.serviceEmailSrm(solicitacaoBase);
+    if (!req) {
+      throw new ErroServidorInterno({
+        acao: 'enviarEmail.enviarEmail',
         mensagem: 'Serviço fora do ar momentaneamente',
+        informacaoAdicional: {
+          solicitacaoBase,
+          enviarEmailDto,
+          usuario,
+        },
       });
     }
     return {
@@ -106,8 +112,14 @@ export class EnviarEmailService {
         break;
 
       default:
-        throw new BadRequestException({
-          mensage: 'Tipo de email não reconhecido',
+        throw new ErroRequisicaoInvalida({
+          acao: 'enviarEmail.prepararSolicitacaoBase',
+          mensagem: 'Tipo de email não reconhecido',
+          informacaoAdicional: {
+            solicitacaoBase,
+            enviarEmailDto,
+            usuario,
+          },
         });
     }
   }
@@ -153,14 +165,22 @@ export class EnviarEmailService {
     });
 
     if (!backOffice) {
-      throw new NotFoundException({ mensagem: 'Backoffice não encontrado' });
+      throw new ErroNaoEncontrado({
+        acao: 'enviarEmail.configurarTemplateEnviarDocBackoffice',
+        mensagem: 'Backoffice não encontrado',
+        informacaoAdicional: {
+          solicitacaoBase,
+          enviarEmailDto,
+          usuario,
+        },
+      });
     }
 
     const tokenBackoffice = this.gerarTokenBackoffice(
       backOffice!.id,
       30,
       usuario?.id,
-      usuario?.email!,
+      usuario?.email,
     );
     solicitacaoBase.contentParam.nomeDoFundo = enviarEmailDto.nomeDoFundo;
     solicitacaoBase.contentParam.urlDocumentosBackoffice = `${process.env.URL_DA_PLATAFORMA}backoffice/${tokenBackoffice}`;
@@ -186,8 +206,13 @@ export class EnviarEmailService {
 
   private validarCampoObrigatorio(campo: any, nomeCampo: string) {
     if (!campo) {
-      throw new BadRequestException({
+      throw new ErroRequisicaoInvalida({
+        acao: 'enviarEmail.configurarTemplateRedefinirSenha',
         mensagem: `O Campo ${nomeCampo} não pode estar vazio`,
+        informacaoAdicional: {
+          campo,
+          nomeCampo,
+        },
       });
     }
   }
@@ -243,7 +268,6 @@ export class EnviarEmailService {
       },
     );
     if (!res.ok) {
-      const response = await res.json();
       return;
     }
     return res;

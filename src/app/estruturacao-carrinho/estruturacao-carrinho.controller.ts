@@ -6,7 +6,6 @@ import {
   Delete,
   HttpCode,
   UseGuards,
-  BadRequestException,
 } from '@nestjs/common';
 import { EstruturacaoCarrinhoService } from './estruturacao-carrinho.service';
 import { CreateEstruturacaoCarrinhoDto } from './dto/create-estruturacao-carrinho.dto';
@@ -19,6 +18,7 @@ import {
   ErrorResponseDto,
   EstruturarInvestimentoDiretoResponseDto,
 } from './dto/estruturar-investimento-direto.dto';
+import { ErroRequisicaoInvalida } from 'src/helpers/erroAplicacao';
 
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
@@ -104,7 +104,14 @@ export class EstruturacaoCarrinhoController {
     const codigoDaOperacaoNumber = Number(codigoOperacao);
 
     if (!codigoDaOperacaoNumber) {
-      throw new BadRequestException('formato do codigo da operacao inválido');
+      throw new ErroRequisicaoInvalida({
+        acao: 'controler.estruturacaoCarrinho.direto/identificador/codigoOperacao',
+        mensagem: 'formato do codigo da operacao inválido',
+        informacaoAdicional: {
+          codigoOperacao,
+          identificador,
+        },
+      });
     }
 
     return this.estruturacaoCarrinhoService.estruturarInvestimentoDireto({

@@ -12,6 +12,6 @@ export class CcbController {
 
   @Get(':codigoOperacao/')
   async obterCCBAssinada(@Param('codigoOperacao') codigoOperacao: number) {
-    return await this.ccbService.buscarCCCBAssinada(codigoOperacao);
+    return await this.ccbService.buscarCCBParaExternalizar(codigoOperacao);
   }
 }

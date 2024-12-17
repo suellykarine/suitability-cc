@@ -56,9 +56,9 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
     data: AtualizaDebentureSerieInvestidorCreditSec,
   ): Promise<DebentureSerieInvestidor | null>;
 
-  abstract todosStatusCreditSecNull(): Promise<
-    DebentureSerieInvestidor[] | null
-  >;
+  abstract buscarDSIPendenteCreditSec(
+    idDebenture: number,
+  ): Promise<DebentureSerieInvestidor[] | null>;
   abstract buscarTodasSeriesAptasParaInvestir({
     idFundoInvestimento,
     idDebenture,

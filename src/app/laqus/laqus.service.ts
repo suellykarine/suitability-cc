@@ -168,7 +168,7 @@ export class LaqusService {
         },
       ],
     };
-    const callbackUrl = `${this.configService.get<string>('BASE_URL')}/laqus/atualizarStatus`;
+    const callbackUrl = `${this.configService.get<string>('BASE_URL')}api/laqus/atualizarStatus`;
     const payload: CadastrarLaqusPayload = {
       callbackUrl,
       dadosCedente,
