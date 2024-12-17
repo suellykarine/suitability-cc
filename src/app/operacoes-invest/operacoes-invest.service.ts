@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { AtivosInvest, Recebiveis } from 'src/@types/entities/ativoInvestido';
 import { Cedente, OperacaoInvest } from 'src/@types/entities/operacao';
 import { ErroAplicacao, ErroServidorInterno } from 'src/helpers/erroAplicacao';
-import { converterDataParaISO } from 'src/utils/funcoes/geral';
+import { converterDataParaISO } from 'src/utils/funcoes/data';
+import { formatarBrlParaNumero } from 'src/utils/funcoes/mascaras';
 import {
   identificadorCedente,
   OrganizaCarteirasParamsDto,
@@ -122,7 +123,7 @@ export class OperacoesInvestService {
         if (
           queryParam.totalInvestimento &&
           operacao.valorBruto !==
-            this.formatarMoedaParaNumero(String(operacao.valorBruto))
+            formatarBrlParaNumero(String(operacao.valorBruto))
         )
           return false;
 
@@ -191,9 +192,6 @@ export class OperacoesInvestService {
         informacaoAdicional: { error },
       });
     }
-  }
-  private formatarMoedaParaNumero(moeda: string) {
-    return parseFloat(moeda.replace(/[R$\s.]/g, '').replace(',', '.'));
   }
 
   private reverseMapStatus(status: string) {
