@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AtivosInvest, Recebiveis } from 'src/@types/entities/ativoInvestido';
 import { Cedente, OperacaoInvest } from 'src/@types/entities/operacao';
 import { ErroAplicacao, ErroServidorInterno } from 'src/helpers/erroAplicacao';
+import { converterDataParaISO } from 'src/utils/funcoes/geral';
 import {
   identificadorCedente,
   OrganizaCarteirasParamsDto,
@@ -19,7 +20,7 @@ type AtivoType = Pick<
 export class OperacoesInvestService {
   constructor() {}
 
-  public async buscarTransacaoPorCodigoOperacao(codigoOperacao: number) {
+  async buscarTransacaoPorCodigoOperacao(codigoOperacao: number) {
     try {
       const url = `${process.env.BASE_URL_OPERACAO__INVEST}${codigoOperacao}`;
 
@@ -50,7 +51,7 @@ export class OperacoesInvestService {
     }
   }
 
-  public async buscarTodasOperacoes(identificadorInvestidor: string) {
+  async buscarTodasOperacoes(identificadorInvestidor: string) {
     try {
       const url = `${process.env.BASE_URL_OPERACAO_INVEST}?identificadorCedente=${identificadorInvestidor}`;
 
@@ -82,7 +83,7 @@ export class OperacoesInvestService {
     }
   }
 
-  public async organizarCarteiras(
+  async organizarCarteiras(
     queryParam: OrganizaCarteirasParamsDto & identificadorCedente,
   ) {
     try {
@@ -127,8 +128,7 @@ export class OperacoesInvestService {
 
         if (
           queryParam.data &&
-          operacao.dataOperacao !==
-            this.converterDataParaISO(operacao.dataOperacao)
+          operacao.dataOperacao !== converterDataParaISO(operacao.dataOperacao)
         )
           return false;
 
@@ -194,10 +194,6 @@ export class OperacoesInvestService {
   }
   private formatarMoedaParaNumero(moeda: string) {
     return parseFloat(moeda.replace(/[R$\s.]/g, '').replace(',', '.'));
-  }
-  private converterDataParaISO(data: string) {
-    const [day, month, year] = data.split('/');
-    return `${year}-${month}-${day}`;
   }
 
   private reverseMapStatus(status: string) {
