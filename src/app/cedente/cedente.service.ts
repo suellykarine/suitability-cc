@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
-import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 
 @Injectable()
 export class CedenteService {

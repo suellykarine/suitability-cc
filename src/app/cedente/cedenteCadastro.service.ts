@@ -7,7 +7,7 @@ import { CreateContatoDto } from './dto/create-contato.dto';
 import { CreateProcuradorInvestidorDto } from './dto/create-procurador-investidor.dto';
 import { CreateRepresentanteLegalDto } from './dto/create-representante-legal.dto';
 import { Cedente } from 'src/@types/entities/cedente';
-import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 
 @Injectable()
 export class CadastroCedenteService {

@@ -4,7 +4,7 @@ import { sigmaHeaders } from '../autenticacao/constants';
 import { AprovarDocumentoDto } from './dto/aprovar-documento.dto';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { File } from 'buffer';
-import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 
 @Injectable()
 export class DocumentoCedenteService {
