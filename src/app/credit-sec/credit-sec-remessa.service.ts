@@ -526,7 +526,7 @@ export class CreditSecRemessaService {
       return {
         numero: String(ativo.codigoAtivo),
         taxa_cessao,
-        tipo: ativo.tipoAtivo,
+        tipo: 'ccb', // TO-DO: voltar para o padrão: ativo.tipoAtivo,
         sacado: {
           cnpj: ativo.sacado.identificador,
           razao_social: ativo.sacado.nome,
