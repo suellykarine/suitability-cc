@@ -52,9 +52,9 @@ export class OperacoesInvestService {
     }
   }
 
-  async buscarTodasOperacoes(identificadorInvestidor: string) {
+  async buscarTodasOperacoes(identificadorCedente: string) {
     try {
-      const url = `${process.env.BASE_URL_OPERACAO_INVEST}?identificadorCedente=${identificadorInvestidor}`;
+      const url = `${process.env.BASE_URL_OPERACAO_INVEST}?identificadorCedente=${identificadorCedente}`;
 
       const req = await fetch(url, {
         headers: {

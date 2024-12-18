@@ -28,17 +28,17 @@ export class OperacoesInvestController {
 
   @UseGuards(JwtAuthGuardPremium)
   @ApiQuery({
-    name: 'identificadorInvestidor',
-    required: false,
-    example: 1,
-    description: 'Identificador do fundo favorecido',
+    name: 'identificadorCedente',
+    required: true,
+    example: '1234',
+    description: 'Identificador do cedente',
   })
   @Get()
   async buscarTodasOperacoes(
-    @Query('identificadorInvestidor') identificadorInvestidor: string,
+    @Query('identificadorCedente') identificadorCedente: string,
   ) {
     return this.operacoesInvestService.buscarTodasOperacoes(
-      identificadorInvestidor,
+      identificadorCedente,
     );
   }
 

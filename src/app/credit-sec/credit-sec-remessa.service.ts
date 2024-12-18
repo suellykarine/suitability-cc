@@ -163,7 +163,7 @@ export class CreditSecRemessaService {
             throw new ErroServidorInterno({
               mensagem: 'Erro ao solicitar remessa',
               acao: 'creditSecRemessaService.solicitarRemessa.creditSec.catch',
-              informacaoAdicional: { data, erro: error },
+              informacaoAdicional: { data, erro: error.message },
             });
           }
         },
@@ -311,18 +311,35 @@ export class CreditSecRemessaService {
     );
 
     if (!req.ok) {
+      await this.logService.aviso({
+        acao: 'creditSecRemessaSerivce.solicitarRemessaCreditSec.prepararErro',
+        mensagem: `Preparando erro CreditSec`,
+        informacaoAdicional: {
+          req,
+          body,
+        },
+      });
       const erro = await req.json();
       const motivos = erro.errors[0].motivo_rejeicao as string[];
-
       const motivosConcatenado = motivos.join(' | ');
+      await this.logService.aviso({
+        acao: 'creditSecRemessaSerivce.solicitarRemessaCreditSec.erroPreparado',
+        mensagem: `Erro da creditSec preparado`,
+        informacaoAdicional: {
+          req,
+          body,
+          erro,
+          motivos,
+          motivosConcatenado,
+        },
+      });
+
       await tratarErroRequisicao({
         status: req.status,
-        acao: 'creditSecRemessaService.buscarStatusRemessa',
+        acao: 'creditSecRemessaService.solicitarRemessaCreditSec.tratarErroReq',
         mensagem: `Erro ao criar remessa: ${motivosConcatenado}`,
         req,
         infoAdicional: {
-          status: req.status,
-          texto: req.statusText,
           erro,
           body,
           req,
