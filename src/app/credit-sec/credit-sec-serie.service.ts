@@ -24,7 +24,7 @@ import {
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
 import { LogService } from '../global/logs/log.service';
-import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 
 @Injectable()

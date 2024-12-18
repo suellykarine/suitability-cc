@@ -12,7 +12,7 @@ import {
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { controleDeCadastroContaCedenteOperaçõesDiretasProps } from './types/estruturacaoCarrinho';
 import { ControleOperacao } from 'src/@types/entities/operacao';
-import { tratarErroRequisicao } from 'src/utils/funcoes/tratarErro';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 import { ErroRequisicaoInvalida } from 'src/helpers/erroAplicacao';
 
 @Injectable()

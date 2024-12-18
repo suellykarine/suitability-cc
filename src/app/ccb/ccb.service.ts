@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 
 @Injectable()
 export class CcbService {

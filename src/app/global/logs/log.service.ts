@@ -32,7 +32,7 @@ export class LogService {
       : JSON.stringify(log.informacaoAdicional);
     const payload = {
       ...log,
-      criadoEm: moment.tz(new Date(), timeZone).toISOString(),
+      criadoEm: moment().tz(timeZone).toISOString(),
       informacaoAdicional: informacaoAdicional,
     };
     if (exibirNoConsole) this.logger.log(payload.mensagem);

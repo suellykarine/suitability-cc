@@ -58,7 +58,7 @@ export async function tratarErroRequisicao({
       informacaoAdicional: {
         req,
         ...infoAdicional,
-        erro: erro.message,
+        erro: erro?.message,
       },
     });
   }
