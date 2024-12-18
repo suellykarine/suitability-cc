@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Fundo } from 'src/@types/entities/anbima';
 import { GetSerieHistoricaData } from './types/returnData';
+import { ErroAplicacao } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class AnbimaService {
@@ -40,37 +41,55 @@ export class AnbimaService {
   }
 
   async integracaoAnbima(cnpj: string) {
-    try {
-      await this.autenticarAnbima();
-      const fundo = await this.buscarFundosPorCnpj(cnpj);
-      if (!fundo) return null;
-      const serieHistorica = await this.buscarSerieHistoricaPorCodigoClasse(
-        fundo.classes[0].codigo_classe,
-      );
-      const detalhesFundo = await this.buscarDetalhesFundoPorCodigoAnbima(
-        fundo.codigo_fundo,
-      );
-      const patrimonioLiquido =
-        serieHistorica?.content?.[0].valor_patrimonio_liquido || 1;
+    await this.autenticarAnbima();
+    const urlCnpjPublica = `${this.configService.get('CNPJ_API_PUBLICA')}/${cnpj}`;
+    const respostaCnpj = await fetch(urlCnpjPublica);
+    const cnpjData = await respostaCnpj.json();
 
-      if (!detalhesFundo) return null;
-      const regulamento = detalhesFundo.documentos?.find(
-        (doc: any) => doc.tipo_documento == 'Regulamento',
-      );
-
-      const dadosFundo = {
-        nomeFantasia: fundo.nome_comercial_fundo,
-        codigoAnbima: fundo.codigo_fundo,
-        razaoSocial: fundo.razao_social_fundo,
-        cnpj: fundo.identificador_fundo,
-        classeAnbima: fundo.classes[0].nivel1_categoria,
-        urlRegulation: regulamento?.url,
-        patrimonioLiquido: String(patrimonioLiquido),
-      };
-      return dadosFundo;
-    } catch (err) {
-      throw new InternalServerErrorException('Ocorreu um erro inesperado');
+    if (!respostaCnpj.ok) {
+      throw new ErroAplicacao({
+        mensagem: cnpjData.detalhes || 'Erro na busca do CNPJ',
+        codigoStatus: respostaCnpj.status,
+        acao: 'AmbimaService.integracaoAnbima',
+        informacaoAdicional: { cnpj, cnpjData },
+      });
     }
+
+    if (cnpjData?.estabelecimento?.situacao_cadastral !== 'Ativa') {
+      throw new ErroAplicacao({
+        mensagem: 'CNPJ inativo. Operação cancelada.',
+        codigoStatus: 422,
+        acao: 'AnbimaService.integracaoAnbima',
+        informacaoAdicional: { cnpj },
+      });
+    }
+
+    const fundo = await this.buscarFundosPorCnpj(cnpj);
+    if (!fundo) return null;
+    const serieHistorica = await this.buscarSerieHistoricaPorCodigoClasse(
+      fundo.classes[0].codigo_classe,
+    );
+    const detalhesFundo = await this.buscarDetalhesFundoPorCodigoAnbima(
+      fundo.codigo_fundo,
+    );
+    const patrimonioLiquido =
+      serieHistorica?.content?.[0].valor_patrimonio_liquido ?? 1;
+
+    if (!detalhesFundo) return null;
+    const regulamento = detalhesFundo.documentos?.find(
+      (doc: any) => doc.tipo_documento == 'Regulamento',
+    );
+
+    const dadosFundo = {
+      nomeFantasia: fundo.nome_comercial_fundo,
+      codigoAnbima: fundo.codigo_fundo,
+      razaoSocial: fundo.razao_social_fundo,
+      cnpj: fundo.identificador_fundo,
+      classeAnbima: fundo.classes[0].nivel1_categoria,
+      urlRegulation: regulamento?.url,
+      patrimonioLiquido: String(patrimonioLiquido),
+    };
+    return dadosFundo;
   }
 
   async buscarFundosPorCnpj(cnpj: string, pagina = 0): Promise<Fundo | null> {

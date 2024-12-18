@@ -24,11 +24,11 @@ import { AprovarDocumentoDto } from './dto/aprovar-documento.dto';
 import { DocumentoCedenteService } from './cedenteDocumentos.service';
 import { CreateDocumentoDto } from './dto/create-documento.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '../autenticacao/guards/jwt-auth.guard';
 
 @Controller('api/cedente')
 @ApiBearerAuth('access-token')
 @ApiTags('Cedente')
-@UseGuards(JwtAuthGuardBackoffice)
 export class CedenteController {
   constructor(
     private readonly cedenteService: CedenteService,
@@ -36,16 +36,19 @@ export class CedenteController {
     private readonly documentoCedenteService: DocumentoCedenteService,
   ) {}
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('cadastro')
   cadastrarCedente(@Body() createCedenteDto: CreateCedenteDto) {
     return this.cadastroCedenteService.cadastrarCedente(createCedenteDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('bancos')
   buscarBancos() {
     return this.cedenteService.buscarBancos();
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('cadastro/:cnpj/contas-corrente')
   cadastrarContaCorrente(
     @Body() createContaCorrenteDto: CreateContaCorrenteDto,
@@ -57,6 +60,7 @@ export class CedenteController {
     );
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('cadastro/:cnpj/contatos')
   cadastrarContato(
     @Body() createContato: CreateContatoDto,
@@ -65,6 +69,7 @@ export class CedenteController {
     return this.cadastroCedenteService.cadastrarContato(cnpj, createContato);
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('cadastro/:cnpj/procuradores-investidores')
   cadastrarProcuradorInvestidor(
     @Body() createProcuradorInvestidor: CreateProcuradorInvestidorDto,
@@ -76,6 +81,7 @@ export class CedenteController {
     );
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('cadastro/:cnpj/representantes-legais-investidores')
   cadastraReprepresentantesLegaisInvestidores(
     @Body() createRepresentanteLegalDto: CreateRepresentanteLegalDto,
@@ -87,6 +93,7 @@ export class CedenteController {
     );
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Post('documentos/registrar')
   @UseInterceptors(FileInterceptor('arquivo'))
   registrarDocumento(
@@ -108,6 +115,7 @@ export class CedenteController {
     );
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Put('documentos/:id/aprovar')
   aprovarDocumento(
     @Param('id') id: string,
@@ -119,6 +127,7 @@ export class CedenteController {
     );
   }
 
+  @UseGuards(JwtAuthGuardBackoffice)
   @Get('documentos/:cnpj')
   buscarDocumentosPorCnpj(@Param('cnpj') cnpj: string) {
     return this.documentoCedenteService.buscarDocumentosPorCnpj(cnpj);
