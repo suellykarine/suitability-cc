@@ -51,7 +51,7 @@ export class AnbimaService {
         mensagem: cnpjData.detalhes || 'Erro na busca do CNPJ',
         codigoStatus: respostaCnpj.status,
         acao: 'AmbimaService.integracaoAnbima',
-        informacaoAdicional: { cnpj },
+        informacaoAdicional: { cnpj, cnpjData },
       });
     }
 
