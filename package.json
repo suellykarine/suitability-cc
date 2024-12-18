@@ -44,6 +44,7 @@
     "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.2",
     "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.5.46",
     "mongodb": "3.6",
     "nanoid": "^3.3.7",
     "passport": "^0.7.0",
