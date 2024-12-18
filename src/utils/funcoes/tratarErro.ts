@@ -46,6 +46,7 @@ export async function tratarErroRequisicao({
       acao,
       informacaoAdicional: {
         requisicao,
+        req,
         ...infoAdicional,
       },
     });
@@ -55,8 +56,9 @@ export async function tratarErroRequisicao({
       mensagem: `${mensagem}. ${statusPreenchido}.`,
       acao,
       informacaoAdicional: {
-        infoAdicional,
-        erro,
+        req,
+        ...infoAdicional,
+        erro: erro.message,
       },
     });
   }
