@@ -6,7 +6,7 @@ export const jwtConstants = {
 };
 
 export const sigmaHeaders = {
-  'X-API-KEY': process.env.X_API_KEY!,
+  'X-API-KEY': process.env.FLUXO_OPERACIONAL_SECRET_KEY!,
   access_token: process.env.ACCESS_TOKEN!,
   client_id: process.env.CLIENT_ID!,
 };

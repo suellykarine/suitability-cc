@@ -69,6 +69,16 @@ export class LaqusService {
     const debentureSerieInvestidorAtualizado =
       await this.adaptadorDb.fazerTransacao(async () => {
         if (status === 'Reprovado') {
+          await this.logService.aviso({
+            acao: 'laqus.AtualizarInvestidorDebenture',
+            mensagem: 'Investidor reprovado no Laqus',
+            informacaoAdicional: {
+              fundoInvestimento,
+              identificadorInvestidor,
+              justificativa,
+              status,
+            },
+          });
           await this.desabilitarDebentureDoFundoDeInvestimento(
             fundoInvestimento.id,
           );
@@ -158,7 +168,7 @@ export class LaqusService {
         },
       ],
     };
-    const callbackUrl = `${this.configService.get<string>('BASE_URL')}/laqus/atualizarStatus`;
+    const callbackUrl = `${this.configService.get<string>('BASE_URL')}api/laqus/atualizarStatus`;
     const payload: CadastrarLaqusPayload = {
       callbackUrl,
       dadosCedente,
@@ -175,7 +185,6 @@ export class LaqusService {
     const retornoLaqus = (await response.json()) as { id: string };
 
     if (!response.ok) {
-      console.log(retornoLaqus);
       throw new ErroServidorInterno({
         acao: 'laqus.cadastrarInvestidor',
         mensagem: 'Erro ao cadastrar investidor no Laqus',

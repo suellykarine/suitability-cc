@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { AtualizarDebentureSerieDto } from './dto/atualizar-debenture-serie.dto';
 import {
   AtualizarValorSerie,
   DebentureSerie,
@@ -15,11 +14,8 @@ import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
 import {
-  calcularDataDeCorte,
-  ehValidaPorData,
   encontrarSerieComValorAproximado,
   filtrarSeriesPorValor,
-  pertenceADebentureAtual,
 } from './utils/estaAptoAEstruturar';
 import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
 
@@ -32,11 +28,6 @@ import {
 } from 'src/helpers/erroAplicacao';
 import { LogService } from '../global/logs/log.service';
 
-type FiltrarSeriesValidasProps = {
-  seriesId: number[];
-  debentureId: number;
-  dataDeCorte: Date;
-};
 @Injectable()
 export class DebentureSerieService {
   private readonly limiteDebenture = 50000000;
@@ -104,12 +95,6 @@ export class DebentureSerieService {
       });
     const debentureSerieDesvinculada =
       debentureSerieInvestidorDesvinculado?.debenture_serie;
-
-    const seriesParaVerificarLimite = debenture.debenture_serie.filter(
-      (serie) => serie.id !== debentureSerieDesvinculada?.id,
-    );
-
-    this.verificarLimiteDebenture(seriesParaVerificarLimite, valorEntrada);
 
     const ultimoVinculoDSI =
       await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdFundoInvestimento(
@@ -367,7 +352,7 @@ export class DebentureSerieService {
       id_fundo_investimento: idFundoInvestimento,
       data_vinculo: new Date(),
       codigo_investidor_laqus: idLaqus,
-      status_retorno_laqus: statusLaqus ?? 'Pendente',
+      status_retorno_laqus: statusLaqus || 'PENDENTE',
     });
   }
 
@@ -440,41 +425,14 @@ export class DebentureSerieService {
     return debenture;
   }
 
-  async atualizar(
-    id: number,
-    data: AtualizarDebentureSerieDto,
-  ): Promise<DebentureSerie | null> {
-    if (data.valor_serie) {
-      const debentureSerie = await this.encontrarPorId(id);
-      if (!debentureSerie)
-        throw new ErroNaoEncontrado({
-          acao: 'debentureSerieService.atualizar',
-          mensagem: 'Debenture serie não encontrada',
-          informacaoAdicional: {
-            id,
-            data,
-          },
-        });
-      const seriesExistentes =
-        await this.debentureSerieRepositorio.encontrarSeriesPorIdDebenture(
-          debentureSerie.id_debenture,
-        );
-
-      this.verificarLimiteDebenture(
-        seriesExistentes,
-        data.valor_serie - Number(debentureSerie.valor_serie),
-      );
-    }
-    return this.debentureSerieRepositorio.atualizar(id, data);
-  }
-
   async atualizarValorDaSerie({
     idDebentureSerie,
     valorSerie,
   }: AtualizarValorSerie): Promise<DebentureSerie | null> {
-    const debentureSerie = await this.encontrarPorId(idDebentureSerie);
+    const debentureSerieSelecionada =
+      await this.encontrarPorId(idDebentureSerie);
 
-    if (!debentureSerie)
+    if (!debentureSerieSelecionada)
       throw new ErroNaoEncontrado({
         acao: 'debentureSerieService.atualizarValorDaSerie',
         mensagem: 'Debenture serie não encontrada',
@@ -485,19 +443,33 @@ export class DebentureSerieService {
       });
 
     if (
-      debentureSerie.data_vencimento &&
-      debentureSerie.data_vencimento < new Date()
+      debentureSerieSelecionada.data_vencimento ||
+      debentureSerieSelecionada.data_emissao
     )
       throw new ErroRequisicaoInvalida({
         acao: 'debentureSerieService.atualizarValorDaSerie',
-        mensagem: 'A série já venceu',
+        mensagem:
+          'A série já foi aprovada pela creditSec, logo não é mais possível atualizar o valor da mesma',
         informacaoAdicional: {
-          debentureSerie,
+          debentureSerieSelecionada,
         },
       });
 
-    const data = { valor_serie: valorSerie };
-    const atualizado = await this.atualizar(idDebentureSerie, data);
+    const seriesExistentes =
+      await this.debentureSerieRepositorio.encontrarSeriesPorIdDebenture(
+        debentureSerieSelecionada.id_debenture,
+      );
+
+    const seriesParaVerificarLimite = seriesExistentes.filter(
+      (serie) => serie.id !== debentureSerieSelecionada?.id,
+    );
+
+    this.verificarLimiteDebenture(seriesParaVerificarLimite, valorSerie);
+
+    const atualizado = await this.debentureSerieRepositorio.atualizar(
+      debentureSerieSelecionada.id,
+      { valor_serie: valorSerie },
+    );
     if (!atualizado)
       throw new ErroServidorInterno({
         acao: 'debentureSerieService.atualizarValorDaSerie',
@@ -536,36 +508,17 @@ export class DebentureSerieService {
         });
       }
 
-      const seriesValidasDoInvestidor =
+      const debenture = await this.debentureRepositorio.buscarAtiva();
+
+      const seriesAptasAInvestir =
         await this.debentureSerieInvestidorRepositorio.buscarTodasSeriesAptasParaInvestir(
-          idInvestidor,
+          { idDebenture: debenture.id, idFundoInvestimento: idInvestidor },
         );
 
-      if (seriesValidasDoInvestidor.length === 0) {
+      if (seriesAptasAInvestir.length === 0) {
         throw new ErroNaoEncontrado({
           acao: 'debentureSerieService.estaAptoAEstruturar',
-          mensagem: 'Séries válidas do investidor não encontradas',
-          informacaoAdicional: {
-            idInvestidor,
-          },
-        });
-      }
-
-      const debentureAtual = await this.debentureRepositorio.buscarAtiva();
-
-      const dataDeCorte = calcularDataDeCorte(6);
-
-      const seriesValidasEComSaldoNaDebentureAtual =
-        await this.filtrarSeriesValidas({
-          seriesId: seriesValidasDoInvestidor,
-          debentureId: debentureAtual.id,
-          dataDeCorte,
-        });
-
-      if (seriesValidasEComSaldoNaDebentureAtual.length === 0) {
-        throw new ErroRequisicaoInvalida({
-          acao: 'debentureSerieService.estaAptoAEstruturar',
-          mensagem: 'Séries válidas do investidor não encontradas',
+          mensagem: 'Séries aptas do investidor não encontradas',
           informacaoAdicional: {
             idInvestidor,
           },
@@ -573,7 +526,7 @@ export class DebentureSerieService {
       }
 
       const seriesComSaldoSuficiente = filtrarSeriesPorValor({
-        series: seriesValidasEComSaldoNaDebentureAtual,
+        series: seriesAptasAInvestir,
         valorEntrada,
       });
 
@@ -583,7 +536,7 @@ export class DebentureSerieService {
           valorEntrada,
         });
         return {
-          mensagem: 'Debenture com saldo encontrada',
+          mensagem: 'Série com saldo encontrada',
           data: serieMaisApropriada,
         };
       }
@@ -602,7 +555,8 @@ export class DebentureSerieService {
       if (!fundoInvestimento.valor_serie_debenture)
         throw new ErroNaoEncontrado({
           acao: 'debentureSerieService.estaAptoAEstruturar',
-          mensagem: 'Fundo de investimento não possui valor de série',
+          mensagem:
+            'O valor de série do fundo não foi definido pelo BackOffice',
           informacaoAdicional: {
             fundoInvestimento,
           },
@@ -626,8 +580,32 @@ export class DebentureSerieService {
           },
         });
       }
+
+      const novaDSI =
+        await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdFundoInvestimento(
+          { id_fundo_investimento: idInvestidor },
+        );
+
+      const novaDSIAtualizada =
+        await this.debentureSerieInvestidorRepositorio.atualizar({
+          id: novaDSI.id,
+          status_retorno_creditsec: 'LIBERADO',
+        });
+
+      if (!novaDSIAtualizada) {
+        throw new ErroServidorInterno({
+          acao: 'debentureSerieService.estaAptoAEstruturar',
+          mensagem: 'Não foi possível atualizar a DSI',
+          informacaoAdicional: {
+            novaSerie,
+            idInvestidor,
+            valorEntrada,
+          },
+        });
+      }
+
       return {
-        mensagem: 'Debenture com saldo encontrada',
+        mensagem: 'Serie com saldo encontrada',
         data: novaSerie,
       };
     }, [
@@ -637,34 +615,19 @@ export class DebentureSerieService {
     ]);
   }
 
-  private async filtrarSeriesValidas({
-    seriesId,
-    debentureId,
-    dataDeCorte,
-  }: FiltrarSeriesValidasProps): Promise<DebentureSerie[]> {
-    const seriesValidas = await Promise.all(
-      seriesId.map(async (serieId) => {
-        const serie =
-          await this.debentureSerieRepositorio.encontrarPorId(serieId);
-        const atendeCriteriosBasicos =
-          pertenceADebentureAtual({ serie, debentureId }) &&
-          ehValidaPorData({ serie, dataDeCorte });
-        return atendeCriteriosBasicos ? serie : null;
-      }),
-    );
-    return seriesValidas.filter((serie) => serie !== null);
-  }
-
-  async extornoBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+  async estornoBaixaValorSerie(idDebentureSerie: number, valorEntrada: number) {
     return this.atualizarValorSerie(
-      numeroSerie,
+      idDebentureSerie,
       (valorAtual) => valorAtual - valorEntrada,
     );
   }
 
-  async registroBaixaValorSerie(numeroSerie: number, valorEntrada: number) {
+  async registroBaixaValorSerie(
+    idDebentureSerie: number,
+    valorEntrada: number,
+  ) {
     return this.atualizarValorSerie(
-      numeroSerie,
+      idDebentureSerie,
       (valorAtual) => valorAtual + valorEntrada,
     );
   }
@@ -708,7 +671,8 @@ export class DebentureSerieService {
   async listarOperacoesPorGestorFundo(id: number) {
     try {
       return await this.operacaoDebentureRepositorio.buscarPorGestorFundo(id);
-    } catch (error) {
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
       throw new ErroServidorInterno({
         acao: 'debentureSerieService.listarOperacoesPorGestorFundo',
         mensagem: 'Erro ao buscar operações por gestor fundo',
@@ -719,34 +683,30 @@ export class DebentureSerieService {
     }
   }
 
-  private async atualizarValorSerie(
-    numeroSerie: number,
-    calcularNovoValor: (valorAtual: number) => number,
-  ) {
-    const debentureId = (await this.debentureRepositorio.buscarAtiva())?.id;
-
-    if (!debentureId) {
-      throw new ErroNaoEncontrado({
-        acao: 'debentureSerieService.atualizarValorSerie',
-        mensagem: 'Debenture não encontrada',
-        informacaoAdicional: {
-          numeroSerie,
-        },
+  async listarTodasOperacoes() {
+    try {
+      return await this.operacaoDebentureRepositorio.buscarTodasOperacoes();
+    } catch (error) {
+      throw new ErroServidorInterno({
+        acao: 'debentureSerieService.listarTodasOperacoes',
+        mensagem: 'Erro ao buscar todas as operações.',
       });
     }
+  }
 
+  private async atualizarValorSerie(
+    idDebentureSerie: number,
+    calcularNovoValor: (valorAtual: number) => number,
+  ) {
     const debentureSerie =
-      await this.debentureSerieRepositorio.buscarPorNumeroSerie(
-        debentureId,
-        numeroSerie,
-      );
+      await this.debentureSerieRepositorio.encontrarPorId(idDebentureSerie);
 
     if (!debentureSerie) {
       throw new ErroNaoEncontrado({
         acao: 'debentureSerieService.atualizarValorSerie',
         mensagem: 'Debenture série não encontrada',
         informacaoAdicional: {
-          numeroSerie,
+          idDebentureSerie,
         },
       });
     }

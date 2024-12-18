@@ -24,6 +24,8 @@ import {
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
 import { LogService } from '../global/logs/log.service';
+import { tratarErroRequisicao } from '../../utils/funcoes/tratarErro';
+import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 
 @Injectable()
 export class CreditSecSerieService {
@@ -37,6 +39,7 @@ export class CreditSecSerieService {
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly configService: ConfigService,
+    private readonly debentureRepositorio: DebentureRepositorio,
   ) {
     this.baseUrl = this.configService.get('BASE_URL');
     this.tokenCreditSecSolicitarSerie = this.configService.get(
@@ -57,29 +60,88 @@ export class CreditSecSerieService {
     numeroDebenture: number;
     numeroSerie: number;
   }) {
-    const statusCreditSec = await this.buscarStatusSerieCreditSec(
-      numeroDebenture,
-      numeroSerie,
-    );
+    try {
+      const statusCreditSec = await this.buscarStatusSerieCreditSec(
+        numeroDebenture,
+        numeroSerie,
+      );
+      await this.logService.info({
+        acao: 'creditSecSerieService.atualizarStatusCreditSec',
+        mensagem: 'Status CreditSec encontrado',
+        informacaoAdicional: {
+          statusCreditSec,
+        },
+      });
 
-    if (statusCreditSec.status === 'PENDING') return;
+      if (statusCreditSec.status === 'PENDING') return;
 
-    return this.registrarRetornoCreditSec(statusCreditSec);
+      return this.registrarRetornoCreditSec(statusCreditSec);
+    } catch (error) {
+      if (error instanceof ErroAplicacao) {
+        const { acao, informacaoAdicional, message, ...erro } = error;
+        await this.logService.aviso({
+          acao,
+          mensagem: message,
+          informacaoAdicional: {
+            ...informacaoAdicional,
+            erro,
+            numeroDebenture,
+            numeroSerie,
+            error,
+          },
+        });
+        return;
+      }
+      throw new ErroServidorInterno({
+        acao: 'creditSecSerieService.atualizarStatusCreditSec.catch',
+        mensagem: 'Erro ao buscar status de solicitação de série',
+        informacaoAdicional: {
+          numeroDebenture,
+          numeroSerie,
+          error,
+        },
+      });
+    }
   }
 
-  @Cron('0 0 10 * * 1-5')
+  @Cron('0 8-20/2 * * 1-5', {
+    name: 'validarStatusJob',
+    timeZone: 'America/Sao_Paulo',
+  })
   async buscarStatusSolicitacaoSerie() {
     try {
+      await this.logService.info({
+        mensagem: 'Executando validação de status dos investidores.',
+        acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie.cronjob',
+        exibirNoConsole: true,
+        informacaoAdicional: {
+          configuracaoCronjob: {
+            nome: 'validarStatusJob',
+            timeZone: 'America/Sao_Paulo',
+            programacaoHorario: '0 8-20/2 * * 1-5',
+            dataSistema: new Date(),
+          },
+        },
+      });
+      const debentureAtiva = await this.debentureRepositorio.buscarAtiva();
       const debentureSerieInvestidorPendentes =
-        await this.debentureSerieInvestidorRepositorio.todosStatusCreditSecNull();
-
+        await this.debentureSerieInvestidorRepositorio.buscarDSIPendenteCreditSec(
+          debentureAtiva.id,
+        );
+      await this.logService.info({
+        mensagem: 'Investidores com status creditsec pendente encontrados.',
+        acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie.cronjob.pendentes',
+        informacaoAdicional: {
+          debentureSerieInvestidorPendentes,
+        },
+      });
       const todasSeriesAtualizadas = await Promise.all(
         debentureSerieInvestidorPendentes.map(
           async ({ debenture_serie: debentureSerie }) => {
             const numeroDebenture = debentureSerie.debenture.numero_debenture;
             const numeroSerie = debentureSerie.numero_serie;
 
-            return this.atualizarStatusCreditSec({
+            return await this.atualizarStatusCreditSec({
               numeroDebenture,
               numeroSerie,
             });
@@ -92,7 +154,6 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie',
         mensagem: 'Erro ao buscar status de solicitação de série',
-        erro: error.message,
         informacaoAdicional: {
           error,
         },
@@ -148,7 +209,6 @@ export class CreditSecSerieService {
         throw new ErroServidorInterno({
           acao: 'creditSecSerieService.solicitarSerie',
           mensagem: 'Erro ao solicitar série no CreditSec',
-          erro: error.message,
           informacaoAdicional: {
             bodySolicitarSerie,
             error,
@@ -162,7 +222,6 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerie',
         mensagem: 'Erro ao solicitar série no CreditSec',
-        erro: error.message,
         informacaoAdicional: {
           debentureSerieInvestidorId,
           error,
@@ -181,6 +240,15 @@ export class CreditSecSerieService {
         await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdDebentureSerie(
           debentureSerie.id,
         );
+      await this.logService.info({
+        acao: 'creditSecSerieService.registrarRetornoCreditSec.ultimoVinculoDSI',
+        mensagem: 'Registrando retorno CreditSec no ultimo vinculo DSI',
+        informacaoAdicional: {
+          data,
+          debentureSerie,
+          ultimoVinculoDSI,
+        },
+      });
 
       const status = statusRetornoCreditSecDicionario[data.status] ?? 'ERRO';
 
@@ -197,26 +265,32 @@ export class CreditSecSerieService {
         });
 
       if (status === 'APROVADO') {
-        await this.registrarDataEmissaoSerie(debentureSerie.id);
-        this.logService.info({
-          acao: 'creditSecSerieService.registrarRetornoCreditSec',
+        const debentureSerieAtualizado = await this.registrarDataEmissaoSerie(
+          debentureSerie.id,
+        );
+        await this.logService.info({
+          acao: 'creditSecSerieService.registrarRetornoCreditSec.aprovado',
           mensagem: 'Retorno CreditSec de APROVACÃO registrado com sucesso',
           informacaoAdicional: {
             data,
+            debentureSerieInvestidorAtualizado,
+            debentureSerieAtualizado,
             retornoCreditSec: data,
           },
         });
       }
 
       if (status === 'REPROVADO') {
-        await this.desabilitarDebentureFundoInvestimento(
+        const fundoDesvinculado = await this.desvincularFundoInvestimento(
           ultimoVinculoDSI.id_fundo_investimento,
         );
-        this.logService.info({
-          acao: 'creditSecSerieService.registrarRetornoCreditSec',
+        await this.logService.info({
+          acao: 'creditSecSerieService.registrarRetornoCreditSec.reprovado',
           mensagem: 'Retorno CreditSec de REPROVACÃO registrado com sucesso',
           informacaoAdicional: {
             data,
+            fundoDesvinculado,
+            ultimoVinculoDSI,
             retornoCreditSec: data,
           },
         });
@@ -226,13 +300,12 @@ export class CreditSecSerieService {
     } catch (error) {
       if (error instanceof ErroAplicacao) throw error;
       throw new ErroServidorInterno({
-        acao: 'creditSecSerieService.registrarRetornoCreditSec',
+        acao: 'creditSecSerieService.registrarRetornoCreditSec.catch',
         mensagem: 'Erro ao registrar retorno do CreditSec',
-        erro: error.message,
         informacaoAdicional: {
           data,
-          error,
           retornoCreditSec: data,
+          error,
         },
       });
     }
@@ -244,22 +317,21 @@ export class CreditSecSerieService {
     dataVencimento.setMonth(dataAtual.getMonth() + 6);
 
     const debentureSerieAtualizado =
-      await this.debentureSerieRepositorio.atualizaDatasDebentureSerie({
+      await this.debentureSerieRepositorio.atualizar(id_debenture_serie, {
         data_emissao: dataAtual,
         data_vencimento: dataVencimento,
-        id_debenture_serie,
       });
     return debentureSerieAtualizado;
   }
 
-  private async desabilitarDebentureFundoInvestimento(id_fundo: number) {
-    const desabilitaDebenture =
+  private async desvincularFundoInvestimento(id_fundo: number) {
+    const fundoDesvinculado =
       await this.fundoInvestimentoRepositorio.atualizaAptoDebentureEvalorSerie({
         apto_debenture: false,
         id_fundo: id_fundo,
         valor_serie_debenture: null,
       });
-    return desabilitaDebenture;
+    return fundoDesvinculado;
   }
 
   private async buscarStatusSerieCreditSec(
@@ -277,14 +349,18 @@ export class CreditSecSerieService {
     );
 
     if (req.ok) return await req.json();
-    throw new ErroServidorInterno({
+    await tratarErroRequisicao({
+      status: req.status,
       acao: 'creditSecSerieService.buscarStatusSerieCreditSec',
       mensagem: `Erro ao buscar serie: ${req.status} ${req.statusText}`,
-      informacaoAdicional: {
+      req,
+      infoAdicional: {
+        status: req.status,
+        texto: req.statusText,
+        body: req.body,
         numero_emissao,
         numero_serie,
         url: req.url,
-        req,
       },
     });
   }
@@ -324,14 +400,11 @@ export class CreditSecSerieService {
         },
       });
     } catch (error) {
-      console.log('error.message');
-      console.log(error.message);
       if (error instanceof ErroAplicacao) throw error;
 
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerieCreditSec',
         mensagem: 'Erro ao solicitar série no CreditSec',
-        erro: error.message,
         informacaoAdicional: {
           body,
           error,
@@ -350,14 +423,16 @@ export class CreditSecSerieService {
     const response = await req.json();
 
     if (req.ok) return response;
-
-    throw new ErroServidorInterno({
+    await tratarErroRequisicao({
+      status: req.status,
       acao: 'creditSecSerieService.buscarCedenteSigma',
       mensagem: `Erro ao buscar cedente no sigma: ${req.status} ${req.statusText}`,
-      informacaoAdicional: {
+      req,
+      infoAdicional: {
+        status: req.status,
+        texto: req.statusText,
         identificador,
         url: req.url,
-        req,
       },
     });
   }

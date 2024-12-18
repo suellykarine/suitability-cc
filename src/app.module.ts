@@ -31,6 +31,7 @@ import { Module } from '@nestjs/common';
 import { MongoModule } from './app/global/db/mongodb/mongo.module';
 import { TratamentoExcessoesFiltro } from './helpers/filtros/filtroExcessoes';
 import { LogModule } from './app/global/logs/log.module';
+import { OperacoesInvestModule } from './app/operacoes-invest/operacoes-invest.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { LogModule } from './app/global/logs/log.module';
     AdmModule,
     MongoModule,
     LogModule,
+    OperacoesInvestModule,
   ],
   controllers: [AppController],
   providers: [

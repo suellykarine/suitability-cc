@@ -8,19 +8,16 @@ import {
   Delete,
   UseGuards,
   Query,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DebentureSerieService } from './debentures-serie.service';
-import {
-  AtualizarDebentureSerieDto,
-  AtualizarValorDaSerieDto,
-} from './dto/atualizar-debenture-serie.dto';
+import { AtualizarValorDaSerieDto } from './dto/atualizar-debenture-serie.dto';
 import { JwtAuthGuardBackoffice } from '../autenticacao/guards/backoffice-auth.guard';
 import { DebentureService } from './debentures.service';
 import { CriarDebentureDto } from './dto/criar-debenture.dto';
 import { JwtAuthGuardPremium } from '../autenticacao/guards/premium-auth.guard';
 import { CriarDebentureSerieDto } from './dto/criar-debenure-serie.dto';
+import { ErroRequisicaoInvalida } from 'src/helpers/erroAplicacao';
 
 @ApiTags('Debentures')
 @ApiBearerAuth('access-token')
@@ -78,18 +75,6 @@ export class DebenturesController {
     return this.debenturesSerieService.solicitarSerieBackOffice(payload);
   }
 
-  @UseGuards(JwtAuthGuardBackoffice)
-  @Patch('serie/:id')
-  async atualizar(
-    @Param('id') id: string,
-    @Body() atualizarDebentureSerieDto: AtualizarDebentureSerieDto,
-  ) {
-    return this.debenturesSerieService.atualizar(
-      +id,
-      atualizarDebentureSerieDto,
-    );
-  }
-
   @UseGuards(JwtAuthGuardPremium)
   @Patch('serie/valor/:id')
   async atualizarValorDaSerie(
@@ -111,14 +96,22 @@ export class DebenturesController {
     return this.debenturesSerieService.deletar(+id);
   }
   @UseGuards(JwtAuthGuardPremium)
+  @ApiQuery({
+    required: false,
+    name: 'idGestorFundo',
+    example: '12345',
+  })
   @Get('operacao-debenture')
   async listarOperacoesPorGestorFundo(
     @Query('idGestorFundo') idGestorFundo: string,
   ) {
-    return await this.debenturesSerieService.listarOperacoesPorGestorFundo(
-      Number(idGestorFundo),
-    );
+    if (idGestorFundo)
+      return await this.debenturesSerieService.listarOperacoesPorGestorFundo(
+        Number(idGestorFundo),
+      );
+    return await this.debenturesSerieService.listarTodasOperacoes();
   }
+
   @Get('serie-investidor/:id/:valor')
   async temDebentureSerieComSaldo(
     @Param('id') id: string,
@@ -126,8 +119,16 @@ export class DebenturesController {
   ) {
     const valorEntrada = Number(valor);
     const idInvestidor = Number(id);
-    if (!valorEntrada) throw new BadRequestException('valor inválido');
-    if (!idInvestidor) throw new BadRequestException('id inválido');
+    if (!valorEntrada)
+      throw new ErroRequisicaoInvalida({
+        acao: 'debenture.controller.serie-investidor/:id/:valor',
+        mensagem: 'valor inválido',
+      });
+    if (!idInvestidor)
+      throw new ErroRequisicaoInvalida({
+        acao: 'debenture.controller.serie-investidor/:id/:valor',
+        mensagem: 'id inválido',
+      });
 
     const service = await this.debenturesSerieService.estaAptoAEstruturar(
       idInvestidor,

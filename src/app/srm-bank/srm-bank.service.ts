@@ -12,6 +12,11 @@ import {
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { ConfigService } from '@nestjs/config';
+import {
+  ErroAplicacao,
+  ErroNaoEncontrado,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class SrmBankService {
@@ -28,7 +33,7 @@ export class SrmBankService {
       const criarConta = await this.CriarContaSRMBank(identificador);
       const buscarConta = await this.buscarContaSrmBank(
         identificador,
-        criarConta.conta.slice(0, 9),
+        criarConta.conta,
       );
 
       const objRegistrarContaCC: RegistrarContaNoCC = {
@@ -62,7 +67,7 @@ export class SrmBankService {
     };
 
     const req = await fetch(
-      `${process.env.BASE_URL_SRM_BANK}gestao/contas/serie`,
+      `${process.env.BASE_URL_SRM_BANK}/gestao/contas/serie`,
       {
         method: 'POST',
         body: JSON.stringify(body),
@@ -86,7 +91,7 @@ export class SrmBankService {
     numeroConta: string,
   ): Promise<RespostaBuscarContaSrmBank> {
     const req = await fetch(
-      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente`,
+      `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente?numeroContaCorrente=${numeroConta}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -103,15 +108,10 @@ export class SrmBankService {
 
     const res = await req.json();
 
-    const findConta = res.find(
-      (ele: RespostaBuscarContaSrmBank) =>
-        ele.dadosBancarios.contaCorrente == numeroConta,
-    );
-
-    if (!findConta) {
+    if (res.length === 0) {
       return await this.buscarContaSrmBank(identificador, numeroConta);
     }
-    return findConta;
+    return res[0];
   }
   async buscarContaSrmBankAtivaPorCnpj(identificador: string) {
     const req = await fetch(
@@ -155,24 +155,15 @@ export class SrmBankService {
     });
   }
 
-  async buscarContaInvestidor(idFundoInvestidor: number) {
-    try {
-      const conta =
-        await this.contaInvestidorRepositorio.buscarContaInvestidorPorIdentificadorFundo(
-          idFundoInvestidor,
-        );
-      return conta || { mensagem: 'Conta não encontrada' };
-    } catch (error) {
-      throw new HttpException(
-        `Erro ao buscar conta investidor: ${error.message}`,
-        500,
+  async buscarSaldoContaInvestidor(idContaInvestidor: string) {
+    const contInvestidor =
+      await this.contaInvestidorRepositorio.buscarContaPorId(
+        Number(idContaInvestidor),
       );
-    }
-  }
-
-  async buscarSaldoContaInvestidor(numeroConta: number) {
+    const { conta, conta_digito } = contInvestidor;
+    const numeroConta = conta + conta_digito;
     try {
-      const url = `${process.env.BASE_URL_SALDO_CONTA_INVESTIDOR}${numeroConta}`;
+      const url = `${process.env.BASE_URL_SRM_BANK}/consultas/saldo?numeroConta=${numeroConta}`;
 
       const req = await fetch(url, {
         headers: {
@@ -180,18 +171,32 @@ export class SrmBankService {
         },
       });
 
+      const resposta = await req.json();
       if (!req.ok) {
-        throw new InternalServerErrorException(
-          'Ocorreu um erro ao buscar o saldo',
-        );
+        throw new ErroServidorInterno({
+          mensagem: 'Ocorreu um erro ao buscar o saldo',
+          acao: 'srmBankService.buscarSaldoContaInvestidor',
+          informacaoAdicional: {
+            idContaInvestidor,
+            resposta,
+            req,
+            numeroConta,
+          },
+        });
       }
 
-      const result = await req.json();
-      return { saldoEmConta: result.saldoEmConta };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Ocorreu um erro ao buscar o saldo',
-      );
+      return { saldoEmConta: resposta.saldoEmConta };
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
+      throw new ErroServidorInterno({
+        acao: 'srmBankService.buscarSaldoContaInvestidor.catch',
+        mensagem: 'Ocorreu um erro ao buscar o saldo',
+        informacaoAdicional: {
+          idContaInvestidor,
+          erro,
+          mensagemErro: erro.message,
+        },
+      });
     }
   }
 }

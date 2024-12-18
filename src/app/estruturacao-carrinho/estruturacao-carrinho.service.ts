@@ -1,4 +1,4 @@
-import { Injectable, HttpException, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateEstruturacaoCarrinhoDto } from './dto/create-estruturacao-carrinho.dto';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
@@ -11,6 +11,9 @@ import {
 } from './dto/estruturar-investimento-direto.dto';
 import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { controleDeCadastroContaCedenteOperaçõesDiretasProps } from './types/estruturacaoCarrinho';
+import { ControleOperacao } from 'src/@types/entities/operacao';
+import { tratarErroRequisicao } from 'src/utils/funcoes/tratarErro';
+import { ErroRequisicaoInvalida } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class EstruturacaoCarrinhoService {
@@ -36,7 +39,7 @@ export class EstruturacaoCarrinhoService {
       ],
     };
 
-    const resposta = await fetch(`${this.baseUrlCart}operacoes-invest`, {
+    const req = await fetch(`${this.baseUrlCart}operacoes-invest`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,12 +48,21 @@ export class EstruturacaoCarrinhoService {
       body: JSON.stringify(corpoRequisicao),
     });
 
-    if (!resposta.ok) {
-      const dadosErro = await resposta.json();
-      throw new HttpException(dadosErro, resposta.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'estruturacaoCarrinho.criarCarteira',
+        mensagem: `Erro ao criar carteira: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          body: req.body,
+        },
+      });
     }
 
-    const dados = await resposta.json();
+    const dados = await req.json();
     return dados;
   }
 
@@ -62,7 +74,7 @@ export class EstruturacaoCarrinhoService {
       tipoEstruturacao: formalizarCarteiraDto.tipoEstruturacao,
     };
 
-    const resposta = await fetch(
+    const req = await fetch(
       `${this.baseUrlCart}operacoes-invest/${carteiraId}/formalizar`,
       {
         method: 'POST',
@@ -74,9 +86,18 @@ export class EstruturacaoCarrinhoService {
       },
     );
 
-    if (!resposta.ok) {
-      const dadosErro = await resposta.json();
-      throw new HttpException(dadosErro, resposta.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'estruturacaoCarrinho.formalizarCarteira',
+        mensagem: `Erro ao formalizar: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          body: req.body,
+        },
+      });
     }
 
     return true;
@@ -86,7 +107,7 @@ export class EstruturacaoCarrinhoService {
     excluirCarteiraDto: ExcluirCarteiraDto,
     carteiraId: string,
   ): Promise<void> {
-    const resposta = await fetch(
+    const req = await fetch(
       `${this.baseUrlCart}operacoes-invest/${carteiraId}`,
       {
         method: 'DELETE',
@@ -100,9 +121,19 @@ export class EstruturacaoCarrinhoService {
       },
     );
 
-    if (!resposta.ok) {
-      const dadosErro = await resposta.json();
-      throw new HttpException(dadosErro, resposta.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'estruturacaoCarrinho.criarCarteira',
+        mensagem: `Erro ao criar carteira: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          excluirCarteiraDto,
+          carteiraId,
+        },
+      });
     }
   }
 
@@ -114,7 +145,7 @@ export class EstruturacaoCarrinhoService {
       operacaoId: introduzirAtivoCarteiraDto.ativoId,
     };
 
-    const resposta = await fetch(
+    const req = await fetch(
       `${this.baseUrlCart}operacoes-invest/${carteiraId}/ativos`,
       {
         method: 'POST',
@@ -126,11 +157,21 @@ export class EstruturacaoCarrinhoService {
       },
     );
 
-    if (!resposta.ok) {
-      const dadosErro = await resposta.json();
-      throw new HttpException(dadosErro, resposta.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'estruturacaoCarrinho.introduzirAtivoCarteira',
+        mensagem: `Erro ao adicionar ativo na carteira: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          introduzirAtivoCarteiraDto,
+          carteiraId,
+        },
+      });
     }
-    const dados = await resposta.json();
+    const dados = await req.json();
     return dados;
   }
 
@@ -138,7 +179,7 @@ export class EstruturacaoCarrinhoService {
     carteiraId: string,
     ativoId: string,
   ): Promise<void> {
-    const resposta = await fetch(
+    const req = await fetch(
       `${this.baseUrlCart}operacoes-invest/${carteiraId}/ativos/${ativoId}`,
       {
         method: 'DELETE',
@@ -148,9 +189,19 @@ export class EstruturacaoCarrinhoService {
         },
       },
     );
-    if (!resposta.ok) {
-      const dadosErro = await resposta.json();
-      throw new HttpException(dadosErro, resposta.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        status: req.status,
+        acao: 'estruturacaoCarrinho.removerAtivoCarteira',
+        mensagem: `Erro ao remover ativo na carteira: ${req.status} ${req.statusText}`,
+        req,
+        infoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+          carteiraId,
+          ativoId,
+        },
+      });
     }
   }
 
@@ -161,9 +212,14 @@ export class EstruturacaoCarrinhoService {
     const buscarContaAtiva =
       await this.srmBankService.buscarContaSrmBankAtivaPorCnpj(identificador);
     if (!buscarContaAtiva)
-      throw new BadRequestException(
-        'Não encontramos nenhuma conta ativa para o cedente',
-      );
+      throw new ErroRequisicaoInvalida({
+        acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
+        mensagem: 'Não encontramos nenhuma conta ativa para o cedente',
+        informacaoAdicional: {
+          codigoOperacao,
+          identificador,
+        },
+      });
 
     const codigoContaCedente = buscarContaAtiva.codigoContaCorrente;
     const controleOperacao =
@@ -173,10 +229,15 @@ export class EstruturacaoCarrinhoService {
       });
 
     if (!controleOperacao)
-      throw new BadRequestException(
-        'Não foi possível registrar  o Controle de Cadastro da Conta do Cedente para Operações Financeiras',
-      );
-
+      throw new ErroRequisicaoInvalida({
+        acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
+        mensagem:
+          'Não foi possível registrar  o Controle de Cadastro da Conta do Cedente para Operações Financeiras',
+        informacaoAdicional: {
+          codigoOperacao,
+          identificador,
+        },
+      });
     const tipoDireto = 'COMPRA_DIRETA_DIREITO_CREDITO_TED';
     const formalizarInvestimento = await this.formalizarCarteira(
       { tipoEstruturacao: tipoDireto },
@@ -190,11 +251,14 @@ export class EstruturacaoCarrinhoService {
         );
 
       if (!deletarControle)
-        throw new BadRequestException('Não foi possivel deletar o controle');
-
-      throw new BadRequestException(
-        'Não foi possível iniciar a formalização da operação',
-      );
+        throw new ErroRequisicaoInvalida({
+          acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
+          mensagem: 'Não foi possivel deletar o controle',
+          informacaoAdicional: {
+            codigoOperacao,
+            identificador,
+          },
+        });
     }
 
     return {
@@ -226,11 +290,16 @@ export class EstruturacaoCarrinhoService {
       },
     );
     if (!req) {
-      throw new BadRequestException(
-        'Houve um erro ao cadastrar o metodo de controle da operacao',
-      );
+      throw new ErroRequisicaoInvalida({
+        acao: 'estruturacaoCarrinho.cadastrarControleDeCadastroContaCedenteOperacaoDireta',
+        mensagem: 'Houve um erro ao cadastrar o metodo de controle da operacao',
+        informacaoAdicional: {
+          codigoOperacao,
+          codigoContaCedente,
+        },
+      });
     }
-    return await req.json();
+    return (await req.json()) as ControleOperacao;
   }
   private async deletarControleDeCadastroContaCedenteOperacaoDireta(
     codigoOperacao: number,
@@ -246,9 +315,13 @@ export class EstruturacaoCarrinhoService {
       },
     );
     if (!req) {
-      throw new BadRequestException(
-        'Houve um erro ao excluir o metodo de operacao de pagamento',
-      );
+      throw new ErroRequisicaoInvalida({
+        acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
+        mensagem: 'Houve um erro ao excluir o metodo de operacao de pagamento',
+        informacaoAdicional: {
+          codigoOperacao,
+        },
+      });
     }
     return {
       mensagem: 'Deletado com sucesso',

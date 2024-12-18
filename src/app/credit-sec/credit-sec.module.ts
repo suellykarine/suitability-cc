@@ -22,9 +22,20 @@ import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operaca
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
 import { SigmaService } from '../sigma/sigma.service';
+import { DebentureSerieService } from '../debentures/debentures-serie.service';
+import { PagamentoOperacaoService } from '../sigma/sigma.pagamentoOperacao.service';
+import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
+import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
+import { LaqusService } from '../laqus/laqus.service';
+import { SrmBankService } from '../srm-bank/srm-bank.service';
+import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
+import { OperacoesInvestModule } from '../operacoes-invest/operacoes-invest.module';
+import { CcbService } from '../ccb/ccb.service';
+import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
 
 @Module({
-  imports: [ScheduleModule.forRoot()],
+  imports: [ScheduleModule.forRoot(), OperacoesInvestModule],
   controllers: [CreditSecControler],
   providers: [
     CreditSecSerieService,
@@ -32,6 +43,12 @@ import { SigmaService } from '../sigma/sigma.service';
     CreditSecRemessaService,
     PrismaService,
     SigmaService,
+    DebentureSerieService,
+    LaqusService,
+    CcbService,
+    PagamentoOperacaoService,
+    SrmBankService,
+    CadastroCedenteService,
     {
       provide: DebentureRepositorio,
       useClass: PrismaDebentureRepositorio,
@@ -63,6 +80,14 @@ import { SigmaService } from '../sigma/sigma.service';
     {
       provide: OperacaoDebentureRepositorio,
       useClass: PrismaOperacaoDebentureRepositorio,
+    },
+    {
+      provide: ContaInvestidorRepositorio,
+      useClass: PrismaContaInvestidorRepositorio,
+    },
+    {
+      provide: AdaptadorDb,
+      useClass: PrismaAdaptadorDb,
     },
   ],
   exports: [CreditSecSerieService, CreditSecRemessaService],

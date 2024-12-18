@@ -2,23 +2,27 @@ import {
   OperacaoDebentureSemVinculo,
   OperacaoDebenture,
 } from 'src/@types/entities/operacaoDebenture';
+import { Repositorio } from './repositorio';
 
-export abstract class OperacaoDebentureRepositorio {
+export abstract class OperacaoDebentureRepositorio extends Repositorio {
   abstract criar(
     data: Omit<OperacaoDebentureSemVinculo, 'id'>,
   ): Promise<OperacaoDebenture>;
 
   abstract atualizar(
-    data: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
     id: number,
+    data: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
   ): Promise<OperacaoDebenture>;
 
   abstract buscarOperacoesPeloStatusCreditSec(
     statusCreditSec: string,
   ): Promise<OperacaoDebenture[]>;
 
-  abstract buscarOperacoesPeloCodigoOperacao(
+  abstract buscarOperacaoPeloCodigoOperacao(
     cofigoOperacao: string,
-  ): Promise<OperacaoDebenture[]>;
+  ): Promise<OperacaoDebenture>;
+
   abstract buscarPorGestorFundo(id: number): Promise<OperacaoDebenture[]>;
+
+  abstract buscarTodasOperacoes(): Promise<OperacaoDebenture[]>;
 }

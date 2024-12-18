@@ -46,6 +46,7 @@ import {
   ErroNaoEncontrado,
   ErroRequisicaoInvalida,
 } from 'src/helpers/erroAplicacao';
+import { fazerNada } from 'src/utils/funcoes/geral';
 
 @Injectable()
 export class FundosService {
@@ -420,6 +421,8 @@ export class FundosService {
 
     const { telefone, endereco, ...procuradorSemTelefoneEndereco } = procurador;
 
+    fazerNada(telefone);
+
     if (procuradorAtualizadoSigma) {
       const enderecoProcuradorFormatado = {
         ...endereco,
@@ -468,6 +471,10 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: `${tipoEstrutura} não encontrado`,
         acao: 'FundosService.atualizaEndereco',
+        informacaoAdicional: {
+          fundoId: id,
+          tipoEstrutura,
+        },
       });
     }
 

@@ -7,7 +7,11 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV NODE_ENV=production
 RUN npm install dotenv --global
 
+USER root
+RUN apk add --no-cache openssl
+
 USER node
+
 WORKDIR /app
 
 # COPY package*.json ./

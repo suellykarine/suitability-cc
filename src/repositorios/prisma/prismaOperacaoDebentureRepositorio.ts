@@ -6,12 +6,21 @@ import {
   OperacaoDebentureSemVinculo,
 } from 'src/@types/entities/operacaoDebenture';
 import { converterCamposDecimais } from 'src/utils/prisma/functions';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaOperacaoDebentureRepositorio
   implements OperacaoDebentureRepositorio
 {
   constructor(private prisma: PrismaService) {}
+
+  definirContextoDaTransacao(contexto: Prisma.TransactionClient): void {
+    this.prisma = contexto as PrismaService;
+  }
+
+  removerContextoDaTransacao(): void {
+    this.prisma = new PrismaService();
+  }
 
   async criar(
     data: Omit<OperacaoDebentureSemVinculo, 'id'>,
@@ -22,11 +31,11 @@ export class PrismaOperacaoDebentureRepositorio
   }
 
   async atualizar(
+    id: number,
     {
       id_debenture_serie_investidor,
       ...data
     }: Partial<Omit<OperacaoDebentureSemVinculo, 'id'>>,
-    id: number,
   ): Promise<OperacaoDebenture> {
     return await this.prisma.operacao_debenture.update({
       where: { id },
@@ -41,10 +50,10 @@ export class PrismaOperacaoDebentureRepositorio
     });
   }
 
-  async buscarOperacoesPeloCodigoOperacao(
+  async buscarOperacaoPeloCodigoOperacao(
     codigo_operacao: string,
-  ): Promise<OperacaoDebenture[]> {
-    return await this.prisma.operacao_debenture.findMany({
+  ): Promise<OperacaoDebenture> {
+    return await this.prisma.operacao_debenture.findFirst({
       where: { codigo_operacao: Number(codigo_operacao) },
     });
   }
@@ -73,11 +82,36 @@ export class PrismaOperacaoDebentureRepositorio
       include: {
         debenture_serie_investidor: {
           include: {
-            debenture_serie: true,
+            fundo_investimento: true,
+            debenture_serie: {
+              include: {
+                debenture: true,
+              },
+            },
+            conta_investidor: true,
           },
         },
       },
     });
     return converterCamposDecimais(operacoes);
+  }
+
+  async buscarTodasOperacoes(): Promise<OperacaoDebenture[]> {
+    const todasOperacoes = await this.prisma.operacao_debenture.findMany({
+      include: {
+        debenture_serie_investidor: {
+          include: {
+            fundo_investimento: true,
+            debenture_serie: {
+              include: {
+                debenture: true,
+              },
+            },
+            conta_investidor: true,
+          },
+        },
+      },
+    });
+    return converterCamposDecimais(todasOperacoes);
   }
 }

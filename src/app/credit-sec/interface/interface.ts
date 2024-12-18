@@ -60,7 +60,7 @@ type Titulos = {
 };
 
 export type SolicitarRemessaType = {
-  numero_remessa: number;
+  numero_remessa: string;
   numero_emissao: number;
   numero_serie: number;
   callback_url: string;

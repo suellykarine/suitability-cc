@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   AnexarDocumentoDto,
   EnviarDocumentoDto,
@@ -16,6 +10,13 @@ import { FundosService } from '../fundos/fundos.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { DocumentoRepositorio } from 'src/repositorios/contratos/documentoRepositorio';
 import { Documento, DocumentoSemVinculo } from 'src/@types/entities/documento';
+import {
+  ErroAplicacao,
+  ErroNaoAutorizado,
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class DocumentosService {
@@ -34,7 +35,14 @@ export class DocumentosService {
       enviarDocumentoDto.tipo_id as TipoIdsDocumentos,
     );
     if (!entidade) {
-      throw new NotFoundException('Fundo/Gestor/Usuário não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.enviarDocumento',
+        mensagem: 'Fundo/Gestor/Usuário não encontrado',
+        informacaoAdicional: {
+          enviarDocumentoDto,
+          id,
+        },
+      });
     }
 
     const urlDocumento = await this.enviarArquivoParaServidor(arquivo);
@@ -43,7 +51,15 @@ export class DocumentosService {
       StatusDocumento.AGUARDANDO_ANALISE,
     );
     if (!statusDocumento) {
-      throw new NotFoundException('Status não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.enviarDocumento',
+        mensagem: 'Status não encontrado',
+        informacaoAdicional: {
+          enviarDocumentoDto,
+          id,
+          urlDocumento,
+        },
+      });
     }
 
     const dadosDocumento: Documento = {
@@ -78,7 +94,15 @@ export class DocumentosService {
     idUsuario: number,
   ) {
     if (!Object.values(TipoIdsDocumentos).includes(tipoId)) {
-      throw new BadRequestException('Tipo de ID inválido');
+      throw new ErroRequisicaoInvalida({
+        acao: 'documentos.buscarTodosDocumentos',
+        mensagem: 'Tipo de ID inválido',
+        informacaoAdicional: {
+          id,
+          tipoId,
+          idUsuario,
+        },
+      });
     }
 
     let documents = [];
@@ -107,7 +131,15 @@ export class DocumentosService {
     }
 
     if (documents.length === 0) {
-      throw new NotFoundException('Documentos não encontrados');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.buscarDocumentos',
+        mensagem: 'Documentos não encontrados',
+        informacaoAdicional: {
+          id,
+          tipoId,
+          idUsuario,
+        },
+      });
     }
 
     return {
@@ -127,7 +159,16 @@ export class DocumentosService {
     if (
       !validarStatus.includes(atualizarDocumentoStatusDto.status.toLowerCase())
     ) {
-      throw new BadRequestException('Status não permitido');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.atualizarStatusDocumento',
+        mensagem: 'Status não permitido',
+        informacaoAdicional: {
+          id,
+          atualizarDocumentoStatusDto,
+          backofficeId,
+          validarStatus,
+        },
+      });
     }
 
     const documento = await this.prisma.documento.findUnique({
@@ -136,7 +177,15 @@ export class DocumentosService {
     });
 
     if (!documento) {
-      throw new NotFoundException('Documento não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.atualizarStatusDocumento',
+        mensagem: 'Documento não encontrado',
+        informacaoAdicional: {
+          id,
+          atualizarDocumentoStatusDto,
+          backofficeId,
+        },
+      });
     }
 
     const encontrarStatus = await this.obterStatusDocumento(
@@ -180,7 +229,15 @@ export class DocumentosService {
     });
 
     if (!fundo) {
-      throw new NotFoundException('Fundo não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.anexarDocumento',
+        mensagem: 'Fundo não encontrado',
+        informacaoAdicional: {
+          idUsuario,
+          idFundo,
+          anexarDocumentoDto,
+        },
+      });
     }
 
     await this.fundosService.verificarPropriedadeFundo(idUsuario, idFundo);
@@ -253,8 +310,13 @@ export class DocumentosService {
     });
 
     if (!gestorFundo) {
-      throw new NotFoundException({
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.verificarPropriedadeGestor',
         mensagem: 'Gestor de fundo não encontrado.',
+        informacaoAdicional: {
+          idUsuario,
+          idGestor,
+        },
       });
     }
 
@@ -269,8 +331,13 @@ export class DocumentosService {
       });
 
     if (!usuarioGestor) {
-      throw new ForbiddenException({
+      throw new ErroNaoAutorizado({
+        acao: 'documentos.verificarPropriedadeGestor',
         mensagem: 'Acesso negado. Você não está associado a este gestor',
+        informacaoAdicional: {
+          idUsuario,
+          idGestor,
+        },
       });
     }
 
@@ -311,10 +378,16 @@ export class DocumentosService {
       const result = await response.json();
 
       return result;
-    } catch (erro: any) {
-      throw new InternalServerErrorException({
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.enviarArquivoParaServidor',
         mensagem:
           'Um erro innesperado aconteceu e não foi possível enviar o arquivo',
+        informacaoAdicional: {
+          file,
+          erro,
+        },
       });
     }
   }
@@ -343,7 +416,15 @@ export class DocumentosService {
         campoChave = 'id_gestor_fundo';
         break;
       default:
-        throw new BadRequestException('Tipo de documento inválido');
+        throw new ErroServidorInterno({
+          acao: 'documentos.salvarDocumento',
+          mensagem: 'Tipo de documento inválido',
+          informacaoAdicional: {
+            dadosDocumento,
+            tipoId,
+            id,
+          },
+        });
     }
 
     dadosDocumento[campoChave] = id;
@@ -359,7 +440,13 @@ export class DocumentosService {
     const documento = await this.documentoRepositorio.buscarPorId(idDocumento);
 
     if (!documento) {
-      throw new NotFoundException('Documento não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'documentos.buscarDocumentoPorId',
+        mensagem: 'Documento não encontrado',
+        informacaoAdicional: {
+          idDocumento,
+        },
+      });
     }
 
     return documento;
@@ -370,9 +457,14 @@ export class DocumentosService {
     idUsuarioRequisicao: number,
   ) {
     if (documento.id_usuario && documento.id_usuario !== idUsuarioRequisicao) {
-      throw new ForbiddenException(
-        'Você não tem autorização para atualizar esse documento',
-      );
+      throw new ErroNaoAutorizado({
+        acao: 'documentos.verificarProprietarioDocumento',
+        mensagem: 'Você não tem autorização para atualizar esse documento',
+        informacaoAdicional: {
+          documento,
+          idUsuarioRequisicao,
+        },
+      });
     }
 
     if (documento.id_fundo_investimento) {
