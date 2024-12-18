@@ -41,7 +41,6 @@ export class AnbimaService {
   }
 
   async integracaoAnbima(cnpj: string) {
-    await this.autenticarAnbima();
     const urlCnpjPublica = `${this.configService.get('CNPJ_API_PUBLICA')}/${cnpj}`;
     const respostaCnpj = await fetch(urlCnpjPublica);
     const cnpjData = await respostaCnpj.json();
@@ -63,6 +62,8 @@ export class AnbimaService {
         informacaoAdicional: { cnpj },
       });
     }
+
+    await this.autenticarAnbima();
 
     const fundo = await this.buscarFundosPorCnpj(cnpj);
     if (!fundo) return null;
