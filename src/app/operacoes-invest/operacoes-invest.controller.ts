@@ -27,6 +27,20 @@ export class OperacoesInvestController {
   }
 
   @UseGuards(JwtAuthGuardPremium)
+  @ApiParam({
+    name: 'codigoOperacao',
+    description: 'codigo de operação para busca',
+  })
+  @Get('/calculos/:codigoOperacao')
+  async buscarOperacaoPorCodigoOperacaoComCalculos(
+    @Param('codigoOperacao') codigoOperacao: string,
+  ) {
+    return this.operacoesInvestService.buscarOperacaoPorCodigoOperacaoComCalculos(
+      Number(codigoOperacao),
+    );
+  }
+
+  @UseGuards(JwtAuthGuardPremium)
   @ApiQuery({
     name: 'identificadorCedente',
     required: true,
