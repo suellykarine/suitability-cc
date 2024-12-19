@@ -24,7 +24,7 @@ export class OperacoesInvestService {
 
   async buscarTransacaoPorCodigoOperacao(codigoOperacao: number) {
     try {
-      const url = `${process.env.BASE_URL_OPERACAO__INVEST}${codigoOperacao}`;
+      const url = `${process.env.BASE_URL_OPERACAO_INVEST}/${codigoOperacao}`;
 
       const req = await fetch(url, {
         headers: {
@@ -49,6 +49,37 @@ export class OperacoesInvestService {
       throw new ErroServidorInterno({
         mensagem: 'Ocorreu um erro ao buscar as operações',
         acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao.catch',
+        informacaoAdicional: { codigoOperacao },
+      });
+    }
+  }
+  async buscarOperacaoPorCodigoOperacaoComCalculos(codigoOperacao: number) {
+    try {
+      const operacao =
+        await this.buscarTransacaoPorCodigoOperacao(codigoOperacao);
+
+      const ativosComCalculos = operacao.ativosInvest.map((ativo) => {
+        const ativoComCalculos = {
+          valorLiquidado: this.calculaValorLiquido(ativo),
+          valorAVencer: this.calculaDataDeVencimento(ativo),
+          valorVencido: this.calculaValorVencido(ativo),
+          qtdParcelasAVencer: this.calculaParcelasAVencer(ativo),
+          qtdParcelasLiquidadas: this.calculaParcelasLiquidadas(ativo),
+          dataUltimoPagamento: this.calculaUltimoPagamento(ativo),
+          taxaRendimento: this.calculaTaxaDeRendimento(ativo),
+          ...ativo,
+        };
+        return ativoComCalculos;
+      });
+
+      operacao.ativosInvest = ativosComCalculos;
+
+      return operacao;
+    } catch (error) {
+      if (error instanceof ErroAplicacao) throw error;
+      throw new ErroServidorInterno({
+        mensagem: 'Ocorreu um erro ao buscar a operação com calculos',
+        acao: 'operacoesInvest.buscarOperacaoPorCodigoOperacaoComCalculos.catch',
         informacaoAdicional: { codigoOperacao },
       });
     }
