@@ -508,7 +508,7 @@ export class CreditSecRemessaService {
 
     const promiseAtivos = dadosAtivo.map(async (ativo) => {
       const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
-        1364997, // TO-DO: Retirar hard coded, retornar utilizando ativo.codigoAtivo,
+        ativo.codigoAtivo,
       );
       const taxa_cessao =
         ativo.taxaAtivo === 'PRÉ'
