@@ -1,7 +1,8 @@
-import { Injectable, HttpException, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { sigmaHeaders } from '../autenticacao/constants';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 @Injectable()
 export class PagamentoOperacaoService {
   private readonly urlBase: string;
@@ -27,18 +28,24 @@ export class PagamentoOperacaoService {
     };
     const body = JSON.stringify({ codigoContaCedente: conta.codigo_conta });
 
-    const response = await fetch(url, {
+    const req = await fetch(url, {
       method: 'POST',
       headers,
       body,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-
-      throw new HttpException(errorData, response.status);
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'pagamentoOperacao.incluirPagamento.fetch',
+        mensagem: `Erro ao incluir pagamento: ${req.status}`,
+        req,
+        informacaoAdicional: {
+          status: req.status,
+          texto: req.statusText,
+        },
+      });
     }
 
-    return await response.json();
+    return await req.json();
   }
 }

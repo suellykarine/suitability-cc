@@ -1,6 +1,7 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 
 type BodyExcluirOperacao = {
   codigoOperacao: string;
@@ -33,11 +34,15 @@ export class SigmaService {
       },
     );
     if (!req.ok)
-      throw new HttpException(
-        `Erro ao excluir operação no sigma: ${req.status} ${req.statusText}`,
-        req.status,
-      );
-
+      await tratarErroRequisicao({
+        acao: 'sigmaService.excluirOperacaoDebentureSigma.fetch',
+        mensagem: `Erro ao excluir operação: ${req.status}`,
+        req,
+        informacaoAdicional: {
+          codigoOperacao,
+          complementoStatusOperacao,
+        },
+      });
     const res = { sucesso: true, codigoOperacao };
     return res;
   }

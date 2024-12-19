@@ -350,11 +350,10 @@ export class CreditSecSerieService {
 
     if (req.ok) return await req.json();
     await tratarErroRequisicao({
-      status: req.status,
       acao: 'creditSecSerieService.buscarStatusSerieCreditSec',
       mensagem: `Erro ao buscar serie: ${req.status} ${req.statusText}`,
       req,
-      infoAdicional: {
+      informacaoAdicional: {
         status: req.status,
         texto: req.statusText,
         body: req.body,
@@ -424,11 +423,10 @@ export class CreditSecSerieService {
 
     if (req.ok) return response;
     await tratarErroRequisicao({
-      status: req.status,
       acao: 'creditSecSerieService.buscarCedenteSigma',
       mensagem: `Erro ao buscar cedente no sigma: ${req.status} ${req.statusText}`,
       req,
-      infoAdicional: {
+      informacaoAdicional: {
         status: req.status,
         texto: req.statusText,
         identificador,

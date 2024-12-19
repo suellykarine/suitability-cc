@@ -73,11 +73,10 @@ export class DocumentoCedenteService {
     const dadosResposta = await req.json();
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'cedenteDocumentos.tratarResposta',
         mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
         },

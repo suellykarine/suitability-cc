@@ -8,6 +8,7 @@ import {
   identificadorCedente,
   OrganizaCarteirasParamsDto,
 } from './dto/organizaCarteiras.dto';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 
 type AtivoType = Pick<
   AtivosInvest,
@@ -33,10 +34,11 @@ export class OperacoesInvestService {
       });
 
       if (!req.ok) {
-        throw new ErroServidorInterno({
+        await tratarErroRequisicao({
+          req,
+          informacaoAdicional: { codigoOperacao },
           mensagem: 'Ocorreu um erro ao buscar as operações',
           acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao',
-          informacaoAdicional: { codigoOperacao },
         });
       }
 

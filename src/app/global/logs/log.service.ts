@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import moment from 'moment-timezone';
 import { Log } from 'src/@types/entities/logEntities';
 import { LogsRepositorio } from 'src/repositorios/contratos/logsRepositorio';
 import { OptionalNullable } from 'src/utils/types';
@@ -13,8 +12,6 @@ type LogProps = Omit<
     formatoInformacaoAdicional?: 'json' | 'string';
     exibirNoConsole?: boolean;
   }>;
-
-const timeZone = 'America/Sao_Paulo';
 
 @Injectable()
 export class LogService {
