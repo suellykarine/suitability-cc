@@ -292,7 +292,7 @@ export class CreditSecRemessaService {
       throw new ErroServidorInterno({
         mensagem: 'Erro ao registrar retorno da CreditSec',
         acao: 'creditSecRemessaService.registrarRetornoCreditSec.catch',
-        informacaoAdicional: { data, erro: error },
+        informacaoAdicional: { data, erro: error.message },
       });
     }
   }
