@@ -29,7 +29,7 @@ export class OperacoesInvestService {
       const req = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': process.env.FLUXO_OPERACIONAL_SECRET_KEY,
+          'X-API-KEY': process.env.SIGMA_SECRET_KEY,
         },
       });
 
@@ -92,7 +92,7 @@ export class OperacoesInvestService {
       const req = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': process.env.FLUXO_OPERACIONAL_SECRET_KEY,
+          'X-API-KEY': process.env.SIGMA_SECRET_KEY,
         },
       });
 
