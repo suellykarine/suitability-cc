@@ -11,10 +11,9 @@ import {
 
 type Props = {
   acao: string;
-  status?: number;
   req: any;
   mensagem: string;
-  infoAdicional: any;
+  informacaoAdicional: any;
 };
 
 const mapaDeErros: Record<
@@ -31,11 +30,11 @@ const mapaDeErros: Record<
 
 export async function tratarErroRequisicao({
   acao,
-  status,
   req,
   mensagem,
-  infoAdicional,
+  informacaoAdicional: informacaoAdicional,
 }: Props) {
+  const status = req.status;
   const statusPreenchido = status ? `status: ${status}` : '';
   const ErroClasse = mapaDeErros[status] || ErroServidorInterno;
 
@@ -47,7 +46,7 @@ export async function tratarErroRequisicao({
       informacaoAdicional: {
         requisicao,
         req,
-        ...infoAdicional,
+        ...informacaoAdicional,
       },
     });
   } catch (erro) {
@@ -57,7 +56,7 @@ export async function tratarErroRequisicao({
       acao,
       informacaoAdicional: {
         req,
-        ...infoAdicional,
+        ...informacaoAdicional,
         erro: erro?.message,
       },
     });

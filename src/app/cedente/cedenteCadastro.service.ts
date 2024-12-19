@@ -91,11 +91,10 @@ export class CadastroCedenteService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: logAcao,
         mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           body,
@@ -123,11 +122,10 @@ export class CadastroCedenteService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: logAcao,
         mensagem: `Erro ao buscar os dados PJ: ${req.status}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           identificadorFundo,

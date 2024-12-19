@@ -335,11 +335,10 @@ export class CreditSecRemessaService {
       });
 
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'creditSecRemessaService.solicitarRemessaCreditSec.tratarErroReq',
         mensagem: `Erro ao criar remessa: ${motivosConcatenado}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           erro,
           body,
           req,
@@ -369,11 +368,10 @@ export class CreditSecRemessaService {
     );
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'creditSecRemessaService.buscarStatusRemessa',
         mensagem: `Erro ao buscar remessa: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           emissao: numero_emissao,
@@ -403,11 +401,10 @@ export class CreditSecRemessaService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
         mensagem: `Erro ao encontrar operações do cedente no sigma: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           codigoOperacao,
@@ -438,11 +435,10 @@ export class CreditSecRemessaService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'creditSecRemessaService.criarRegistroDeOperacaoSigma',
         mensagem: `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           codigoOperacao,
@@ -468,11 +464,10 @@ export class CreditSecRemessaService {
     );
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
         mensagem: `Erro ao destravar operacao debenture no sigma: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           codigoOperacao,
           status: req.status,
           texto: req.statusText,

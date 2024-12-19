@@ -50,11 +50,10 @@ export class EstruturacaoCarrinhoService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'estruturacaoCarrinho.criarCarteira',
         mensagem: `Erro ao criar carteira: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           body: req.body,
@@ -88,11 +87,10 @@ export class EstruturacaoCarrinhoService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'estruturacaoCarrinho.formalizarCarteira',
         mensagem: `Erro ao formalizar: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           body: req.body,
@@ -123,11 +121,10 @@ export class EstruturacaoCarrinhoService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'estruturacaoCarrinho.criarCarteira',
         mensagem: `Erro ao criar carteira: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           excluirCarteiraDto,
@@ -159,11 +156,10 @@ export class EstruturacaoCarrinhoService {
 
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'estruturacaoCarrinho.introduzirAtivoCarteira',
         mensagem: `Erro ao adicionar ativo na carteira: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           introduzirAtivoCarteiraDto,
@@ -191,11 +187,10 @@ export class EstruturacaoCarrinhoService {
     );
     if (!req.ok) {
       await tratarErroRequisicao({
-        status: req.status,
         acao: 'estruturacaoCarrinho.removerAtivoCarteira',
         mensagem: `Erro ao remover ativo na carteira: ${req.status} ${req.statusText}`,
         req,
-        infoAdicional: {
+        informacaoAdicional: {
           status: req.status,
           texto: req.statusText,
           carteiraId,
