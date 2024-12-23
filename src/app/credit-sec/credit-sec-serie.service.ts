@@ -203,7 +203,8 @@ export class CreditSecSerieService {
         await this.debentureSerieInvestidorRepositorio.atualizar({
           id: debentureSerieInvestidor.id,
           status_retorno_creditsec: 'ERRO',
-          mensagem_retorno_creditsec: 'Falha ao cadastrar série no CreditSec',
+          mensagem_retorno_creditsec:
+            'Falha ao cadastrar série no CreditSec, Mensagem:' + error.message,
         });
         if (error instanceof ErroAplicacao) throw error;
         throw new ErroServidorInterno({
