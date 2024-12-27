@@ -29,7 +29,6 @@ import { DebentureRepositorio } from 'src/repositorios/contratos/debentureReposi
 
 @Injectable()
 export class CreditSecSerieService {
-  private baseUrl: string;
   private tokenCreditSecSolicitarSerie: string;
   private baseUrlCreditSecSolicitarSerie: string;
   private baseUrlCadastroSigma: string;
@@ -41,7 +40,6 @@ export class CreditSecSerieService {
     private readonly configService: ConfigService,
     private readonly debentureRepositorio: DebentureRepositorio,
   ) {
-    this.baseUrl = this.configService.get('BASE_URL');
     this.tokenCreditSecSolicitarSerie = this.configService.get(
       'TOKEN_CREDIT_SEC_SOLICITAR_SERIE',
     );
@@ -443,11 +441,16 @@ export class CreditSecSerieService {
     usuario: Omit<Usuario, 'tipo_usuario'>,
     debentureSerieInvestidor: DebentureSerieInvestidor,
   ) {
+    const isLocalhost = process.env.AMBIENTE === 'development';
+    const baseUrlSrmWebhooks = isLocalhost
+      ? 'https://srm-webhooks-homologacao.srmasset.com/api' // TO-DO: Confirmar se será esse a URL final
+      : process.env.BASE_URL_SRM_WEBHOOKS;
+
     const objSolicitarSerie: SolicitarSerieType = {
       numero_emissao:
         debentureSerieInvestidor.debenture_serie.debenture.numero_debenture,
       numero_serie: debentureSerieInvestidor.debenture_serie.numero_serie,
-      callback_url: `${this.baseUrl}api/credit-sec/solicitar-serie/retorno/criacao-serie`,
+      callback_url: `${baseUrlSrmWebhooks}/credit-connect/credit-sec/serie/emissao/retorno`,
       conta_serie: {
         banco: '533',
         agencia: debentureSerieInvestidor.conta_investidor.agencia,
