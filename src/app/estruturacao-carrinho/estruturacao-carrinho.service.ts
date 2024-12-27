@@ -53,7 +53,7 @@ export class EstruturacaoCarrinhoService {
         acao: 'estruturacaoCarrinho.criarCarteira',
         mensagem: `Erro ao criar carteira: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           body: req.body,
@@ -90,7 +90,7 @@ export class EstruturacaoCarrinhoService {
         acao: 'estruturacaoCarrinho.formalizarCarteira',
         mensagem: `Erro ao formalizar: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           body: req.body,
@@ -124,7 +124,7 @@ export class EstruturacaoCarrinhoService {
         acao: 'estruturacaoCarrinho.criarCarteira',
         mensagem: `Erro ao criar carteira: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           excluirCarteiraDto,
@@ -159,7 +159,7 @@ export class EstruturacaoCarrinhoService {
         acao: 'estruturacaoCarrinho.introduzirAtivoCarteira',
         mensagem: `Erro ao adicionar ativo na carteira: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           introduzirAtivoCarteiraDto,
@@ -190,7 +190,7 @@ export class EstruturacaoCarrinhoService {
         acao: 'estruturacaoCarrinho.removerAtivoCarteira',
         mensagem: `Erro ao remover ativo na carteira: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           carteiraId,
@@ -210,7 +210,7 @@ export class EstruturacaoCarrinhoService {
       throw new ErroRequisicaoInvalida({
         acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
         mensagem: 'Não encontramos nenhuma conta ativa para o cedente',
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
           identificador,
         },
@@ -228,7 +228,7 @@ export class EstruturacaoCarrinhoService {
         acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
         mensagem:
           'Não foi possível registrar  o Controle de Cadastro da Conta do Cedente para Operações Financeiras',
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
           identificador,
         },
@@ -249,7 +249,7 @@ export class EstruturacaoCarrinhoService {
         throw new ErroRequisicaoInvalida({
           acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
           mensagem: 'Não foi possivel deletar o controle',
-          informacaoAdicional: {
+          detalhes: {
             codigoOperacao,
             identificador,
           },
@@ -288,7 +288,7 @@ export class EstruturacaoCarrinhoService {
       throw new ErroRequisicaoInvalida({
         acao: 'estruturacaoCarrinho.cadastrarControleDeCadastroContaCedenteOperacaoDireta',
         mensagem: 'Houve um erro ao cadastrar o metodo de controle da operacao',
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
           codigoContaCedente,
         },
@@ -313,7 +313,7 @@ export class EstruturacaoCarrinhoService {
       throw new ErroRequisicaoInvalida({
         acao: 'estruturacaoCarrinho.estruturarInvestimentoDireto',
         mensagem: 'Houve um erro ao excluir o metodo de operacao de pagamento',
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
         },
       });

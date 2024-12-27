@@ -15,6 +15,7 @@ import {
 } from './dto/remessa-callback.dto';
 import { CreditSecRemessaService } from './credit-sec-remessa.service';
 import { JwtAuthGuardDevelopment } from '../autenticacao/guards/development.guard';
+import { SrmWebhooksAuthGuard } from '../autenticacao/guards/srm-webhooks.guard';
 
 @ApiTags('CREDIT-SEC')
 @ApiBearerAuth('access-token')
@@ -24,20 +25,21 @@ export class CreditSecControler {
     private readonly creditSecSerieService: CreditSecSerieService,
     private readonly creditSecRemessaService: CreditSecRemessaService,
   ) {}
-
-  @Post('/solicitar-serie/retorno/criacao-serie')
+  @UseGuards(SrmWebhooksAuthGuard)
+  @Post('/serie/emissao/retorno')
   callbackSerieCrediSec(@Body() body: BodyRetornoCriacaoSerieDto) {
     return this.creditSecSerieService.registrarRetornoCreditSec(body);
   }
 
-  @Post('/solicitar-remessa/retorno/criacao-remessa')
+  @UseGuards(SrmWebhooksAuthGuard)
+  @Post('/remessa/emissao/retorno')
   @HttpCode(204)
   callbackRemessaCrediSec(@Body() body: BodyRetornoRemessaDto) {
     return this.creditSecRemessaService.registrarRetornoCreditSec(body);
   }
 
   @UseGuards(JwtAuthGuardDevelopment)
-  @Get('/solicitar-serie/verificacao-status-manual')
+  @Get('/serie/emissao/verificacao-status-manual')
   verificacaoManualStatusSeries() {
     return this.creditSecSerieService.buscarStatusSolicitacaoSerie();
   }

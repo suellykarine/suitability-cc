@@ -76,7 +76,7 @@ export class DocumentoCedenteService {
         acao: 'cedenteDocumentos.tratarResposta',
         mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
         },

@@ -39,7 +39,7 @@ export class PagamentoOperacaoService {
         acao: 'pagamentoOperacao.incluirPagamento.fetch',
         mensagem: `Erro ao incluir pagamento: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
         },

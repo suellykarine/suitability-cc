@@ -1,10 +1,12 @@
 import {
   ArgumentsHost,
+  BadRequestException,
   Catch,
   ExceptionFilter,
   HttpException,
   HttpStatus,
   Inject,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ErroAplicacao } from '../erroAplicacao';
@@ -19,20 +21,14 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     if (exception instanceof ErroAplicacao) {
-      const {
-        message,
-        codigoStatus,
-        informacaoAdicional,
-        acao,
-        salvarEmLog,
-        stack,
-      } = exception;
+      const { message, codigoStatus, detalhes, acao, salvarEmLog, stack } =
+        exception;
 
       const payload = {
         mensagem: message,
         acao,
-        informacaoAdicional: {
-          ...informacaoAdicional,
+        detalhes: {
+          ...detalhes,
           codigoStatus,
           stack,
         },
@@ -54,19 +50,23 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
         statusCode: number;
         error: string;
       };
+      const isBadRequest = exception instanceof BadRequestException;
+      const isUnauthorized = exception instanceof UnauthorizedException;
 
-      await this.logService.erro({
-        mensagem: responseBody.message,
-        acao: 'desconhecida',
-        informacaoAdicional: {
-          codigoStatus: status,
-          detalhes: exception,
-          stack: exception.stack,
-          nomeExcecao: exception.name,
-          causa: exception.cause,
-          objetoErro: responseBody.message,
-        },
-      });
+      if (!isBadRequest && !isUnauthorized) {
+        await this.logService.erro({
+          mensagem: responseBody.message,
+          acao: 'desconhecida',
+          detalhes: {
+            codigoStatus: status,
+            detalhes: exception,
+            stack: exception.stack,
+            nomeExcecao: exception.name,
+            causa: exception.cause,
+            objetoErro: responseBody.message,
+          },
+        });
+      }
 
       return response.status(status).json({
         erro: { mensagem: responseBody.message },
@@ -82,7 +82,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
       await this.logService.erro({
         mensagem,
         acao,
-        informacaoAdicional: {
+        detalhes: {
           codigoStatus: status,
           excecao: exception,
           nomeExcecao: exception.name,
@@ -99,7 +99,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
     await this.logService.erro({
       mensagem: 'erro desconhecido',
       acao: 'desconhecida',
-      informacaoAdicional: {
+      detalhes: {
         codigoStatus: status,
         excecao: exception,
       },

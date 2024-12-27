@@ -176,7 +176,7 @@ export class SrmBankService {
         throw new ErroServidorInterno({
           mensagem: 'Ocorreu um erro ao buscar o saldo',
           acao: 'srmBankService.buscarSaldoContaInvestidor',
-          informacaoAdicional: {
+          detalhes: {
             idContaInvestidor,
             resposta,
             req,
@@ -191,7 +191,7 @@ export class SrmBankService {
       throw new ErroServidorInterno({
         acao: 'srmBankService.buscarSaldoContaInvestidor.catch',
         mensagem: 'Ocorreu um erro ao buscar o saldo',
-        informacaoAdicional: {
+        detalhes: {
           idContaInvestidor,
           erro,
           mensagemErro: erro.message,

@@ -19,7 +19,7 @@ export class DebentureService {
       throw new ErroRequisicaoInvalida({
         acao: 'debenture.criarDebenture',
         mensagem: 'Uma debenture com esse nome já foi registrada',
-        informacaoAdicional: {
+        detalhes: {
           data: data,
           nomeDebenture: debenturePorNome,
         },
@@ -33,7 +33,7 @@ export class DebentureService {
       throw new ErroRequisicaoInvalida({
         acao: 'debenture.criarDebenture',
         mensagem: 'Uma debenture com esse número já foi registrada',
-        informacaoAdicional: {
+        detalhes: {
           data: data,
           nomeDebenture: debenturePorNome,
           numeroDebenture: debenturePorNumero,
@@ -52,7 +52,7 @@ export class DebentureService {
       throw new ErroNaoEncontrado({
         acao: 'debenture.listarDebentures',
         mensagem: 'Nenhuma debênture encontrada.',
-        informacaoAdicional: {
+        detalhes: {
           debentures,
         },
       });

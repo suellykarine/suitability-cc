@@ -68,7 +68,7 @@ export class CreditSecSerieService {
       await this.logService.info({
         acao: 'creditSecSerieService.atualizarStatusCreditSec',
         mensagem: 'Status CreditSec encontrado',
-        informacaoAdicional: {
+        detalhes: {
           statusCreditSec,
         },
       });
@@ -78,12 +78,12 @@ export class CreditSecSerieService {
       return this.registrarRetornoCreditSec(statusCreditSec);
     } catch (error) {
       if (error instanceof ErroAplicacao) {
-        const { acao, informacaoAdicional, message, ...erro } = error;
+        const { acao, detalhes, message, ...erro } = error;
         await this.logService.aviso({
           acao,
           mensagem: message,
-          informacaoAdicional: {
-            ...informacaoAdicional,
+          detalhes: {
+            ...detalhes,
             erro,
             numeroDebenture,
             numeroSerie,
@@ -95,7 +95,7 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.atualizarStatusCreditSec.catch',
         mensagem: 'Erro ao buscar status de solicitação de série',
-        informacaoAdicional: {
+        detalhes: {
           numeroDebenture,
           numeroSerie,
           error,
@@ -114,7 +114,7 @@ export class CreditSecSerieService {
         mensagem: 'Executando validação de status dos investidores.',
         acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie.cronjob',
         exibirNoConsole: true,
-        informacaoAdicional: {
+        detalhes: {
           configuracaoCronjob: {
             nome: 'validarStatusJob',
             timeZone: 'America/Sao_Paulo',
@@ -131,7 +131,7 @@ export class CreditSecSerieService {
       await this.logService.info({
         mensagem: 'Investidores com status creditsec pendente encontrados.',
         acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie.cronjob.pendentes',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidorPendentes,
         },
       });
@@ -154,7 +154,7 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.buscarStatusSolicitacaoSerie',
         mensagem: 'Erro ao buscar status de solicitação de série',
-        informacaoAdicional: {
+        detalhes: {
           error,
         },
       });
@@ -210,7 +210,7 @@ export class CreditSecSerieService {
         throw new ErroServidorInterno({
           acao: 'creditSecSerieService.solicitarSerie',
           mensagem: 'Erro ao solicitar série no CreditSec',
-          informacaoAdicional: {
+          detalhes: {
             bodySolicitarSerie,
             error,
           },
@@ -223,7 +223,7 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerie',
         mensagem: 'Erro ao solicitar série no CreditSec',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidorId,
           error,
         },
@@ -244,7 +244,7 @@ export class CreditSecSerieService {
       await this.logService.info({
         acao: 'creditSecSerieService.registrarRetornoCreditSec.ultimoVinculoDSI',
         mensagem: 'Registrando retorno CreditSec no ultimo vinculo DSI',
-        informacaoAdicional: {
+        detalhes: {
           data,
           debentureSerie,
           ultimoVinculoDSI,
@@ -272,7 +272,7 @@ export class CreditSecSerieService {
         await this.logService.info({
           acao: 'creditSecSerieService.registrarRetornoCreditSec.aprovado',
           mensagem: 'Retorno CreditSec de APROVACÃO registrado com sucesso',
-          informacaoAdicional: {
+          detalhes: {
             data,
             debentureSerieInvestidorAtualizado,
             debentureSerieAtualizado,
@@ -288,7 +288,7 @@ export class CreditSecSerieService {
         await this.logService.info({
           acao: 'creditSecSerieService.registrarRetornoCreditSec.reprovado',
           mensagem: 'Retorno CreditSec de REPROVACÃO registrado com sucesso',
-          informacaoAdicional: {
+          detalhes: {
             data,
             fundoDesvinculado,
             ultimoVinculoDSI,
@@ -303,7 +303,7 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.registrarRetornoCreditSec.catch',
         mensagem: 'Erro ao registrar retorno do CreditSec',
-        informacaoAdicional: {
+        detalhes: {
           data,
           retornoCreditSec: data,
           error,
@@ -354,7 +354,7 @@ export class CreditSecSerieService {
       acao: 'creditSecSerieService.buscarStatusSerieCreditSec',
       mensagem: `Erro ao buscar serie: ${req.status} ${req.statusText}`,
       req,
-      informacaoAdicional: {
+      detalhes: {
         status: req.status,
         texto: req.statusText,
         body: req.body,
@@ -379,7 +379,7 @@ export class CreditSecSerieService {
         this.logService.info({
           acao: 'creditSecSerieService.solicitarSerieCreditSec',
           mensagem: 'Série solicitada com sucesso no CreditSec',
-          informacaoAdicional: {
+          detalhes: {
             url,
             req,
             body,
@@ -392,7 +392,7 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerieCreditSec',
         mensagem: 'Erro ao solicitar série no CreditSec: ' + creditSecData[0],
-        informacaoAdicional: {
+        detalhes: {
           url,
           req,
           body,
@@ -405,7 +405,7 @@ export class CreditSecSerieService {
       throw new ErroServidorInterno({
         acao: 'creditSecSerieService.solicitarSerieCreditSec',
         mensagem: 'Erro ao solicitar série no CreditSec',
-        informacaoAdicional: {
+        detalhes: {
           body,
           error,
         },
@@ -427,7 +427,7 @@ export class CreditSecSerieService {
       acao: 'creditSecSerieService.buscarCedenteSigma',
       mensagem: `Erro ao buscar cedente no sigma: ${req.status} ${req.statusText}`,
       req,
-      informacaoAdicional: {
+      detalhes: {
         status: req.status,
         texto: req.statusText,
         identificador,

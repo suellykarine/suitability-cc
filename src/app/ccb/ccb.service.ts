@@ -25,7 +25,7 @@ export class CcbService {
         acao: logAcao,
         mensagem: `erro ao buscar CCB assinada: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           codigoAtivo,

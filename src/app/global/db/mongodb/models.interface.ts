@@ -4,7 +4,7 @@ import { LogTipo } from 'src/@types/entities/logEntities';
 export interface LogsModel {
   _id?: ObjectId;
   mensagem: string;
-  informacaoAdicional: string;
+  detalhes: string;
   acao: string;
   tipo: LogTipo;
   criadoEm: Date;

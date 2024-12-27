@@ -5,6 +5,10 @@ export const jwtConstants = {
   secretDevelopment: process.env.TOKEN_DEVELOPMENT,
 };
 
+export const tokens = {
+  secretSrmWebhooks: process.env.TOKEN_SRM_WEBHOOKS,
+};
+
 export const sigmaHeaders = {
   'X-API-KEY': process.env.SIGMA_SECRET_KEY!,
   access_token: process.env.ACCESS_TOKEN!,

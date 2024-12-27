@@ -94,7 +94,7 @@ export class CadastroCedenteService {
         acao: logAcao,
         mensagem: `Erro ao solicitar informacoes do cedente: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           body,
@@ -125,7 +125,7 @@ export class CadastroCedenteService {
         acao: logAcao,
         mensagem: `Erro ao buscar os dados PJ: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           identificadorFundo,

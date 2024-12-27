@@ -107,7 +107,7 @@ export class EstruturacaoCarrinhoController {
       throw new ErroRequisicaoInvalida({
         acao: 'controler.estruturacaoCarrinho.direto/identificador/codigoOperacao',
         mensagem: 'formato do codigo da operacao inválido',
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
           identificador,
         },

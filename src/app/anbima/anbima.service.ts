@@ -51,7 +51,7 @@ export class AnbimaService {
         mensagem: cnpjData.detalhes || 'Erro na busca do CNPJ',
         codigoStatus: respostaCnpj.status,
         acao: 'AmbimaService.integracaoAnbima',
-        informacaoAdicional: { cnpj, cnpjData },
+        detalhes: { cnpj, cnpjData },
       });
     }
 
@@ -60,7 +60,7 @@ export class AnbimaService {
         mensagem: 'CNPJ inativo. Operação cancelada.',
         codigoStatus: 422,
         acao: 'AnbimaService.integracaoAnbima',
-        informacaoAdicional: { cnpj },
+        detalhes: { cnpj },
       });
     }
 

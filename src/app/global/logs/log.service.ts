@@ -1,15 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Log } from 'src/@types/entities/logEntities';
 import { LogsRepositorio } from 'src/repositorios/contratos/logsRepositorio';
+import { normalizarChaves, removerCiclos } from 'src/utils/funcoes/objetos';
 import { OptionalNullable } from 'src/utils/types';
+import * as moment from 'moment-timezone';
+import { Log } from 'src/@types/entities/logEntities';
 
-type LogProps = Omit<
-  OptionalNullable<Log>,
-  'id' | 'criadoEm' | 'informacaoAdicional'
-> &
+type LogProps = Omit<OptionalNullable<Log>, 'id' | 'criadoEm' | 'detalhes'> &
   Partial<{
-    informacaoAdicional: Record<string, unknown>;
-    formatoInformacaoAdicional?: 'json' | 'string';
+    detalhes: Record<string, unknown>;
+    formatoDetalhes?: 'json' | 'string';
     exibirNoConsole?: boolean;
   }>;
 
@@ -20,17 +19,19 @@ export class LogService {
 
   async log({
     exibirNoConsole = false,
-    formatoInformacaoAdicional = 'json',
+    formatoDetalhes = 'json',
     ...log
   }: LogProps) {
-    const manterFormato = formatoInformacaoAdicional === 'json';
-    const informacaoAdicional = manterFormato
-      ? log.informacaoAdicional
-      : JSON.stringify(log.informacaoAdicional);
+    const detalhesNormalizados = normalizarChaves(removerCiclos(log.detalhes));
+    const criadoEm = moment().tz('America/Sao_Paulo').format();
+    const manterFormato = formatoDetalhes === 'json';
+    const detalhes = manterFormato
+      ? detalhesNormalizados
+      : JSON.stringify(detalhesNormalizados);
     const payload = {
       ...log,
-      criadoEm: new Date().toISOString(),
-      informacaoAdicional: informacaoAdicional,
+      criadoEm,
+      detalhes: detalhes,
     };
     if (exibirNoConsole) this.logger.log(payload.mensagem);
     await this.logsRepository.criarLog(payload);

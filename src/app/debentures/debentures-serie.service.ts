@@ -71,7 +71,7 @@ export class DebentureSerieService {
       throw new ErroNaoEncontrado({
         mensagem: 'Fundo de investimento não encontrado',
         acao: 'debentureSerieService.solicitarSerie',
-        informacaoAdicional: {
+        detalhes: {
           identificadorFundo,
         },
       });
@@ -82,7 +82,7 @@ export class DebentureSerieService {
         mensagem:
           'Valor série não enviado ou fundo não possuí um valor de serie',
         acao: 'debentureSerieService.solicitarSerie',
-        informacaoAdicional: {
+        detalhes: {
           valorEntrada,
           fundo,
         },
@@ -109,7 +109,7 @@ export class DebentureSerieService {
       throw new ErroRequisicaoInvalida({
         mensagem: 'O investidor está reprovado pela Laqus',
         acao: 'debentureSerieService.solicitarSerie',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidor: ultimoVinculoDSI,
         },
       });
@@ -120,7 +120,7 @@ export class DebentureSerieService {
       throw new ErroRequisicaoInvalida({
         mensagem: 'O investidor está com cadastro pendente na Laqus',
         acao: 'debentureSerieService.solicitarSerie',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidor: ultimoVinculoDSI,
         },
       });
@@ -133,7 +133,7 @@ export class DebentureSerieService {
       await this.logService.info({
         mensagem:
           'Série criada com sucesso, mediante atualização do erro de cadastro da laqus',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidorCriada: ultimoVinculoDSI,
           idFundoInvestimento: identificadorFundo,
         },
@@ -195,7 +195,7 @@ export class DebentureSerieService {
           throw new ErroServidorInterno({
             mensagem: 'Falha ao criar cadastro na Laqus',
             acao: 'debentureSerieService.solicitarSerie.cadastrarInvestidorLaqus',
-            informacaoAdicional: {
+            detalhes: {
               debentureSerieInvestidorCriada,
             },
           });
@@ -269,14 +269,14 @@ export class DebentureSerieService {
         throw new ErroServidorInterno({
           mensagem: 'Falha ao criar cadastro na Laqus',
           acao: 'debentureSerieService.solicitarSerie.cadastrarInvestidorLaqus',
-          informacaoAdicional: {
+          detalhes: {
             debentureSerieInvestidorCriada,
           },
         });
       }
       await this.logService.info({
         mensagem: 'Série criada com sucesso',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidorCriada,
           idFundoInvestimento: identificadorFundo,
         },
@@ -289,7 +289,7 @@ export class DebentureSerieService {
     }
     await this.logService.info({
       mensagem: 'Série criada com sucesso',
-      informacaoAdicional: {
+      detalhes: {
         debentureSerieInvestidorCriada,
         idFundoInvestimento: identificadorFundo,
       },
@@ -391,7 +391,7 @@ export class DebentureSerieService {
       throw new ErroRequisicaoInvalida({
         acao: 'debentureSerieService.criarNovaSerie',
         mensagem: 'Limite de séries atingido',
-        informacaoAdicional: {
+        detalhes: {
           idDebenture: idDebenture,
           seriesExistentesQtd: seriesExistentesQtd,
         },
@@ -417,7 +417,7 @@ export class DebentureSerieService {
       throw new ErroNaoEncontrado({
         acao: 'debentureSerieService.encontrarPorId',
         mensagem: 'Debenture serie não encontrada',
-        informacaoAdicional: {
+        detalhes: {
           id,
         },
       });
@@ -436,7 +436,7 @@ export class DebentureSerieService {
       throw new ErroNaoEncontrado({
         acao: 'debentureSerieService.atualizarValorDaSerie',
         mensagem: 'Debenture serie não encontrada',
-        informacaoAdicional: {
+        detalhes: {
           idDebentureSerie,
           valorSerie,
         },
@@ -450,7 +450,7 @@ export class DebentureSerieService {
         acao: 'debentureSerieService.atualizarValorDaSerie',
         mensagem:
           'A série já foi aprovada pela creditSec, logo não é mais possível atualizar o valor da mesma',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieSelecionada,
         },
       });
@@ -474,7 +474,7 @@ export class DebentureSerieService {
       throw new ErroServidorInterno({
         acao: 'debentureSerieService.atualizarValorDaSerie',
         mensagem: 'Erro ao atualizar valor da série',
-        informacaoAdicional: {
+        detalhes: {
           idDebentureSerie,
           valorSerie,
         },
@@ -502,7 +502,7 @@ export class DebentureSerieService {
         throw new ErroRequisicaoInvalida({
           acao: 'debentureSerieService.estaAptoAEstruturar',
           mensagem: 'Fundo de investimento não está apto a debenture',
-          informacaoAdicional: {
+          detalhes: {
             idInvestidor,
           },
         });
@@ -519,7 +519,7 @@ export class DebentureSerieService {
         throw new ErroNaoEncontrado({
           acao: 'debentureSerieService.estaAptoAEstruturar',
           mensagem: 'Séries aptas do investidor não encontradas',
-          informacaoAdicional: {
+          detalhes: {
             idInvestidor,
           },
         });
@@ -546,7 +546,7 @@ export class DebentureSerieService {
         throw new ErroNaoEncontrado({
           acao: 'debentureSerieService.estaAptoAEstruturar',
           mensagem: 'Fundo de investimento não encontrado',
-          informacaoAdicional: {
+          detalhes: {
             idInvestidor,
           },
         });
@@ -557,7 +557,7 @@ export class DebentureSerieService {
           acao: 'debentureSerieService.estaAptoAEstruturar',
           mensagem:
             'O valor de série do fundo não foi definido pelo BackOffice',
-          informacaoAdicional: {
+          detalhes: {
             fundoInvestimento,
           },
         });
@@ -574,7 +574,7 @@ export class DebentureSerieService {
         throw new ErroServidorInterno({
           acao: 'debentureSerieService.estaAptoAEstruturar',
           mensagem: 'Não foi possível criar uma nova serie',
-          informacaoAdicional: {
+          detalhes: {
             idInvestidor,
             valorEntrada,
           },
@@ -596,7 +596,7 @@ export class DebentureSerieService {
         throw new ErroServidorInterno({
           acao: 'debentureSerieService.estaAptoAEstruturar',
           mensagem: 'Não foi possível atualizar a DSI',
-          informacaoAdicional: {
+          detalhes: {
             novaSerie,
             idInvestidor,
             valorEntrada,
@@ -645,7 +645,7 @@ export class DebentureSerieService {
       throw new ErroRequisicaoInvalida({
         acao: 'debentureSerieService.verificarLimiteDebenture',
         mensagem: 'Limite de valor da debenture atingido',
-        informacaoAdicional: {
+        detalhes: {
           valorTotalSeriesExistentes,
           valorEntrada,
           limiteDebenture: this.limiteDebenture,
@@ -676,7 +676,7 @@ export class DebentureSerieService {
       throw new ErroServidorInterno({
         acao: 'debentureSerieService.listarOperacoesPorGestorFundo',
         mensagem: 'Erro ao buscar operações por gestor fundo',
-        informacaoAdicional: {
+        detalhes: {
           id,
         },
       });
@@ -705,7 +705,7 @@ export class DebentureSerieService {
       throw new ErroNaoEncontrado({
         acao: 'debentureSerieService.atualizarValorSerie',
         mensagem: 'Debenture série não encontrada',
-        informacaoAdicional: {
+        detalhes: {
           idDebentureSerie,
         },
       });

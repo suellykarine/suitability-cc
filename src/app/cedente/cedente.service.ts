@@ -28,7 +28,7 @@ export class CedenteService {
         acao: logAcao,
         mensagem: `Erro ao buscar bancos: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
         },

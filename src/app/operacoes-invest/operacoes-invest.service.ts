@@ -36,7 +36,7 @@ export class OperacoesInvestService {
       if (!req.ok) {
         await tratarErroRequisicao({
           req,
-          informacaoAdicional: { codigoOperacao },
+          detalhes: { codigoOperacao },
           mensagem: 'Ocorreu um erro ao buscar as operações',
           acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao',
         });
@@ -49,7 +49,7 @@ export class OperacoesInvestService {
       throw new ErroServidorInterno({
         mensagem: 'Ocorreu um erro ao buscar as operações',
         acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao.catch',
-        informacaoAdicional: { codigoOperacao },
+        detalhes: { codigoOperacao },
       });
     }
   }
@@ -80,7 +80,7 @@ export class OperacoesInvestService {
       throw new ErroServidorInterno({
         mensagem: 'Ocorreu um erro ao buscar a operação com calculos',
         acao: 'operacoesInvest.buscarOperacaoPorCodigoOperacaoComCalculos.catch',
-        informacaoAdicional: { codigoOperacao },
+        detalhes: { codigoOperacao },
       });
     }
   }
@@ -101,7 +101,7 @@ export class OperacoesInvestService {
         throw new ErroServidorInterno({
           mensagem: 'Ocorreu um erro ao buscar as operações',
           acao: 'operacaoInvestService.buscarTodasOperacoes',
-          informacaoAdicional: { req, resposta },
+          detalhes: { req, resposta },
         });
       }
 
@@ -112,7 +112,7 @@ export class OperacoesInvestService {
       throw new ErroServidorInterno({
         mensagem: 'Ocorreu um erro ao buscar as operações',
         acao: 'operacaoInvestService.buscarTodasOperacoes.catch',
-        informacaoAdicional: { error },
+        detalhes: { error },
       });
     }
   }
@@ -186,7 +186,7 @@ export class OperacoesInvestService {
         throw new ErroServidorInterno({
           mensagem: 'Nenhuma operação encontrada com status adequado',
           acao: 'operacaoInvestService.organizarCarteiras',
-          informacaoAdicional: { queryParam },
+          detalhes: { queryParam },
         });
 
       const addCalculos = operacoesFiltradas.map((operacao) => {
@@ -222,7 +222,7 @@ export class OperacoesInvestService {
       throw new ErroServidorInterno({
         mensagem: 'Nenhuma operação encontrada com status adequado',
         acao: 'operacaoInvestService.organizarCarteiras.catch',
-        informacaoAdicional: { error },
+        detalhes: { error },
       });
     }
   }
