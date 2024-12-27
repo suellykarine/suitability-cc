@@ -15,7 +15,6 @@ import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositori
 import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
 import { AutenticacaoController } from './autenticacao.controller';
 import { JwtStrategyDevelopment } from './strategies/development.strategy';
-import { StrategySrmWebhooks } from './strategies/srm-webhooks.strategy';
 
 @Module({
   controllers: [AutenticacaoController],
@@ -24,7 +23,6 @@ import { StrategySrmWebhooks } from './strategies/srm-webhooks.strategy';
     AutenticacaoService,
     LocalStrategy,
     JwtStrategy,
-    StrategySrmWebhooks,
     JwtStrategyBackoffice,
     JwtStrategyAdm,
     JwtStrategyPremium,
