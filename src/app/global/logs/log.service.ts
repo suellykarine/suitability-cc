@@ -3,13 +3,10 @@ import { Log } from 'src/@types/entities/logEntities';
 import { LogsRepositorio } from 'src/repositorios/contratos/logsRepositorio';
 import { OptionalNullable } from 'src/utils/types';
 
-type LogProps = Omit<
-  OptionalNullable<Log>,
-  'id' | 'criadoEm' | 'informacaoAdicional'
-> &
+type LogProps = Omit<OptionalNullable<Log>, 'id' | 'criadoEm' | 'detalhes'> &
   Partial<{
-    informacaoAdicional: Record<string, unknown>;
-    formatoInformacaoAdicional?: 'json' | 'string';
+    detalhes: Record<string, unknown>;
+    formatoDetalhes?: 'json' | 'string';
     exibirNoConsole?: boolean;
   }>;
 
@@ -20,17 +17,17 @@ export class LogService {
 
   async log({
     exibirNoConsole = false,
-    formatoInformacaoAdicional = 'json',
+    formatoDetalhes = 'json',
     ...log
   }: LogProps) {
-    const manterFormato = formatoInformacaoAdicional === 'json';
-    const informacaoAdicional = manterFormato
-      ? log.informacaoAdicional
-      : JSON.stringify(log.informacaoAdicional);
+    const manterFormato = formatoDetalhes === 'json';
+    const detalhes = manterFormato
+      ? log.detalhes
+      : JSON.stringify(log.detalhes);
     const payload = {
       ...log,
       criadoEm: new Date().toISOString(),
-      informacaoAdicional: informacaoAdicional,
+      detalhes: detalhes,
     };
     if (exibirNoConsole) this.logger.log(payload.mensagem);
     await this.logsRepository.criarLog(payload);

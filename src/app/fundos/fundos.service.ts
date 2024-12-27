@@ -471,7 +471,7 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: `${tipoEstrutura} não encontrado`,
         acao: 'FundosService.atualizaEndereco',
-        informacaoAdicional: {
+        detalhes: {
           fundoId: id,
           tipoEstrutura,
         },

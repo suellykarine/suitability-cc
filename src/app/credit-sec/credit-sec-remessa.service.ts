@@ -76,7 +76,7 @@ export class CreditSecRemessaService {
       throw new ErroServidorInterno({
         acao: 'creditSecRemessa.buscarStatusSolicitacaoRemessa',
         mensagem: `Erro ao buscar status solicitação da remessa`,
-        informacaoAdicional: {
+        detalhes: {
           error,
         },
       });
@@ -146,15 +146,15 @@ export class CreditSecRemessaService {
                 'A emissão da Remessa não foi realizada pela CreditSec',
             });
             if (error instanceof ErroAplicacao) {
-              const { message, acao, informacaoAdicional, ...erro } = error;
+              const { message, acao, detalhes, ...erro } = error;
               throw new ErroServidorInterno({
                 mensagem: message,
                 acao:
                   acao +
                   ' | ' +
                   'creditSecRemessaService.solicitarRemessa.creditSec.catch',
-                informacaoAdicional: {
-                  ...informacaoAdicional,
+                detalhes: {
+                  ...detalhes,
                   data,
                   erro,
                 },
@@ -163,7 +163,7 @@ export class CreditSecRemessaService {
             throw new ErroServidorInterno({
               mensagem: 'Erro ao solicitar remessa',
               acao: 'creditSecRemessaService.solicitarRemessa.creditSec.catch',
-              informacaoAdicional: { data, erro: error.message },
+              detalhes: { data, erro: error.message },
             });
           }
         },
@@ -181,7 +181,7 @@ export class CreditSecRemessaService {
       throw new ErroServidorInterno({
         mensagem: 'Erro ao solicitar remessa',
         acao: 'creditSecRemessaService.solicitarRemessa',
-        informacaoAdicional: { data, erro: error },
+        detalhes: { data, erro: error },
       });
     }
   }
@@ -196,7 +196,7 @@ export class CreditSecRemessaService {
         throw new ErroRequisicaoInvalida({
           acao: 'creditSecRemessaService.registrarRetornoCreditSec',
           mensagem: 'Operação não encontrada',
-          informacaoAdicional: {
+          detalhes: {
             data,
           },
         });
@@ -209,7 +209,7 @@ export class CreditSecRemessaService {
         throw new ErroRequisicaoInvalida({
           acao: 'creditSecRemessaService.registrarRetornoCreditSec',
           mensagem: 'Operação não está pedente',
-          informacaoAdicional: {
+          detalhes: {
             numero_remessa: data.numero_remessa,
           },
         });
@@ -235,7 +235,7 @@ export class CreditSecRemessaService {
         await this.logService.info({
           mensagem: 'Remessa Aprovada pela CreditSec',
           acao: 'creditSecRemessaService.registrarRetornoCreditSec.aprovado',
-          informacaoAdicional: { data },
+          detalhes: { data },
         });
         return;
       }
@@ -248,7 +248,7 @@ export class CreditSecRemessaService {
         this.logService.aviso({
           mensagem: 'Remessa Recusada pela CreditSec',
           acao: 'creditSecRemessaService.registrarRetornoCreditSec.reprovado',
-          informacaoAdicional: {
+          detalhes: {
             data,
             motivos,
           },
@@ -292,7 +292,7 @@ export class CreditSecRemessaService {
       throw new ErroServidorInterno({
         mensagem: 'Erro ao registrar retorno da CreditSec',
         acao: 'creditSecRemessaService.registrarRetornoCreditSec.catch',
-        informacaoAdicional: { data, erro: error.message },
+        detalhes: { data, erro: error.message },
       });
     }
   }
@@ -314,7 +314,7 @@ export class CreditSecRemessaService {
       await this.logService.aviso({
         acao: 'creditSecRemessaSerivce.solicitarRemessaCreditSec.prepararErro',
         mensagem: `Preparando erro CreditSec`,
-        informacaoAdicional: {
+        detalhes: {
           req,
           body,
         },
@@ -325,7 +325,7 @@ export class CreditSecRemessaService {
       await this.logService.aviso({
         acao: 'creditSecRemessaSerivce.solicitarRemessaCreditSec.erroPreparado',
         mensagem: `Erro da creditSec preparado`,
-        informacaoAdicional: {
+        detalhes: {
           req,
           body,
           erro,
@@ -338,7 +338,7 @@ export class CreditSecRemessaService {
         acao: 'creditSecRemessaService.solicitarRemessaCreditSec.tratarErroReq',
         mensagem: `Erro ao criar remessa: ${motivosConcatenado}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           erro,
           body,
           req,
@@ -371,7 +371,7 @@ export class CreditSecRemessaService {
         acao: 'creditSecRemessaService.buscarStatusRemessa',
         mensagem: `Erro ao buscar remessa: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           emissao: numero_emissao,
@@ -404,7 +404,7 @@ export class CreditSecRemessaService {
         acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
         mensagem: `Erro ao encontrar operações do cedente no sigma: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           codigoOperacao,
@@ -438,7 +438,7 @@ export class CreditSecRemessaService {
         acao: 'creditSecRemessaService.criarRegistroDeOperacaoSigma',
         mensagem: `Erro ao criar registro de operação no sigma: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           status: req.status,
           texto: req.statusText,
           codigoOperacao,
@@ -467,7 +467,7 @@ export class CreditSecRemessaService {
         acao: 'creditSecRemessaService.encontrarOperacoresCedenteSigma',
         mensagem: `Erro ao destravar operacao debenture no sigma: ${req.status} ${req.statusText}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
           status: req.status,
           texto: req.statusText,

@@ -1,7 +1,7 @@
 export type Log = {
   id: string;
   mensagem: string | null;
-  informacaoAdicional: string | null;
+  detalhes: string | null;
   acao: string;
   tipo: LogTipo;
   criadoEm: Date;

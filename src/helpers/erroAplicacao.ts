@@ -4,27 +4,27 @@ export type AppErrorProps = {
   mensagem: string;
   codigoStatus: number;
   acao: string;
-  informacaoAdicional?: Record<string, unknown>;
+  detalhes?: Record<string, unknown>;
   salvarEmLog?: boolean;
 };
 
 export class ErroAplicacao extends HttpException {
   public readonly codigoStatus: number;
-  public readonly informacaoAdicional?: Record<string, unknown>;
+  public readonly detalhes?: Record<string, unknown>;
   public readonly acao: string;
   public readonly salvarEmLog: boolean;
 
   constructor({
     mensagem,
     codigoStatus,
-    informacaoAdicional,
+    detalhes,
     acao,
     salvarEmLog = true,
   }: AppErrorProps) {
     super(mensagem, codigoStatus);
     this.codigoStatus = codigoStatus;
     this.acao = acao;
-    this.informacaoAdicional = informacaoAdicional;
+    this.detalhes = detalhes;
     this.salvarEmLog = salvarEmLog;
   }
 }

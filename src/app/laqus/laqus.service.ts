@@ -72,7 +72,7 @@ export class LaqusService {
           await this.logService.aviso({
             acao: 'laqus.AtualizarInvestidorDebenture',
             mensagem: 'Investidor reprovado no Laqus',
-            informacaoAdicional: {
+            detalhes: {
               fundoInvestimento,
               identificadorInvestidor,
               justificativa,
@@ -121,7 +121,7 @@ export class LaqusService {
       throw new ErroNaoEncontrado({
         acao: 'laqus.cadastrarInvestidor',
         mensagem: 'Debenture Serie Investidor não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           dsi: identificadorDSI,
         },
       });
@@ -188,7 +188,7 @@ export class LaqusService {
       throw new ErroServidorInterno({
         acao: 'laqus.cadastrarInvestidor',
         mensagem: 'Erro ao cadastrar investidor no Laqus',
-        informacaoAdicional: { payload, retornoLaqus, response },
+        detalhes: { payload, retornoLaqus, response },
       });
     }
 
@@ -196,7 +196,7 @@ export class LaqusService {
       throw new ErroServidorInterno({
         acao: 'laqus.cadastrarInvestidor',
         mensagem: 'O identificador Laqus não foi retornado',
-        informacaoAdicional: { retornoLaqus, response: response, payload },
+        detalhes: { retornoLaqus, response: response, payload },
       });
     }
 
@@ -213,7 +213,7 @@ export class LaqusService {
         acao: 'laqus.cadastrarInvestidor',
         mensagem:
           'Não foi possível atualizar o debenture serie investidor com o identificador Laqus',
-        informacaoAdicional: {
+        detalhes: {
           debentureSerieInvestidor,
           retornoLaqus,
           payload,
@@ -223,7 +223,7 @@ export class LaqusService {
     this.logService.info({
       acao: 'laqus.cadastrarInvestidor',
       mensagem: 'Investidor cadastrado com sucesso no Laqus',
-      informacaoAdicional: {
+      detalhes: {
         payload,
         retornoLaqus,
         atualizadoComIdentificadorLaqus,

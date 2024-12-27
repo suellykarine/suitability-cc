@@ -38,7 +38,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.enviarDocumento',
         mensagem: 'Fundo/Gestor/Usuário não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           enviarDocumentoDto,
           id,
         },
@@ -54,7 +54,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.enviarDocumento',
         mensagem: 'Status não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           enviarDocumentoDto,
           id,
           urlDocumento,
@@ -97,7 +97,7 @@ export class DocumentosService {
       throw new ErroRequisicaoInvalida({
         acao: 'documentos.buscarTodosDocumentos',
         mensagem: 'Tipo de ID inválido',
-        informacaoAdicional: {
+        detalhes: {
           id,
           tipoId,
           idUsuario,
@@ -134,7 +134,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.buscarDocumentos',
         mensagem: 'Documentos não encontrados',
-        informacaoAdicional: {
+        detalhes: {
           id,
           tipoId,
           idUsuario,
@@ -162,7 +162,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.atualizarStatusDocumento',
         mensagem: 'Status não permitido',
-        informacaoAdicional: {
+        detalhes: {
           id,
           atualizarDocumentoStatusDto,
           backofficeId,
@@ -180,7 +180,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.atualizarStatusDocumento',
         mensagem: 'Documento não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           id,
           atualizarDocumentoStatusDto,
           backofficeId,
@@ -232,7 +232,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.anexarDocumento',
         mensagem: 'Fundo não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           idUsuario,
           idFundo,
           anexarDocumentoDto,
@@ -313,7 +313,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.verificarPropriedadeGestor',
         mensagem: 'Gestor de fundo não encontrado.',
-        informacaoAdicional: {
+        detalhes: {
           idUsuario,
           idGestor,
         },
@@ -334,7 +334,7 @@ export class DocumentosService {
       throw new ErroNaoAutorizado({
         acao: 'documentos.verificarPropriedadeGestor',
         mensagem: 'Acesso negado. Você não está associado a este gestor',
-        informacaoAdicional: {
+        detalhes: {
           idUsuario,
           idGestor,
         },
@@ -384,7 +384,7 @@ export class DocumentosService {
         acao: 'documentos.enviarArquivoParaServidor',
         mensagem:
           'Um erro innesperado aconteceu e não foi possível enviar o arquivo',
-        informacaoAdicional: {
+        detalhes: {
           file,
           erro,
         },
@@ -419,7 +419,7 @@ export class DocumentosService {
         throw new ErroServidorInterno({
           acao: 'documentos.salvarDocumento',
           mensagem: 'Tipo de documento inválido',
-          informacaoAdicional: {
+          detalhes: {
             dadosDocumento,
             tipoId,
             id,
@@ -443,7 +443,7 @@ export class DocumentosService {
       throw new ErroNaoEncontrado({
         acao: 'documentos.buscarDocumentoPorId',
         mensagem: 'Documento não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           idDocumento,
         },
       });
@@ -460,7 +460,7 @@ export class DocumentosService {
       throw new ErroNaoAutorizado({
         acao: 'documentos.verificarProprietarioDocumento',
         mensagem: 'Você não tem autorização para atualizar esse documento',
-        informacaoAdicional: {
+        detalhes: {
           documento,
           idUsuarioRequisicao,
         },

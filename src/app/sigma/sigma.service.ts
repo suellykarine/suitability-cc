@@ -38,7 +38,7 @@ export class SigmaService {
         acao: 'sigmaService.excluirOperacaoDebentureSigma.fetch',
         mensagem: `Erro ao excluir operação: ${req.status}`,
         req,
-        informacaoAdicional: {
+        detalhes: {
           codigoOperacao,
           complementoStatusOperacao,
         },

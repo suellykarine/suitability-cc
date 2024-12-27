@@ -13,7 +13,7 @@ type Props = {
   acao: string;
   req: any;
   mensagem: string;
-  informacaoAdicional: any;
+  detalhes: any;
 };
 
 const mapaDeErros: Record<
@@ -32,7 +32,7 @@ export async function tratarErroRequisicao({
   acao,
   req,
   mensagem,
-  informacaoAdicional: informacaoAdicional,
+  detalhes: detalhes,
 }: Props) {
   const status = req.status;
   const statusPreenchido = status ? `status: ${status}` : '';
@@ -43,10 +43,10 @@ export async function tratarErroRequisicao({
     throw new ErroClasse({
       mensagem: `${mensagem}. ${statusPreenchido}.`,
       acao,
-      informacaoAdicional: {
+      detalhes: {
         requisicao,
         req,
-        ...informacaoAdicional,
+        ...detalhes,
       },
     });
   } catch (erro) {
@@ -54,9 +54,9 @@ export async function tratarErroRequisicao({
     throw new ErroClasse({
       mensagem: `${mensagem}. ${statusPreenchido}.`,
       acao,
-      informacaoAdicional: {
+      detalhes: {
         req,
-        ...informacaoAdicional,
+        ...detalhes,
         erro: erro?.message,
       },
     });

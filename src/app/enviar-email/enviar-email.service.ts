@@ -34,7 +34,7 @@ export class EnviarEmailService {
       throw new ErroServidorInterno({
         acao: 'enviarEmail.enviarEmail',
         mensagem: 'Serviço fora do ar momentaneamente',
-        informacaoAdicional: {
+        detalhes: {
           solicitacaoBase,
           enviarEmailDto,
           usuario,
@@ -115,7 +115,7 @@ export class EnviarEmailService {
         throw new ErroRequisicaoInvalida({
           acao: 'enviarEmail.prepararSolicitacaoBase',
           mensagem: 'Tipo de email não reconhecido',
-          informacaoAdicional: {
+          detalhes: {
             solicitacaoBase,
             enviarEmailDto,
             usuario,
@@ -168,7 +168,7 @@ export class EnviarEmailService {
       throw new ErroNaoEncontrado({
         acao: 'enviarEmail.configurarTemplateEnviarDocBackoffice',
         mensagem: 'Backoffice não encontrado',
-        informacaoAdicional: {
+        detalhes: {
           solicitacaoBase,
           enviarEmailDto,
           usuario,
@@ -209,7 +209,7 @@ export class EnviarEmailService {
       throw new ErroRequisicaoInvalida({
         acao: 'enviarEmail.configurarTemplateRedefinirSenha',
         mensagem: `O Campo ${nomeCampo} não pode estar vazio`,
-        informacaoAdicional: {
+        detalhes: {
           campo,
           nomeCampo,
         },
