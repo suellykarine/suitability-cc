@@ -156,6 +156,7 @@ export class DocumentosService {
     const validarStatus = Object.values(StatusDocumento).map((s) =>
       s.toLowerCase(),
     );
+
     if (
       !validarStatus.includes(atualizarDocumentoStatusDto.status.toLowerCase())
     ) {
@@ -192,20 +193,51 @@ export class DocumentosService {
       atualizarDocumentoStatusDto.status.toUpperCase(),
     );
 
-    let criarFeedBack = null;
-    if (atualizarDocumentoStatusDto.mensagem) {
-      criarFeedBack = await this.prisma.feedback_backoffice.create({
-        data: {
-          id_usuario_backoffice: Number(backofficeId),
-          mensagem: atualizarDocumentoStatusDto.mensagem,
-          id_documento: documento.id,
-        },
-      });
-    }
+    const criarFeedBack = await this.criarFeedbackSeNecessario(
+      atualizarDocumentoStatusDto.mensagem,
+      backofficeId,
+      documento.id,
+    );
+
+    return this.atualizarDocumentoComStatus(
+      documento.id,
+      encontrarStatus,
+      criarFeedBack,
+    );
+  }
+
+  private async criarFeedbackSeNecessario(
+    mensagem: string | undefined,
+    backofficeId: number,
+    documentoId: number,
+  ) {
+    if (!mensagem) return null;
+
+    return this.prisma.feedback_backoffice.create({
+      data: {
+        id_usuario_backoffice: Number(backofficeId),
+        mensagem,
+        id_documento: documentoId,
+      },
+    });
+  }
+
+  private async atualizarDocumentoComStatus(
+    documentoId: number,
+    encontrarStatus: any,
+    criarFeedBack: any,
+  ) {
+    const dataDeValidadeDoDocumento =
+      encontrarStatus.nome === 'APROVADO'
+        ? { data_validade_documento: this.calcularDataDeValidade() }
+        : {};
 
     const atualizarDocumento = await this.prisma.documento.update({
-      where: { id: documento.id },
-      data: { id_status_documento: encontrarStatus?.id },
+      where: { id: documentoId },
+      data: {
+        id_status_documento: encontrarStatus?.id,
+        ...dataDeValidadeDoDocumento,
+      },
     });
 
     return {
@@ -217,6 +249,12 @@ export class DocumentosService {
       },
       feedback: criarFeedBack,
     };
+  }
+
+  private calcularDataDeValidade(): Date {
+    const dataAtual = new Date();
+    dataAtual.setFullYear(dataAtual.getFullYear() + 1);
+    return dataAtual;
   }
 
   async anexarDocumento(
