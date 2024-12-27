@@ -30,12 +30,13 @@ export function normalizarChaves(objeto: any): any {
   }
 
   if (Array.isArray(objeto)) {
-    return objeto.map(normalizarChaves);
+    return objeto.map((item) => normalizarChaves(item));
   }
 
-  return Object.entries(objeto).reduce((resultado, [chave, valor]) => {
-    const chaveNormalizada = chave.replace(/\./g, '_').replace(/\$/g, '_');
-    resultado[chaveNormalizada] = normalizarChaves(valor);
-    return resultado;
-  }, {} as any);
+  return Object.fromEntries(
+    Object.entries(objeto).map(([chave, valor]) => [
+      chave.replace(/[.$]/g, '_'),
+      normalizarChaves(valor),
+    ]),
+  );
 }
