@@ -112,21 +112,22 @@ export class DebenturesController {
     return await this.debenturesSerieService.listarTodasOperacoes();
   }
 
-  @Get('serie-investidor/:id/:valor')
+  @Get('serie-investidor/:id')
   async temDebentureSerieComSaldo(
     @Param('id') id: string,
-    @Param('valor') valor: string,
+    @Query('valor') valor: string,
   ) {
     const valorEntrada = Number(valor);
     const idInvestidor = Number(id);
+
     if (!valorEntrada)
       throw new ErroRequisicaoInvalida({
-        acao: 'debenture.controller.serie-investidor/:id/:valor',
+        acao: 'debenture.controller.serie-investidor/:id',
         mensagem: 'valor inválido',
       });
     if (!idInvestidor)
       throw new ErroRequisicaoInvalida({
-        acao: 'debenture.controller.serie-investidor/:id/:valor',
+        acao: 'debenture.controller.serie-investidor/:id',
         mensagem: 'id inválido',
       });
 
