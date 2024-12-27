@@ -502,9 +502,9 @@ export class CreditSecRemessaService {
     dadosAtivo: AtivosInvest[],
   ): Promise<SolicitarRemessaType> {
     const isLocalhost = process.env.AMBIENTE === 'development';
-    const baseUrl = isLocalhost
-      ? 'https://srm-credit-connect-backend-nestjs-homologacao.interno.srmasset.com/'
-      : process.env.BASE_URL;
+    const baseUrlSrmWebhooks = isLocalhost
+      ? 'https://srm-webhooks-homologacao.srmasset.com/api' // TO-DO: Confirmar se será esse a URL final
+      : process.env.BASE_URL_SRM_WEBHOOKS;
 
     const promiseAtivos = dadosAtivo.map(async (ativo) => {
       const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
@@ -545,7 +545,7 @@ export class CreditSecRemessaService {
       numero_remessa: String(numero_remessa),
       numero_emissao,
       numero_serie,
-      callback_url: `${baseUrl}api/credit-sec/solicitar-remessa/retorno/criacao-remessa`,
+      callback_url: `${baseUrlSrmWebhooks}/credit-connect/credit-sec/remessa/emissao/retorno`,
       titulos: ativos,
     };
   }
