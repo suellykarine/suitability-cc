@@ -3,6 +3,7 @@ export const jwtConstants = {
   sercretPreRegister: process.env.TOKEN_PRE_REGISTER,
   secretTokenAtualizacao: process.env.TOKEN_RENOVACAO_KEY,
   secretDevelopment: process.env.TOKEN_DEVELOPMENT,
+  secretSrmWebhooks: process.env.SECRET_SRM_WEBHOOKS,
 };
 
 export const sigmaHeaders = {
