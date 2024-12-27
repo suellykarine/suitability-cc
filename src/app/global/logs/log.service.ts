@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Log } from 'src/@types/entities/logEntities';
 import { LogsRepositorio } from 'src/repositorios/contratos/logsRepositorio';
+import { normalizarChaves, removerCiclos } from 'src/utils/funcoes/objetos';
 import { OptionalNullable } from 'src/utils/types';
+import * as moment from 'moment-timezone';
+import { Log } from 'src/@types/entities/logEntities';
 
 type LogProps = Omit<OptionalNullable<Log>, 'id' | 'criadoEm' | 'detalhes'> &
   Partial<{
@@ -20,13 +22,15 @@ export class LogService {
     formatoDetalhes = 'json',
     ...log
   }: LogProps) {
+    const detalhesNormalizados = normalizarChaves(removerCiclos(log.detalhes));
+    const criadoEm = moment().tz('America/Sao_Paulo').format();
     const manterFormato = formatoDetalhes === 'json';
     const detalhes = manterFormato
-      ? log.detalhes
-      : JSON.stringify(log.detalhes);
+      ? detalhesNormalizados
+      : JSON.stringify(detalhesNormalizados);
     const payload = {
       ...log,
-      criadoEm: new Date().toISOString(),
+      criadoEm,
       detalhes: detalhes,
     };
     if (exibirNoConsole) this.logger.log(payload.mensagem);
