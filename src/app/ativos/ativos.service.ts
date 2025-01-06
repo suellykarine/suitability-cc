@@ -81,8 +81,6 @@ export class AtivosService {
       Promise.resolve([]),
     );
 
-    console.log(ativosComDadosEmpresa);
-
     if (!ativosComDadosEmpresa) {
       throw new ErroServidorInterno({
         acao: 'AtivosService.encontrarTodosAtivos',
