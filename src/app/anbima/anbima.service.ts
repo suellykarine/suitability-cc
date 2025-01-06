@@ -30,7 +30,7 @@ export class AnbimaService {
         body: JSON.stringify({ grant_type: 'client_credentials' }),
       });
 
-      if (!req) {
+      if (!req.ok) {
         await tratarErroRequisicao({
           acao: 'anbimaService.autenticarAnbima',
           mensagem: `erro ao autenticar na anbiuma`,
@@ -56,7 +56,7 @@ export class AnbimaService {
     const urlCnpjPublica = `${this.configService.get('CNPJ_API_PUBLICA')}/${cnpj}`;
     const reqCnpj = await fetch(urlCnpjPublica);
 
-    if (!reqCnpj) {
+    if (!reqCnpj.ok) {
       await tratarErroRequisicao({
         acao: 'AmbimaService.integracaoAnbima',
         mensagem: 'Erro na busca do CNPJ',
@@ -170,7 +170,7 @@ export class AnbimaService {
         access_token: this.tokenAcessoAnbima!,
       },
     });
-    if (!req) {
+    if (!req.ok) {
       await tratarErroRequisicao({
         acao: 'AmbimaService.buscarDetalhesFundoPorCodigoAnbima',
         mensagem: 'Erro ao buscar Detalhes do fundo por codigo ANBIMA',
@@ -201,7 +201,7 @@ export class AnbimaService {
         access_token: this.tokenAcessoAnbima!,
       },
     });
-    if (!req) {
+    if (!req.ok) {
       await tratarErroRequisicao({
         acao: 'AmbimaService.buscarSerieHistoricaPorCodigoClasse',
         mensagem: 'Erro ao buscar serie historica por codigo',
