@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   AtualizarSenhaMasterDto,
   AtualizarUsuarioDto,
@@ -13,6 +9,10 @@ import { CreateUsuarioDto } from '../usuarios/dto/criar-usuario.dto';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { StatusUsuarioRepositorio } from 'src/repositorios/contratos/statusUsuarioRepositorio';
 import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
+import {
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class AdmService {
@@ -76,7 +76,13 @@ export class AdmService {
     const usuario = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado.');
+      throw new ErroNaoEncontrado({
+        acao: 'admService.buscarUsuarioPorId',
+        mensagem: 'Usuário não encontrado.',
+        detalhes: {
+          id,
+        },
+      });
     }
 
     return usuario;
@@ -87,7 +93,13 @@ export class AdmService {
       await this.usuarioRepositorio.encontrarPorIdComSenha(id);
 
     if (!usuarioExistente) {
-      throw new NotFoundException('Usuário não encontrado.');
+      throw new ErroNaoEncontrado({
+        acao: 'admService.atualizarUsuario',
+        mensagem: 'Usuário não encontrado.',
+        detalhes: {
+          id,
+        },
+      });
     }
 
     const senhaCriptografada = atualizarUsuarioDto.senha
@@ -117,7 +129,13 @@ export class AdmService {
     const usuarioExistente = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuarioExistente) {
-      throw new NotFoundException('Usuário não encontrado.');
+      throw new ErroNaoEncontrado({
+        acao: 'admService.excluirUsuario',
+        mensagem: 'Usuário não encontrado.',
+        detalhes: {
+          id,
+        },
+      });
     }
 
     await this.usuarioRepositorio.deletar(id);
@@ -129,9 +147,13 @@ export class AdmService {
       await this.statusUsuarioRepositorio.encontrarPorNome(nomeStatus);
 
     if (!status) {
-      throw new NotFoundException(
-        `Status de usuário '${nomeStatus}' não encontrado.`,
-      );
+      throw new ErroNaoEncontrado({
+        acao: 'admService.obterStatusUsuario',
+        mensagem: `Status de usuário '${nomeStatus}' não encontrado.`,
+        detalhes: {
+          statusInputado: nomeStatus,
+        },
+      });
     }
 
     return status;
@@ -142,7 +164,13 @@ export class AdmService {
       await this.tipoUsuarioRepositorio.encontrarPorTipo(tipo);
 
     if (!tipoUsuario) {
-      throw new NotFoundException(`Tipo de usuário '${tipo}' não encontrado.`);
+      throw new ErroNaoEncontrado({
+        acao: 'admService.obterTipoUsuario',
+        mensagem: `Tipo de usuário '${tipo}' não encontrado.`,
+        detalhes: {
+          tipoDeUsuario: tipo,
+        },
+      });
     }
 
     return tipoUsuario;
@@ -154,7 +182,13 @@ export class AdmService {
     );
 
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: 'admService.alterarSenhaMaster',
+        mensagem: 'Usuário não encontrado',
+        detalhes: {
+          atualizarSenha: atualizarSenhaMasterDto,
+        },
+      });
     }
 
     const { senha } = await this.usuarioRepositorio.encontrarPorIdComSenha(
@@ -167,7 +201,13 @@ export class AdmService {
     );
 
     if (!senhaValida) {
-      throw new BadRequestException('Credenciais inválidas');
+      throw new ErroRequisicaoInvalida({
+        acao: 'admService.alterarSenhaMaster',
+        mensagem: 'Credenciais inválidas',
+        detalhes: {
+          atualizarSenha: atualizarSenhaMasterDto,
+        },
+      });
     }
 
     const senhaHash = await bcrypt.hash(atualizarSenhaMasterDto.nova_senha, 10);
