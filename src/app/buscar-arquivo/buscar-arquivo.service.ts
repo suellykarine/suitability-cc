@@ -1,12 +1,13 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { BuscarConteudoArquivoDto } from './dto/buscar-arquivo.dto';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 
 @Injectable()
 export class BuscarArquivoService {
   async buscarConteudoArquivo(dto: BuscarConteudoArquivoDto): Promise<any> {
     const { arquivo_id } = dto;
 
-    const response = await fetch(
+    const req = await fetch(
       'https://comum-arquivo-homologacao.interno.srmasset.com/comumArquivo/buscarConteudoArquivoPorId',
       {
         method: 'POST',
@@ -17,15 +18,20 @@ export class BuscarArquivoService {
       },
     );
 
-    if (!response.ok) {
-      const errorText = await response.statusText;
-      throw new HttpException(
-        `Erro ao buscar conteúdo do arquivo. Código de status: ${response.status}, Erro: ${errorText}`,
-        response.status,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'buscarArquivoService.buscarConteudoArquivo',
+        mensagem: `Erro ao buscar conteúdo do arquivo. Código de status: ${req.status}, Erro: ${req.statusText}`,
+        req,
+        detalhes: {
+          status: req.status,
+          texto: req.statusText,
+          arquivo_id,
+        },
+      });
     }
 
-    const responseData = await response.json();
+    const responseData = await req.json();
     return responseData;
   }
 }

@@ -1,8 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { jwtConstants } from '../constants';
 import { PrismaClient } from '@prisma/client';
+import { ErroNaoAutorizado } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class JwtStrategyPreRegister extends PassportStrategy(
@@ -29,7 +30,8 @@ export class JwtStrategyPreRegister extends PassportStrategy(
     });
 
     if (encontrarTokenUsado) {
-      throw new UnauthorizedException({
+      throw new ErroNaoAutorizado({
+        acao: 'jwtStrategyPreRegister.validate',
         mensagem: 'Não autorizado',
       });
     }

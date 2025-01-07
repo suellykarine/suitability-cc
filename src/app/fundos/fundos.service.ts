@@ -120,6 +120,10 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: 'Usuario não encontrado',
         acao: 'FundosService.criarFactoring',
+        detalhes: {
+          id,
+          criarFundoDto,
+        },
       });
     }
 
@@ -174,6 +178,10 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: 'Usuario não encontrado',
         acao: 'FundosService.criarSecuritizadora',
+        detalhes: {
+          id,
+          criarFundoDto,
+        },
       });
     }
 
@@ -312,6 +320,12 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: `${tipoEstrutura} não encontrado`,
         acao: 'FundosService.patchFundo',
+        detalhes: {
+          id,
+          data,
+          tipoEstrutura,
+          idUsuario,
+        },
       });
     }
 
@@ -459,6 +473,12 @@ export class FundosService {
       throw new ErroRequisicaoInvalida({
         mensagem: 'Id do gestor do fundo necessário',
         acao: 'FundosService.deleteFundo',
+        detalhes: {
+          id,
+          idGestorFundo,
+          tipoEstrutura,
+          idUsuario,
+        },
       });
     }
     const fundo =
@@ -646,6 +666,9 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: 'Usuário não encontrado',
         acao: 'FundosService.criarNovaSecuritizadora',
+        detalhes: {
+          idUsuario: id,
+        },
       });
     }
     return usuario;
@@ -659,6 +682,9 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: 'Gestor não encontrado.',
         acao: 'FundosService.obterGestorFundo',
+        detalhes: {
+          cnpj,
+        },
       });
     }
     return gestorFundo;
@@ -734,6 +760,11 @@ export class FundosService {
         throw new ErroRequisicaoInvalida({
           mensagem: 'Representante associado a outro administrador',
           acao: 'FundosService.obterOuCriarRepresentante',
+          detalhes: {
+            admininstrador_fundo,
+            tipo_estrutura,
+            fundo,
+          },
         });
       }
 
@@ -1024,6 +1055,7 @@ export class FundosService {
       throw new ErroNaoEncontrado({
         mensagem: 'Fundo de investimento não encontrado.',
         acao: 'FundosService.verificarPropriedadeFundo',
+        detalhes: { idUsuario, idFundo },
       });
     }
 
@@ -1088,6 +1120,7 @@ export class FundosService {
       throw new ErroConflitoRequisicao({
         mensagem: `Fundo com o cpf_cnpj ${cnpjFundo} já existe`,
         acao: 'FundosService.verificarFundoJaExistente',
+        detalhes: { cnpjFundo },
       });
     }
   }
@@ -1108,6 +1141,11 @@ export class FundosService {
         throw new ErroNaoEncontrado({
           mensagem: 'Factoring não encontrada',
           acao: 'FundosService.removerEntidadesAssociadasEFactoringOuSecuritizadora',
+          detalhes: {
+            id,
+            assetId,
+            perfilInvestimento,
+          },
         });
       }
       const gestores =
