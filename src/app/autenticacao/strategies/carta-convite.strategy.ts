@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { jwtConstants } from '../constants';
 import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { PrismaService } from 'prisma/prisma.service';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+import { ErroNaoAutorizado } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class JwtStrategyCartaConvite extends PassportStrategy(
@@ -31,7 +32,8 @@ export class JwtStrategyCartaConvite extends PassportStrategy(
     );
 
     if (!usuario || usuario.tipo_usuario.tipo !== TipoUsuarioEnum.BACKOFFICE) {
-      throw new UnauthorizedException({
+      throw new ErroNaoAutorizado({
+        acao: 'jwtStrategyCartaConvite.validate',
         mensagem: 'Você não tem acesso a essa rota',
       });
     }

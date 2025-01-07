@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
@@ -7,6 +7,7 @@ import { jwtConstants } from './constants';
 import { Usuario } from 'src/@types/entities/usuario';
 import { JwtPayload } from 'src/@types/entities/jwt';
 import { fazerNada } from 'src/utils/funcoes/geral';
+import { ErroNaoAutorizado } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class AutenticacaoService {
@@ -16,12 +17,14 @@ export class AutenticacaoService {
   ) {}
 
   async validarUsuario(email: string, senha: string): Promise<Usuario | null> {
+    const logAcao = 'AutenticacaoService.validarUsuario';
     const usuario = await this.usuarioRepositorio.encontrarPorEmail(email);
     if (!usuario) {
       return null;
     }
     if (usuario.status_usuario.nome === StatusUsuario.DESATIVADO) {
-      throw new UnauthorizedException({
+      throw new ErroNaoAutorizado({
+        acao: logAcao,
         mensagem: 'Usuário Inativo',
       });
     }
@@ -77,22 +80,25 @@ export class AutenticacaoService {
   }
 
   async renovarToken(tokenRenovacao: string) {
+    const logAcao = ' AutenticacoService.renovarToken';
     const payload = this.verificarTokenRenovacao(tokenRenovacao);
     const usuario = await this.usuarioRepositorio.encontrarPorId(
       payload.idUsuario,
     );
     if (!usuario) {
-      throw new UnauthorizedException({
-        mensagem: 'Usuário não encontrado',
+      throw new ErroNaoAutorizado({
+        acao: logAcao,
+        mensagem: 'Usuário Não encontrado',
       });
     }
     const atualTokenRenovacao =
       await this.usuarioRepositorio.buscarTokenRenovacao(payload.idUsuario);
 
     if (atualTokenRenovacao !== tokenRenovacao) {
-      throw new UnauthorizedException(
-        'Token de renovação inválido ou expirado',
-      );
+      throw new ErroNaoAutorizado({
+        acao: logAcao,
+        mensagem: 'Token de renovação inválido ou expirado',
+      });
     }
 
     const tokens = await this.gerarTokens(payload);
@@ -121,13 +127,15 @@ export class AutenticacaoService {
   }
 
   private verificarTokenRenovacao(token: string) {
+    const logAcao = 'AutenticacaoService.verificarTokenRenovacao';
     try {
       const payload = this.jwtService.verify<JwtPayload>(token, {
         secret: jwtConstants.secretTokenAtualizacao,
       });
       return payload;
     } catch {
-      throw new UnauthorizedException({
+      throw new ErroNaoAutorizado({
+        acao: logAcao,
         mensagem: 'Token expirado ou inválido',
       });
     }
