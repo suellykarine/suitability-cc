@@ -1,12 +1,8 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Fundo } from 'src/@types/entities/anbima';
 import { GetSerieHistoricaData } from './types/returnData';
-import { ErroAplicacao } from 'src/helpers/erroAplicacao';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 
 @Injectable()
 export class AnbimaService {
@@ -25,7 +21,7 @@ export class AnbimaService {
     ) {
       const urlAutenticacao = `${this.configService.get('ANBIMA_BASE_URL')}/oauth/access-token`;
 
-      const resposta = await fetch(urlAutenticacao, {
+      const req = await fetch(urlAutenticacao, {
         method: 'POST',
         headers: {
           Authorization: `Basic ${this.configService.get('ANBIMA_AUTH')}`,
@@ -34,7 +30,22 @@ export class AnbimaService {
         body: JSON.stringify({ grant_type: 'client_credentials' }),
       });
 
-      const dadosAutenticacao = await resposta.json();
+      if (!req.ok) {
+        await tratarErroRequisicao({
+          acao: 'anbimaService.autenticarAnbima',
+          mensagem: `erro ao autenticar na anbiuma`,
+          req,
+          detalhes: {
+            status: req.status,
+            texto: req.statusText,
+            body: req.body,
+            url: req.url,
+            urlAuth: urlAutenticacao,
+          },
+        });
+      }
+
+      const dadosAutenticacao = await req.json();
       this.tokenAcessoAnbima = dadosAutenticacao.access_token;
       this.ultimoAuthAnbima = new Date();
     }
@@ -43,24 +54,47 @@ export class AnbimaService {
   async integracaoAnbima(cnpj: string) {
     await this.autenticarAnbima();
     const urlCnpjPublica = `${this.configService.get('CNPJ_API_PUBLICA')}/${cnpj}`;
-    const respostaCnpj = await fetch(urlCnpjPublica);
-    const cnpjData = await respostaCnpj.json();
+    const reqCnpj = await fetch(urlCnpjPublica);
 
-    if (!respostaCnpj.ok) {
-      throw new ErroAplicacao({
-        mensagem: cnpjData.detalhes || 'Erro na busca do CNPJ',
-        codigoStatus: respostaCnpj.status,
+    if (!reqCnpj.ok) {
+      await tratarErroRequisicao({
         acao: 'AmbimaService.integracaoAnbima',
-        detalhes: { cnpj, cnpjData },
+        mensagem: 'Erro na busca do CNPJ',
+        req: reqCnpj,
+        detalhes: {
+          status: reqCnpj.status,
+          texto: reqCnpj.statusText,
+          url: reqCnpj.url,
+        },
+      });
+    }
+    const cnpjData = await reqCnpj.json();
+    if (!reqCnpj.ok) {
+      await tratarErroRequisicao({
+        acao: 'AmbimaService.integracaoAnbima',
+        mensagem: cnpjData.detalhes || 'Erro na busca do CNPJ',
+        req: reqCnpj,
+        detalhes: {
+          status: cnpjData.status,
+          texto: cnpjData.statusText,
+          body: cnpjData.body,
+          url: cnpjData.url,
+        },
       });
     }
 
     if (cnpjData?.estabelecimento?.situacao_cadastral !== 'Ativa') {
-      throw new ErroAplicacao({
+      await tratarErroRequisicao({
+        acao: 'AmbimaService.integracaoAnbima',
         mensagem: 'CNPJ inativo. Operação cancelada.',
-        codigoStatus: 422,
-        acao: 'AnbimaService.integracaoAnbima',
-        detalhes: { cnpj },
+        req: reqCnpj,
+        detalhes: {
+          status: 422,
+          texto: reqCnpj.statusText,
+          body: reqCnpj.body,
+          url: reqCnpj.url,
+          cnpj,
+        },
       });
     }
 
@@ -130,14 +164,28 @@ export class AnbimaService {
 
     const url = `${this.configService.get('ANBIMA_BASE_URL')}/feed/fundos/v2/fundos/${codigoAnbima}`;
 
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       headers: {
         client_id: this.configService.get('ANBIMA_CLIENT_ID'),
         access_token: this.tokenAcessoAnbima!,
       },
     });
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'AmbimaService.buscarDetalhesFundoPorCodigoAnbima',
+        mensagem: 'Erro ao buscar Detalhes do fundo por codigo ANBIMA',
+        req: req,
+        detalhes: {
+          status: req.status,
+          texto: req.statusText,
+          body: req.body,
+          url: req.url,
+          codigoAnbima,
+        },
+      });
+    }
 
-    return await resposta.json();
+    return await req.json();
   }
 
   async buscarSerieHistoricaPorCodigoClasse(
@@ -147,13 +195,26 @@ export class AnbimaService {
 
     const url = `${this.configService.get('ANBIMA_BASE_URL')}/feed/fundos/v2/fundos/${codigoClasse}/serie-historica`;
 
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       headers: {
         client_id: this.configService.get('ANBIMA_CLIENT_ID'),
         access_token: this.tokenAcessoAnbima!,
       },
     });
-
-    return await resposta.json();
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'AmbimaService.buscarSerieHistoricaPorCodigoClasse',
+        mensagem: 'Erro ao buscar serie historica por codigo',
+        req: req,
+        detalhes: {
+          status: req.status,
+          texto: req.statusText,
+          body: req.body,
+          url: req.url,
+          codigo: codigoClasse,
+        },
+      });
+    }
+    return await req.json();
   }
 }

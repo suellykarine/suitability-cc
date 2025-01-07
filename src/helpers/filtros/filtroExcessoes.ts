@@ -77,7 +77,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
 
     if (exception instanceof Error) {
       const mensagem = exception.message ?? 'Erro desconhecido';
-      const acao = exception.stack ?? 'desconhecida';
+      const acao = 'desconhecida';
 
       await this.logService.erro({
         mensagem,
@@ -86,6 +86,7 @@ export class TratamentoExcessoesFiltro implements ExceptionFilter {
           codigoStatus: status,
           excecao: exception,
           nomeExcecao: exception.name,
+          stack: exception.stack,
         },
       });
 

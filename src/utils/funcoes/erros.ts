@@ -45,7 +45,6 @@ export async function tratarErroRequisicao({
       acao,
       detalhes: {
         requisicao,
-        req,
         ...detalhes,
       },
     });
