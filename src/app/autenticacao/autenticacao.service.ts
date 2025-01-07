@@ -7,7 +7,7 @@ import { jwtConstants } from './constants';
 import { Usuario } from 'src/@types/entities/usuario';
 import { JwtPayload } from 'src/@types/entities/jwt';
 import { fazerNada } from 'src/utils/funcoes/geral';
-import { ErroNaoAutorizado } from 'src/helpers/erroAplicacao';
+import { ErroAplicacao, ErroNaoAutorizado } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class AutenticacaoService {
@@ -133,7 +133,8 @@ export class AutenticacaoService {
         secret: jwtConstants.secretTokenAtualizacao,
       });
       return payload;
-    } catch {
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
       throw new ErroNaoAutorizado({
         acao: logAcao,
         mensagem: 'Token expirado ou inválido',
