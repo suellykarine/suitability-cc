@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CriarFeedbackDto } from './dto/criar-feedback.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import { ErroNaoEncontrado } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class FeedbackService {
@@ -37,7 +38,10 @@ export class FeedbackService {
     });
 
     if (!documento) {
-      throw new NotFoundException('Documento não encontrado.');
+      throw new ErroNaoEncontrado({
+        acao: 'feedBackService.criarFeedBack',
+        mensagem: 'Documento não encontrado',
+      });
     }
   }
 
@@ -47,7 +51,10 @@ export class FeedbackService {
     });
 
     if (!fundo) {
-      throw new NotFoundException('Fundo não encontrado.');
+      throw new ErroNaoEncontrado({
+        acao: 'feedBackService.buscarFundoInvestimento',
+        mensagem: 'Fundo não encontrado',
+      });
     }
   }
 
@@ -57,7 +64,10 @@ export class FeedbackService {
     });
 
     if (!usuario) {
-      throw new NotFoundException('Usuario Investidor não encontrado.');
+      throw new ErroNaoEncontrado({
+        acao: 'feedBackService.buscarUsuarioInvestidor',
+        mensagem: 'Usuário investidor não encontrado',
+      });
     }
   }
 }
