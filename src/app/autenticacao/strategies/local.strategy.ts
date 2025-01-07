@@ -15,7 +15,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     if (!usuario) {
       throw new ErroNaoAutorizado({
         acao: 'localStrategy.validate',
-        mensagem: 'Você não tem acesso a essa rota',
+        mensagem: 'credênciais inválidas',
       });
     }
     return usuario;
