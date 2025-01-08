@@ -9,11 +9,9 @@ import {
 } from './dto/remessa-callback.dto';
 import {
   BodyCriarRegistroOperacao,
-  NumerosSolicitarRemessa,
   OperacoesCedente as OperacaoCedente,
   SolicitarRemessaType,
 } from './interface/interface';
-import { AtivosInvest } from 'src/@types/entities/ativoInvestido';
 import { Cron } from '@nestjs/schedule';
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 import { SigmaService } from '../sigma/sigma.service';
@@ -64,9 +62,9 @@ export class CreditSecRemessaService {
         const debenture = debentureSerieInvestidor.debenture_serie.debenture;
 
         const buscarStatusRemessa = await this.buscarStatusRemessa({
-          numero_emissao: debenture.numero_debenture,
-          numero_remessa: String(remessa.codigo_operacao),
-          numero_serie: debentureSerie.numero_serie,
+          numeroDebenture: debenture.numero_debenture,
+          codigoOperacao: String(remessa.codigo_operacao),
+          numeroSerie: debentureSerie.numero_serie,
         });
 
         await this.registrarRetornoCreditSec(buscarStatusRemessa);
@@ -106,15 +104,6 @@ export class CreditSecRemessaService {
       const operacaoCedente = await this.encontrarOperacoesCedenteSigma(
         String(data.codigo_operacao),
       );
-      const body = await this.montarBodySolicitarRemessa(
-        {
-          numero_emissao: data.numero_debenture,
-          numero_serie: data.numero_serie,
-          numero_remessa: String(operacaoCedente.codigoOperacao),
-          data_operacao: operacaoCedente.dataOperacao,
-        },
-        operacaoCedente.ativosInvest,
-      );
 
       const operacaoDebenture = await this.adaptadorDb.fazerTransacao(
         async () => {
@@ -147,7 +136,8 @@ export class CreditSecRemessaService {
 
           if (ehDSILiberada) {
             await this.solicitarRemessaCreditSec({
-              body,
+              numeroDebenture: data.numero_debenture,
+              numeroSerie: data.numero_serie,
               codigoOperacao: String(data.codigo_operacao),
             });
           }
@@ -284,14 +274,25 @@ export class CreditSecRemessaService {
     }
   }
 
-  private async solicitarRemessaCreditSec({
-    body,
+  async solicitarRemessaCreditSec({
     codigoOperacao,
+    numeroDebenture,
+    numeroSerie,
   }: {
-    body: SolicitarRemessaType;
+    numeroDebenture: number;
+    numeroSerie: number;
     codigoOperacao: string;
   }) {
     try {
+      const { dataOperacao } = await this.encontrarOperacoesCedenteSigma(
+        String(codigoOperacao),
+      );
+      const body = await this.montarBodySolicitarRemessa({
+        numeroDebenture,
+        numeroSerie,
+        codigoOperacao,
+        dataOperacao,
+      });
       const req = await fetch(
         `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_REMESSA}`,
         {
@@ -347,18 +348,22 @@ export class CreditSecRemessaService {
       throw new ErroServidorInterno({
         mensagem: 'Erro ao solicitar remessa',
         acao: 'creditSecRemessaService.solicitarRemessa.creditSec.catch.desconhecido',
-        detalhes: { stack: error.stack, erro: error.message, body },
+        detalhes: { stack: error.stack, erro: error.message, codigoOperacao },
       });
     }
   }
 
   async buscarStatusRemessa({
-    numero_emissao,
-    numero_remessa,
-    numero_serie,
-  }: Omit<NumerosSolicitarRemessa, 'data_operacao'>) {
+    numeroDebenture,
+    codigoOperacao,
+    numeroSerie,
+  }: {
+    numeroDebenture: number;
+    codigoOperacao: string;
+    numeroSerie: number;
+  }) {
     const req = await fetch(
-      `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_REMESSA}?numero_remessa=${numero_remessa}&numero_serie=${numero_serie}&numero_emissao=${numero_emissao}`,
+      `${process.env.BASE_URL_CREDIT_SEC_SOLICITAR_REMESSA}?numero_remessa=${codigoOperacao}&numero_serie=${numeroSerie}&numero_emissao=${numeroDebenture}`,
       {
         method: 'GET',
         headers: {
@@ -375,9 +380,9 @@ export class CreditSecRemessaService {
         detalhes: {
           status: req.status,
           texto: req.statusText,
-          emissao: numero_emissao,
-          remessa: numero_remessa,
-          serie: numero_serie,
+          emissao: numeroDebenture,
+          remessa: codigoOperacao,
+          serie: numeroSerie,
         },
       });
     }
@@ -493,61 +498,82 @@ export class CreditSecRemessaService {
     return criarOperacaoDebenture;
   }
 
-  private async montarBodySolicitarRemessa(
-    {
-      numero_remessa,
-      numero_emissao,
-      numero_serie,
-      data_operacao,
-    }: NumerosSolicitarRemessa,
-    dadosAtivo: AtivosInvest[],
-  ): Promise<SolicitarRemessaType> {
+  private async montarBodySolicitarRemessa({
+    codigoOperacao,
+    numeroDebenture,
+    numeroSerie,
+    dataOperacao,
+  }: {
+    codigoOperacao: string;
+    numeroDebenture: number;
+    numeroSerie: number;
+    dataOperacao: string;
+  }): Promise<SolicitarRemessaType> {
     const isLocalhost = process.env.AMBIENTE === 'development';
     const baseUrlSrmWebhooks = isLocalhost
       ? 'https://srm-webhooks-homologacao.srmasset.com/api' // TO-DO: Confirmar se será esse a URL final
       : process.env.BASE_URL_SRM_WEBHOOKS;
 
-    const promiseAtivos = dadosAtivo.map(async (ativo) => {
-      const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
-        1364997, // TO-DO: Retirar hard coded, retornar utilizando ativo.codigoAtivo,
-      );
-      const taxa_cessao =
-        ativo.taxaAtivo === 'PRÉ'
-          ? { tipo: 'prefixada', valor: ativo.tir }
-          : {
-              tipo: 'posfixada',
-              valor: ativo.cdiInvestPercentual,
-              indice: 'cdi',
+    try {
+      const { ativosInvest } =
+        await this.encontrarOperacoesCedenteSigma(codigoOperacao);
+
+      const promiseAtivos = ativosInvest.map(async (ativo) => {
+        const ccbAssinada = await this.ccbService.buscarCCBParaExternalizar(
+          1364997, // TO-DO: Retirar hard coded, retornar utilizando ativo.codigoAtivo,
+        );
+        const taxa_cessao =
+          ativo.taxaAtivo === 'PRÉ'
+            ? { tipo: 'prefixada', valor: ativo.tir }
+            : {
+                tipo: 'posfixada',
+                valor: ativo.cdiInvestPercentual,
+                indice: 'cdi',
+              };
+        return {
+          numero: String(ativo.codigoAtivo),
+          taxa_cessao,
+          tipo: 'ccb', // TO-DO: voltar para o padrão: ativo.tipoAtivo,
+          sacado: {
+            cnpj: ativo.sacado.identificador,
+            razao_social: ativo.sacado.nome,
+            nome_fantasia: null,
+          },
+          data_emissao: dataOperacao,
+          lastro: {
+            url: ccbAssinada.url,
+          },
+          parcelas: ativo.recebiveis.map((parcelas) => {
+            return {
+              data_vencimento: parcelas.dataVencimento,
+              valor_face: parcelas.valorFuturo,
+              valor_operado: parcelas.valorPresente,
             };
+          }),
+        };
+      });
+      const ativos = await Promise.all(promiseAtivos);
       return {
-        numero: String(ativo.codigoAtivo),
-        taxa_cessao,
-        tipo: 'ccb', // TO-DO: voltar para o padrão: ativo.tipoAtivo,
-        sacado: {
-          cnpj: ativo.sacado.identificador,
-          razao_social: ativo.sacado.nome,
-          nome_fantasia: null,
-        },
-        data_emissao: data_operacao,
-        lastro: {
-          url: ccbAssinada.url,
-        },
-        parcelas: ativo.recebiveis.map((parcelas) => {
-          return {
-            data_vencimento: parcelas.dataVencimento,
-            valor_face: parcelas.valorFuturo,
-            valor_operado: parcelas.valorPresente,
-          };
-        }),
+        codigoOperacao: String(codigoOperacao),
+        numero_emissao: numeroDebenture,
+        numero_serie: numeroSerie,
+        callback_url: `${baseUrlSrmWebhooks}/credit-connect/credit-sec/remessa/emissao/retorno`,
+        titulos: ativos,
       };
-    });
-    const ativos = await Promise.all(promiseAtivos);
-    return {
-      numero_remessa: String(numero_remessa),
-      numero_emissao,
-      numero_serie,
-      callback_url: `${baseUrlSrmWebhooks}/credit-connect/credit-sec/remessa/emissao/retorno`,
-      titulos: ativos,
-    };
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
+      throw new ErroServidorInterno({
+        mensagem: 'Erro ao montar body solicitar remessa',
+        acao: 'creditSecRemessaService.montarBodySolicitarRemessa.catch',
+        detalhes: {
+          erro: erro.message,
+          stack: erro.stack,
+          codigoOperacao,
+          numeroDebenture,
+          numeroSerie,
+          dataOperacao,
+        },
+      });
+    }
   }
 }

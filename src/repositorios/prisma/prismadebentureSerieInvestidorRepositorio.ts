@@ -280,7 +280,19 @@ export class PrismaDebentureSerieInvestidorRepositorio
             },
           },
           conta_investidor: true,
-          fundo_investimento: true,
+          fundo_investimento: {
+            include: {
+              fundo_investimento_gestor_fundo: {
+                include: {
+                  gestor_fundo: {
+                    include: {
+                      usuario: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           operacao_debenture: true,
         },
       });
