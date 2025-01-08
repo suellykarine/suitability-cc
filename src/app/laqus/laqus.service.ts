@@ -1,21 +1,18 @@
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
+import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
+import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
+import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
+import { LogService } from '../global/logs/log.service';
+import { CadastrarLaqusPayload } from './types';
+import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 import {
   AtualizarDebentureSerieInvestidorLaqus,
   StatusRetornoLaqus,
 } from 'src/@types/entities/debenture';
-import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
-import { ConfigService } from '@nestjs/config';
-import {
-  BadRequestException,
-  NotFoundException,
-  HttpException,
-  Injectable,
-} from '@nestjs/common';
-import { CadastrarLaqusPayload } from './types';
-import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
-import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 import {
   Funcao,
   TipoDeEmpresa,
@@ -23,9 +20,9 @@ import {
 } from './dto/criarInvestidorLaqus.dto';
 import {
   ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
-import { LogService } from '../global/logs/log.service';
 
 @Injectable()
 export class LaqusService {
@@ -34,11 +31,11 @@ export class LaqusService {
   constructor(
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
-    private readonly configService: ConfigService,
-    private readonly creditSecSerieService: CreditSecSerieService,
-    private readonly logService: LogService,
-    private readonly adaptadorDb: AdaptadorDb,
     private readonly cadastroCedenteService: CadastroCedenteService,
+    private readonly creditSecSerieService: CreditSecSerieService,
+    private readonly configService: ConfigService,
+    private readonly adaptadorDb: AdaptadorDb,
+    private readonly logService: LogService,
   ) {
     this.token = this.configService.get<string>('LAQUS_TOKEN_API');
     this.laqusApi = this.configService.get<string>('LAQUS_API');
@@ -49,13 +46,22 @@ export class LaqusService {
     justificativa,
     status,
   }: StatusRetornoLaqusDto) {
+    const logAcao = 'laqusService.atualizarInvestidorDebenture';
     const fundoInvestimento =
       await this.fundoInvestimentoRepositorio.encontrarPorCpfCnpj(
         identificadorInvestidor,
       );
 
     if (!fundoInvestimento)
-      throw new NotFoundException('Fundo de investimento não foi encontrado');
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Fundo de investimento não foi encontrado',
+        detalhes: {
+          identificadorInvestidor,
+          justificativa,
+          status,
+        },
+      });
 
     const ultimoVinculoDSI =
       await this.debentureSerieInvestidorRepositorio.encontrarMaisRecentePorIdFundoInvestimento(
@@ -63,9 +69,16 @@ export class LaqusService {
       );
 
     if (!ultimoVinculoDSI)
-      throw new NotFoundException(
-        'Não foi encontrado nenhuma debenture serie investidor para esse investidor',
-      );
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem:
+          'Não foi encontrado nenhuma debenture serie investidor para esse investidor',
+        detalhes: {
+          identificadorInvestidor,
+          justificativa,
+          status,
+        },
+      });
     const debentureSerieInvestidorAtualizado =
       await this.adaptadorDb.fazerTransacao(async () => {
         if (status === 'Reprovado') {
@@ -92,10 +105,16 @@ export class LaqusService {
             data_desvinculo: status === 'Reprovado' ? new Date() : null,
           });
         if (!debentureSerieInvestidorAtualizado)
-          throw new BadRequestException(
-            'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
-          );
-
+          throw new ErroRequisicaoInvalida({
+            acao: logAcao,
+            mensagem:
+              'Não foi encontrado nenhuma debenture serie investidor com status Pendente para esse investidor',
+            detalhes: {
+              identificadorInvestidor,
+              justificativa,
+              status,
+            },
+          });
         return debentureSerieInvestidorAtualizado;
       }, [
         this.fundoInvestimentoRepositorio,
@@ -234,25 +253,29 @@ export class LaqusService {
   }
 
   async buscarStatusInvestidor(id: string) {
-    const response = await fetch(
-      `${this.laqusApi}/buscar-status-investidor/${id}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.token}`,
-        },
+    const req = await fetch(`${this.laqusApi}/buscar-status-investidor/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.token}`,
       },
-    );
+    });
 
-    if (!response.ok) {
-      throw new HttpException(
-        'Não foi possível buscar o status do investidor',
-        response.status,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'LaqusService.buscarStatusInvestidor',
+        mensagem: 'Não foi possível buscar o status do investidor',
+        req,
+        detalhes: {
+          id,
+          status: req.status,
+          texto: req.statusText,
+          url: req.url,
+        },
+      });
     }
 
-    const result = await response.json();
+    const result = await req.json();
     return result;
   }
 
