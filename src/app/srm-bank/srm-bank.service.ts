@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   RespostaCriarContaSrmBank,
   RespostaBuscarContaSrmBank,
@@ -14,9 +9,10 @@ import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInve
 import { ConfigService } from '@nestjs/config';
 import {
   ErroAplicacao,
-  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 
 @Injectable()
 export class SrmBankService {
@@ -54,8 +50,13 @@ export class SrmBankService {
         mensagem: 'Conta Criada com sucesso ',
         conta_investidor: contaCreditConnect,
       };
-    } catch (error) {
-      throw error;
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
+      throw new ErroServidorInterno({
+        acao: 'srmBankService.criarContaInvestidor',
+        mensagem: 'Não foi possível criar conta',
+        detalhes: { erro },
+      });
     }
   }
 
@@ -76,15 +77,21 @@ export class SrmBankService {
         },
       },
     );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'srmBankService.criarContaSrmBank',
+        mensagem: `Erro ao criar conta. ${req.statusText}`,
+        req,
+        detalhes: {
+          status: req.status,
+          texto: req.statusText,
+          url: req.url,
+        },
+      });
+    }
 
     const response = await req.json();
-
-    if (req.ok) return { sucesso: true, ...response };
-
-    throw new HttpException(
-      `Erro ao criar conta: ${response.motivo}`,
-      req.status,
-    );
+    return { sucesso: true, ...response };
   }
   private async buscarContaSrmBank(
     identificador: string,
@@ -101,10 +108,16 @@ export class SrmBankService {
     );
 
     if (!req.ok)
-      throw new HttpException(
-        `Erro ao buscar conta: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+      await tratarErroRequisicao({
+        acao: 'srmBankService.buscarContaSrmBank',
+        mensagem: `Erro ao buscar conta: ${req.status} ${req.statusText}`,
+        req,
+        detalhes: {
+          status: req.status,
+          texto: req.statusText,
+          url: req.url,
+        },
+      });
 
     const res = await req.json();
 
@@ -114,6 +127,7 @@ export class SrmBankService {
     return res[0];
   }
   async buscarContaSrmBankAtivaPorCnpj(identificador: string) {
+    const logAcao = 'srmBankService.buscarContaSrmBankAtivaPorCnpj';
     const req = await fetch(
       `${process.env.BASE_URL_CADASTRO_CEDENTE_SIGMA}/${identificador}/contas-corrente?ativo=true`,
       {
@@ -124,19 +138,38 @@ export class SrmBankService {
       },
     );
     if (!req.ok)
-      throw new HttpException(
-        `Erro ao buscar conta: ${req.status} ${req.statusText}`,
-        req.status,
-      );
+      await tratarErroRequisicao({
+        acao: logAcao,
+        mensagem: `Erro ao buscar conta: ${req.status} ${req.statusText}`,
+        req,
+        detalhes: {
+          identificador,
+          status: req.status,
+          texto: req.statusText,
+          url: req.url,
+        },
+      });
 
     const data = await req.json();
 
     if (!data.length)
-      throw new BadRequestException('Não foi encontrada Nenhuma conta ativa');
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
+        mensagem: 'Não foi encontrada Nenhuma conta ativa',
+        detalhes: {
+          identificador,
+        },
+      });
     const firstAccount = data[0].dadosBancarios;
 
     if (!firstAccount)
-      throw new InternalServerErrorException('Houve um erro desconhecido');
+      throw new ErroServidorInterno({
+        acao: logAcao,
+        mensagem: 'Houve um erro desconhecido',
+        detalhes: {
+          identificador,
+        },
+      });
 
     return firstAccount;
   }
