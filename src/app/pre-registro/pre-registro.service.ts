@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  ServiceUnavailableException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   formatarCPF,
   formatarCNPJ,
@@ -31,6 +25,13 @@ import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRe
 import { CodigoVerificacaoRepositorio } from 'src/repositorios/contratos/codigoDeVerificacaoRepositorio';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { Usuario } from 'src/@types/entities/usuario';
+import {
+  ErroAplicacao,
+  ErroNaoAutorizado,
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class PreRegistroService {
@@ -66,17 +67,32 @@ export class PreRegistroService {
     };
   }
   async encontrarUmUsuario(id: number, idUsuarioRequisicao: number) {
+    const logAcao = 'encontrarTodosUsuarios.encontrarUmUsuario';
     const usuarioRequisicao =
       await this.usuarioRepositorio.encontrarPorId(idUsuarioRequisicao);
 
     if (!usuarioRequisicao) {
-      throw new NotFoundException('Usuário requisitante não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Usuário requisitante não encontrado',
+        detalhes: {
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
 
     const usuario = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Usuário não encontrado',
+        detalhes: {
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
 
     const donoAdminOuBackoffice = this.donoAdminOuBackoffice(
@@ -84,7 +100,15 @@ export class PreRegistroService {
       usuarioRequisicao,
     );
     if (donoAdminOuBackoffice) {
-      throw new UnauthorizedException(donoAdminOuBackoffice);
+      throw new ErroNaoAutorizado({
+        acao: logAcao,
+        mensagem: donoAdminOuBackoffice.mensagem,
+        detalhes: {
+          donoAdminOuBackoffice,
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
 
     return {
@@ -98,10 +122,18 @@ export class PreRegistroService {
   }
 
   async removerUsuario(id: number, idUsuarioRequisicao: number) {
+    const logAcao = 'PreRegistroService.removerUsuario';
     const usuario = await this.usuarioRepositorio.encontrarPorId(id);
 
     if (!usuario) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Usuário não encontrado',
+        detalhes: {
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
 
     const usuarioRequisicao =
@@ -112,7 +144,15 @@ export class PreRegistroService {
       usuarioRequisicao,
     );
     if (donoAdminOuBackoffice) {
-      throw new UnauthorizedException(donoAdminOuBackoffice);
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: donoAdminOuBackoffice.mensagem,
+        detalhes: {
+          donoAdminOuBackoffice,
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
 
     const statusDesativado =
@@ -120,12 +160,26 @@ export class PreRegistroService {
         StatusUsuario.DESATIVADO,
       );
     if (!statusDesativado) {
-      throw new NotFoundException('Status de usuário não encontrado');
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Status de usuário não encontrado',
+        detalhes: {
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
     const usuarioDesativado =
       usuario.id_status_usuario === statusDesativado.id ? true : false;
     if (usuarioDesativado) {
-      throw new BadRequestException('Usuário já está inativo');
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
+        mensagem: 'Usuário já está inativo',
+        detalhes: {
+          id,
+          idUsuarioRequisicao,
+        },
+      });
     }
     await this.usuarioRepositorio.atualizar(id, {
       id_status_usuario: statusDesativado.id,
@@ -136,6 +190,7 @@ export class PreRegistroService {
     cartaConvite: any,
     token: string,
   ): Promise<any> {
+    const logAcao = 'PreRegistroService.criarUsuario';
     const tipoUsuario = await this.tipoUsuarioRepositorio.encontrarPorTipo(
       TipoUsuarioEnum.INVESTIDOR_TRIAL,
     );
@@ -155,8 +210,14 @@ export class PreRegistroService {
           cartaConvite.id,
         );
       if (!encontrarCartaConvite) {
-        throw new NotFoundException({
+        throw new ErroNaoEncontrado({
+          acao: logAcao,
           mensagem: 'Carta convite não encontrada ou não aprovada',
+          detalhes: {
+            criarUsuarioDto,
+            token,
+            cartaConvite,
+          },
         });
       }
 
@@ -196,13 +257,18 @@ export class PreRegistroService {
   }
 
   async encontrarCartaConvite(invitationLetter: any): Promise<any> {
+    const logAcao = 'PreRegistroService.encontrarCartaConvite';
     const cartaConvite =
       await this.cartaConviteRepositorio.encontrarPorIdEAprovado(
         invitationLetter.id,
       );
 
     if (!cartaConvite) {
-      throw new NotFoundException('Carta convite não encontrada');
+      throw new ErroNaoEncontrado({
+        acao: logAcao,
+        mensagem: 'Carta convite não encontrada',
+        detalhes: { invitationLetter },
+      });
     }
 
     return {
@@ -235,9 +301,14 @@ export class PreRegistroService {
     };
     try {
       await servicoEmailSrm(requestBase);
-    } catch (error) {
-      throw new ServiceUnavailableException({
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao) throw erro;
+      throw new ErroServidorInterno({
+        acao: 'PreRegistroService.enviarCodigoDeVerificacao',
         mensagem: 'Serviço de e-mail indisponível.',
+        detalhes: {
+          erro,
+        },
       });
     }
 
