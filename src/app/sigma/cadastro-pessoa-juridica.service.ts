@@ -1,8 +1,9 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { sigmaHeaders } from '../autenticacao/constants';
 import { atualizarProcuradorDto } from './dto/atualziarProcuradorInvestidorDto';
 import { atualizarRepresentanteLegalDto } from './dto/representanteLegalInvestidorDto';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
 
 @Injectable()
 export class CadastroPessoaJuridicaService {
@@ -37,7 +38,7 @@ export class CadastroPessoaJuridicaService {
     metodo: 'PUT',
     corpo: atualizarRepresentanteLegalDto | atualizarProcuradorDto,
   ): Promise<any> {
-    const resposta = await fetch(url, {
+    const req = await fetch(url, {
       method: metodo,
       headers: {
         'Content-Type': 'application/json',
@@ -46,16 +47,19 @@ export class CadastroPessoaJuridicaService {
       body: JSON.stringify(corpo),
     });
 
-    const textoResposta = await resposta.text();
-
-    if (!resposta.ok) {
-      console.error('Erro na API:', textoResposta);
-      throw new HttpException(
-        `Erro ao consumir a API externa: ${textoResposta}`,
-        resposta.status,
-      );
+    if (!req.ok) {
+      await tratarErroRequisicao({
+        acao: 'cadastroPessoaJuridicaService.realizarRequisicao',
+        mensagem: `Erro ao consumir a API externa: ${req.statusText}`,
+        req,
+        detalhes: {
+          status: req.status,
+          texto: req.statusText,
+          url: req.url,
+        },
+      });
     }
-
+    const textoResposta = await req.text();
     return textoResposta ? JSON.parse(textoResposta) : null;
   }
 }

@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { sigmaHeaders } from '../autenticacao/constants';
 import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
+import { ErroRequisicaoInvalida } from 'src/helpers/erroAplicacao';
 @Injectable()
 export class PagamentoOperacaoService {
   private readonly urlBase: string;
@@ -18,7 +19,14 @@ export class PagamentoOperacaoService {
       await this.contaInvestidorRepositorio.buscarContaPorId(idContaInvestidor);
 
     if (!conta || !conta.codigo_conta) {
-      throw new BadRequestException('Conta não encontrada ou inválida');
+      throw new ErroRequisicaoInvalida({
+        acao: 'pagamentoOperacaoService.incluirPagamento',
+        mensagem: 'Conta não encontrada ou inválida',
+        detalhes: {
+          codigoOperacao,
+          idContaInvestidor,
+        },
+      });
     }
 
     const url = `${this.urlBase}/${codigoOperacao}`;
@@ -45,7 +53,6 @@ export class PagamentoOperacaoService {
         },
       });
     }
-
     return await req.json();
   }
 }
