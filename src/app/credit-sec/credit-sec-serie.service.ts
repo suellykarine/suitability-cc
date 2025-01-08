@@ -250,6 +250,8 @@ export class CreditSecSerieService {
       });
 
       const status = statusRetornoCreditSecDicionario[data.status] ?? 'ERRO';
+      const ehDSILiberada =
+        ultimoVinculoDSI.status_retorno_creditsec === 'LIBERADO';
 
       const dataDesvinculo = status === 'REPROVADO' ? new Date() : null;
       const ehStatusErro = status === 'ERRO';
@@ -277,6 +279,11 @@ export class CreditSecSerieService {
             retornoCreditSec: data,
           },
         });
+
+        if(ehDSILiberada){
+          const operacoesDebentures = 
+
+        }
       }
 
       if (status === 'REPROVADO') {

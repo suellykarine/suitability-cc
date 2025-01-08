@@ -6,7 +6,6 @@ import {
   EncontrarPorDesvinculoProps,
 } from '../contratos/debentureSerieInvestidorRepositorio';
 import {
-  AtualizaDebentureSerieInvestidorCreditSec,
   DebentureSerie,
   DebentureSerieInvestidor,
 } from 'src/@types/entities/debenture';
@@ -274,22 +273,18 @@ export class PrismaDebentureSerieInvestidorRepositorio
       await this.prisma.debenture_serie_investidor.findFirst({
         where: { id_debenture_serie },
         orderBy: { data_vinculo: 'desc' },
-      });
-    return debentureSerieInvestidor;
-  }
-  async atualizaDebentureSerieInvestidor(
-    data: AtualizaDebentureSerieInvestidorCreditSec,
-  ): Promise<DebentureSerieInvestidor> {
-    const atualizaDebentureSerieInvestidor =
-      await this.prisma.debenture_serie_investidor.update({
-        where: { id: data.id_debenture_serie_investidor },
-        data: {
-          status_retorno_creditsec: data.status,
-          mensagem_retorno_creditsec: data.motivo ?? null,
-          data_desvinculo: data.data_desvinculo,
+        include: {
+          debenture_serie: {
+            include: {
+              debenture: true,
+            },
+          },
+          conta_investidor: true,
+          fundo_investimento: true,
+          operacao_debenture: true,
         },
       });
-    return atualizaDebentureSerieInvestidor;
+    return converterCamposDecimais(debentureSerieInvestidor);
   }
 
   async buscarDSIPendenteCreditSec(
