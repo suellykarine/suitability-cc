@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-
-import { CreditSecRemessaService } from '../credit-sec/credit-sec-remessa.service';
+import { fazerNada } from 'src/utils/funcoes/geral';
 
 @Injectable()
 export class DevelopmentService {
-  constructor(private crediSecRemessaService: CreditSecRemessaService) {}
+  constructor() {}
 
   async sandbox(args: any) {
-    return this.crediSecRemessaService.buscarStatusRemessa(args);
+    fazerNada(args);
+    return; //this.creditSecRemessaService.buscarStatusRemessa(args);
   }
 }

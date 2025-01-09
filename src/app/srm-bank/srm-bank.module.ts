@@ -17,5 +17,6 @@ import { ConfigService } from '@nestjs/config';
       useClass: PrismaContaInvestidorRepositorio,
     },
   ],
+  exports: [SrmBankService],
 })
 export class SrmBankModule {}

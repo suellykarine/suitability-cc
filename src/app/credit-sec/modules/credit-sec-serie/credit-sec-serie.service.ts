@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Cedente } from 'src/@types/entities/cedente';
 import { EnderecoCedente } from 'src/@types/entities/cedente';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
@@ -13,21 +13,21 @@ import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 
-import { BodyRetornoCriacaoSerieDto } from './dto/serie-callback.dto';
-import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { statusRetornoCreditSecDicionario } from './const';
 import {
   ErroAplicacao,
   ErroRequisicaoInvalida,
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
-import { LogService } from '../global/logs/log.service';
-import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
-import { CreditSecRemessaService } from './credit-sec-remessa.service';
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+import { LogService } from 'src/app/global/logs/log.service';
+import { EmissaoSerieRetornoDto } from './dto/serie-callback.dto';
+import { statusRetornoCreditSecDicionario } from '../../const';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
+import { SolicitarSerieType } from '../../interface/interface';
+import { CreditSecRemessaService } from '../credit-sec-remessa/credit-sec-remessa.service';
 
 @Injectable()
 export class CreditSecSerieService {
@@ -35,13 +35,14 @@ export class CreditSecSerieService {
   private baseUrlCreditSecSolicitarSerie: string;
   private baseUrlCadastroSigma: string;
   constructor(
+    @Inject(forwardRef(() => CreditSecRemessaService))
+    private readonly creditSecRemessaService: CreditSecRemessaService,
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly logService: LogService,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly configService: ConfigService,
     private readonly debentureRepositorio: DebentureRepositorio,
-    private readonly creditSecRemessaService: CreditSecRemessaService,
     private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {
     this.tokenCreditSecSolicitarSerie = this.configService.get(
@@ -203,7 +204,7 @@ export class CreditSecSerieService {
       });
     }
   }
-  async registrarRetornoCreditSec(data: BodyRetornoCriacaoSerieDto) {
+  async registrarRetornoCreditSec(data: EmissaoSerieRetornoDto) {
     try {
       const debentureSerie =
         await this.debentureSerieRepositorio.encontrarSeriePorNumeroEmissaoNumeroSerie(
@@ -362,7 +363,7 @@ export class CreditSecSerieService {
   private async buscarStatusSerieCreditSec(
     numero_emissao: number,
     numero_serie: number,
-  ): Promise<BodyRetornoCriacaoSerieDto> {
+  ): Promise<EmissaoSerieRetornoDto> {
     const req = await fetch(
       `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
       {

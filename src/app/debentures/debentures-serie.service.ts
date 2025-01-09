@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
@@ -17,7 +17,6 @@ import {
   encontrarSerieComValorAproximado,
   filtrarSeriesPorValor,
 } from './utils/estaAptoAEstruturar';
-import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
 
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 import {
@@ -27,9 +26,10 @@ import {
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
 import { LogService } from '../global/logs/log.service';
+import { CreditSecSerieService } from '../credit-sec/modules/credit-sec-serie/credit-sec-serie.service';
 
 @Injectable()
-export class DebentureSerieService {
+export class DebentureSerieService implements OnModuleInit {
   private readonly limiteDebenture = 50000000;
 
   constructor(
@@ -42,10 +42,15 @@ export class DebentureSerieService {
     private readonly laqusService: LaqusService,
     private readonly logService: LogService,
     private readonly srmBankService: SrmBankService,
+    @Inject(forwardRef(() => CreditSecSerieService))
     private readonly creditSecSerieService: CreditSecSerieService,
     private readonly adaptadorDb: AdaptadorDb,
     private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {}
+
+  onModuleInit() {
+    console.log('[DebentureSerieService] Módulo inicializado com sucesso');
+  }
 
   async solicitarSerie({
     valorEntrada,

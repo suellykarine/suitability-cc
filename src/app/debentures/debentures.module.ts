@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { DebentureSerieService } from './debentures-serie.service';
 import { DebenturesController } from './debentures.controller';
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
@@ -14,23 +14,26 @@ import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInve
 import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
 import { DebentureService } from './debentures.service';
 import { ConfigService } from '@nestjs/config';
-import { SrmBankService } from '../srm-bank/srm-bank.service';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
-import { CreditSecModule } from '../credit-sec/credit-sec.module';
 import { LaqusModule } from '../laqus/laqus.module';
 import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
+import { SrmBankModule } from '../srm-bank/srm-bank.module';
+import { CreditSecModule } from '../credit-sec/credit-sec.module';
 
 @Module({
-  imports: [CreditSecModule, LaqusModule],
+  imports: [
+    forwardRef(() => LaqusModule),
+    forwardRef(() => CreditSecModule),
+    forwardRef(() => SrmBankModule),
+  ],
   controllers: [DebenturesController],
   providers: [
     DebentureSerieService,
     PrismaService,
     DebentureService,
     ConfigService,
-    SrmBankService,
     {
       provide: DebentureSerieRepositorio,
       useClass: PrismaDebentureSerieRepositorio,

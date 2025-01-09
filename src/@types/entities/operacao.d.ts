@@ -14,6 +14,7 @@ export type ContaCorrentePagadora = {
 };
 
 export type Cedente = {
+  nome: string;
   identificador: string;
   razaoSocial: string;
 };
@@ -28,6 +29,7 @@ export type Recebivel = {
 };
 
 export type AtivoInvest = {
+  codigoAtivo: number;
   codigoOperacao: number;
   valorPresente: number;
   valorFuturo: number;
