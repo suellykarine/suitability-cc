@@ -27,6 +27,7 @@ import { LogService } from '../global/logs/log.service';
 import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
 import { CreditSecRemessaService } from './credit-sec-remessa.service';
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
 
 @Injectable()
 export class CreditSecSerieService {
@@ -41,6 +42,7 @@ export class CreditSecSerieService {
     private readonly configService: ConfigService,
     private readonly debentureRepositorio: DebentureRepositorio,
     private readonly creditSecRemessaService: CreditSecRemessaService,
+    private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {
     this.tokenCreditSecSolicitarSerie = this.configService.get(
       'TOKEN_CREDIT_SEC_SOLICITAR_SERIE',
@@ -260,11 +262,33 @@ export class CreditSecSerieService {
           const numeroSerie = debentureSerie.numero_serie;
 
           for (const operacao of operacoesDebentures) {
-            await this.creditSecRemessaService.solicitarRemessaCreditSec({
-              numeroDebenture,
-              numeroSerie,
-              codigoOperacao: String(operacao.codigo_operacao),
-            });
+            try {
+              await this.creditSecRemessaService.solicitarRemessaCreditSec({
+                numeroDebenture,
+                numeroSerie,
+                codigoOperacao: String(operacao.codigo_operacao),
+              });
+              await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+                status_retorno_creditsec: 'PENDENTE',
+              });
+            } catch (erro) {
+              const { message } = erro;
+              await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+                status_retorno_creditsec: 'ERRO',
+                mensagem_retorno_creditsec: message,
+              });
+
+              if (erro instanceof ErroAplicacao) throw erro;
+              throw new ErroServidorInterno({
+                acao: 'creditSecSerieService.registrarRetornoCreditSec.aprovado.dsiLiberado.catch',
+                mensagem: 'Erro ao solicitar remessa no CreditSec',
+                detalhes: {
+                  operacao,
+                  erroMensagem: erro.message,
+                  erro,
+                },
+              });
+            }
           }
         }
       }
@@ -283,6 +307,18 @@ export class CreditSecSerieService {
             retornoCreditSec: data,
           },
         });
+
+        if (ehDSILiberada) {
+          const operacoesDebentures = ultimoVinculoDSI.operacao_debenture;
+
+          for (const operacao of operacoesDebentures) {
+            await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+              status_retorno_creditsec: 'REPROVADO',
+              mensagem_retorno_creditsec:
+                'A serie vinculada a essa operacao foi reprovada',
+            });
+          }
+        }
       }
 
       return debentureSerieInvestidorAtualizado;
