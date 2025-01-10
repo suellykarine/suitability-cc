@@ -196,7 +196,7 @@ export class CreditSecRemessaService {
             bodyCriarOperacaoSigma,
           );
 
-          if (ehDSILiberada) {
+          if (!ehDSILiberada) {
             await this.solicitarRemessaCreditSec({
               numeroDebenture: data.numero_debenture,
               numeroSerie: data.numero_serie,
