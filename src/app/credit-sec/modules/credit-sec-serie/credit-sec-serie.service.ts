@@ -269,9 +269,6 @@ export class CreditSecSerieService {
                 numeroSerie,
                 codigoOperacao: String(operacao.codigo_operacao),
               });
-              await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
-                status_retorno_creditsec: 'PENDENTE',
-              });
             } catch (erro) {
               const { message } = erro;
               await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
@@ -279,16 +276,17 @@ export class CreditSecSerieService {
                 mensagem_retorno_creditsec: message,
               });
 
-              if (erro instanceof ErroAplicacao) throw erro;
-              throw new ErroServidorInterno({
-                acao: 'creditSecSerieService.registrarRetornoCreditSec.aprovado.dsiLiberado.catch',
-                mensagem: 'Erro ao solicitar remessa no CreditSec',
-                detalhes: {
-                  operacao,
-                  erroMensagem: erro.message,
-                  erro,
-                },
-              });
+              {
+                this.logService.erro({
+                  acao: 'creditSecSerieService.registrarRetornoCreditSec.aprovado.dsiLiberado.catch',
+                  mensagem: 'Erro ao solicitar remessa no CreditSec',
+                  detalhes: {
+                    operacao,
+                    erroMensagem: erro.mensagem ?? erro.message,
+                    erro,
+                  },
+                });
+              }
             }
           }
         }

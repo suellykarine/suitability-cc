@@ -113,18 +113,13 @@ export class CreditSecRemessaService {
             numeroSerie,
             codigoOperacao: String(operacao.codigo_operacao),
           });
-          await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
-            status_retorno_creditsec: 'PENDENTE',
-          });
         } catch (erro) {
-          if (erro instanceof ErroAplicacao) throw erro;
-          throw new ErroServidorInterno({
+          this.logService.erro({
+            mensagem: 'Erro ao re-emitir a solicitação da remessa com erro',
             acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro',
-            mensagem:
-              'Erro ao refazer solicitao da remessa com erro no CreditSec',
             detalhes: {
               operacao,
-              erroMensagem: erro.message,
+              erroMensagem: erro.mensagem ?? erro.message,
               erro,
             },
           });
@@ -216,6 +211,11 @@ export class CreditSecRemessaService {
         data: operacaoDebenture,
       };
     } catch (error) {
+      await this.sigmaService.excluirOperacaoDebentureSigma({
+        codigoOperacao: String(data.codigo_operacao),
+        complementoStatusOperacao:
+          'A emissão da Remessa não foi realizada pela CreditSec',
+      });
       if (error instanceof ErroAplicacao) throw error;
       throw new ErroServidorInterno({
         mensagem: 'Erro ao solicitar remessa',
@@ -385,14 +385,16 @@ export class CreditSecRemessaService {
 
       const res = await req.json();
 
+      await this.operacaoDebentureRepositorio.atualizar(
+        Number(codigoOperacao),
+        {
+          status_retorno_creditsec: 'PENDENTE',
+          mensagem_retorno_creditsec: null,
+        },
+      );
+
       return res;
     } catch (error) {
-      await this.sigmaService.excluirOperacaoDebentureSigma({
-        codigoOperacao,
-        complementoStatusOperacao:
-          'A emissão da Remessa não foi realizada pela CreditSec',
-      });
-
       if (error instanceof ErroAplicacao) {
         const { message, acao, detalhes, ...erro } = error;
         throw new ErroServidorInterno({
