@@ -129,13 +129,13 @@ export class CreditSecRemessaService {
             },
           });
         }
-        return { operacoesSelecionadas: operacoesComErro };
       }
+      return { operacoesSelecionadas: operacoesComErro };
     } catch (error) {
       if (error instanceof ErroAplicacao) throw error;
       throw new ErroServidorInterno({
         acao: 'creditSecRemessa.buscarStatusSolicitacaoRemessa',
-        mensagem: `Erro ao buscar status solicitação da remessa`,
+        mensagem: `Erro ao re-emitir as solicitações da remessas com erro`,
         detalhes: {
           error,
         },
