@@ -93,6 +93,11 @@ export class CreditSecRemessaService {
 
   @Cron('0 0 10 * * 1-5')
   async repetirSolicitacaoRemessaComErro() {
+    this.logService.info({
+      mensagem:
+        'Iniciando o Cronjob para re-emitir as solicitações da remessas com erro',
+      acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro',
+    });
     try {
       const operacoesComErro =
         await this.operacaoDebentureRepositorio.buscarOperacoesPeloStatusCreditSec(
