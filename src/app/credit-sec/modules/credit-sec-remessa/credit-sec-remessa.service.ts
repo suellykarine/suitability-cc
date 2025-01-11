@@ -122,6 +122,9 @@ export class CreditSecRemessaService {
           });
           operacoesSolicitadasComSucesso.push(operacaoSolicitada);
         } catch (erro) {
+          console.log('erro');
+          console.log(erro);
+
           const operacaoComErroAtualizada =
             await this.operacaoDebentureRepositorio.atualizar(
               Number(operacao.codigo_operacao),
