@@ -14,7 +14,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { CadastrarLaqusPayload } from './types';
-import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
 import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 import {
   Funcao,
@@ -26,6 +25,7 @@ import {
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
 import { LogService } from '../global/logs/log.service';
+import { CreditSecSerieService } from '../credit-sec/modules/credit-sec-serie/credit-sec-serie.service';
 
 @Injectable()
 export class LaqusService {

@@ -6,5 +6,6 @@ import { ConfigService } from '@nestjs/config';
 @Module({
   controllers: [CcbController],
   providers: [CcbService, ConfigService],
+  exports: [CcbService],
 })
 export class CcbModule {}

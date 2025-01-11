@@ -60,7 +60,7 @@ type Titulos = {
 };
 
 export type SolicitarRemessaType = {
-  numero_remessa: string;
+  codigoOperacao: string;
   numero_emissao: number;
   numero_serie: number;
   callback_url: string;
@@ -84,11 +84,6 @@ export type OperacoesCedente = {
   };
   ativosInvest: AtivosInvest[];
 };
-
-export type NumerosSolicitarRemessa = Pick<
-  SolicitarRemessaType,
-  'numero_serie' | 'numero_emissao' | 'numero_remessa'
-> & { data_operacao: string };
 
 export type BodyCriarRegistroOperacao = {
   cedenteIdentificador: string;

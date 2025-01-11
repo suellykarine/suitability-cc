@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Cedente } from 'src/@types/entities/cedente';
 import { EnderecoCedente } from 'src/@types/entities/cedente';
 import { DebentureSerieInvestidor } from 'src/@types/entities/debenture';
@@ -13,19 +13,21 @@ import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/
 import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
 
-import { BodyRetornoCriacaoSerieDto } from './dto/serie-callback.dto';
-import { SolicitarSerieType } from './interface/interface';
 import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { statusRetornoCreditSecDicionario } from './const';
 import {
   ErroAplicacao,
   ErroRequisicaoInvalida,
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
-import { LogService } from '../global/logs/log.service';
-import { tratarErroRequisicao } from '../../utils/funcoes/erros';
 import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
+import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
+import { LogService } from 'src/app/global/logs/log.service';
+import { EmissaoSerieRetornoDto } from './dto/serie-callback.dto';
+import { statusRetornoCreditSecDicionario } from '../../const';
+import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
+import { SolicitarSerieType } from '../../interface/interface';
+import { CreditSecRemessaService } from '../credit-sec-remessa/credit-sec-remessa.service';
 
 @Injectable()
 export class CreditSecSerieService {
@@ -33,12 +35,15 @@ export class CreditSecSerieService {
   private baseUrlCreditSecSolicitarSerie: string;
   private baseUrlCadastroSigma: string;
   constructor(
+    @Inject(forwardRef(() => CreditSecRemessaService))
+    private readonly creditSecRemessaService: CreditSecRemessaService,
     private readonly fundoInvestimentoRepositorio: FundoInvestimentoRepositorio,
     private readonly logService: LogService,
     private readonly debentureSerieRepositorio: DebentureSerieRepositorio,
     private readonly debentureSerieInvestidorRepositorio: DebentureSerieInvestidorRepositorio,
     private readonly configService: ConfigService,
     private readonly debentureRepositorio: DebentureRepositorio,
+    private readonly operacaoDebentureRepositorio: OperacaoDebentureRepositorio,
   ) {
     this.tokenCreditSecSolicitarSerie = this.configService.get(
       'TOKEN_CREDIT_SEC_SOLICITAR_SERIE',
@@ -161,45 +166,16 @@ export class CreditSecSerieService {
 
   async solicitarSerie(debentureSerieInvestidorId: number) {
     try {
-      const debentureSerieInvestidor =
-        await this.debentureSerieInvestidorRepositorio.encontrarPorId(
-          debentureSerieInvestidorId,
-        );
-      if (!debentureSerieInvestidor)
-        throw new ErroRequisicaoInvalida({
-          acao: 'creditSecSerieService.solicitarSerie',
-          mensagem: 'Debenture Serie Investidor não encontrado',
-        });
-
-      const usuario =
-        debentureSerieInvestidor.fundo_investimento
-          .fundo_investimento_gestor_fundo?.[0].usuario_fundo_investimento?.[0]
-          .usuario;
-      const fundoInvestidor = debentureSerieInvestidor.fundo_investimento;
-      const cedenteSigma = await this.buscarCedenteSigma(
-        fundoInvestidor.cpf_cnpj,
-      );
-      const enderecoCedente = cedenteSigma.endereco;
-      const representanteCedente = fundoInvestidor.representante_fundo;
-
-      const bodySolicitarSerie = await this.montarBodySolicitarSerie(
-        representanteCedente,
-        enderecoCedente,
-        fundoInvestidor,
-        usuario,
-        debentureSerieInvestidor,
-      );
-
       try {
-        await this.solicitarSerieCreditSec(bodySolicitarSerie);
+        await this.solicitarSerieCreditSec(debentureSerieInvestidorId);
         await this.debentureSerieInvestidorRepositorio.atualizar({
-          id: debentureSerieInvestidor.id,
+          id: debentureSerieInvestidorId,
           status_retorno_creditsec: 'PENDENTE',
           mensagem_retorno_creditsec: null,
         });
       } catch (error) {
         await this.debentureSerieInvestidorRepositorio.atualizar({
-          id: debentureSerieInvestidor.id,
+          id: debentureSerieInvestidorId,
           status_retorno_creditsec: 'ERRO',
           mensagem_retorno_creditsec:
             'Falha ao cadastrar série no CreditSec, Mensagem:' + error.message,
@@ -209,7 +185,7 @@ export class CreditSecSerieService {
           acao: 'creditSecSerieService.solicitarSerie',
           mensagem: 'Erro ao solicitar série no CreditSec',
           detalhes: {
-            bodySolicitarSerie,
+            debentureSerieInvestidorId,
             error,
           },
         });
@@ -228,7 +204,7 @@ export class CreditSecSerieService {
       });
     }
   }
-  async registrarRetornoCreditSec(data: BodyRetornoCriacaoSerieDto) {
+  async registrarRetornoCreditSec(data: EmissaoSerieRetornoDto) {
     try {
       const debentureSerie =
         await this.debentureSerieRepositorio.encontrarSeriePorNumeroEmissaoNumeroSerie(
@@ -250,6 +226,8 @@ export class CreditSecSerieService {
       });
 
       const status = statusRetornoCreditSecDicionario[data.status] ?? 'ERRO';
+      const ehDSILiberada =
+        ultimoVinculoDSI.status_retorno_creditsec === 'LIBERADO';
 
       const dataDesvinculo = status === 'REPROVADO' ? new Date() : null;
       const ehStatusErro = status === 'ERRO';
@@ -277,6 +255,41 @@ export class CreditSecSerieService {
             retornoCreditSec: data,
           },
         });
+
+        if (ehDSILiberada) {
+          const operacoesDebentures = ultimoVinculoDSI.operacao_debenture;
+          const debentureSerie = ultimoVinculoDSI.debenture_serie;
+          const numeroDebenture = debentureSerie.debenture.numero_debenture;
+          const numeroSerie = debentureSerie.numero_serie;
+
+          for (const operacao of operacoesDebentures) {
+            try {
+              await this.creditSecRemessaService.solicitarRemessaCreditSec({
+                numeroDebenture,
+                numeroSerie,
+                codigoOperacao: String(operacao.codigo_operacao),
+              });
+            } catch (erro) {
+              const { message } = erro;
+              await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+                status_retorno_creditsec: 'ERRO',
+                mensagem_retorno_creditsec: message,
+              });
+
+              {
+                this.logService.erro({
+                  acao: 'creditSecSerieService.registrarRetornoCreditSec.aprovado.dsiLiberado.catch',
+                  mensagem: 'Erro ao solicitar remessa no CreditSec',
+                  detalhes: {
+                    operacao,
+                    erroMensagem: erro.mensagem ?? erro.message,
+                    erro,
+                  },
+                });
+              }
+            }
+          }
+        }
       }
 
       if (status === 'REPROVADO') {
@@ -293,6 +306,18 @@ export class CreditSecSerieService {
             retornoCreditSec: data,
           },
         });
+
+        if (ehDSILiberada) {
+          const operacoesDebentures = ultimoVinculoDSI.operacao_debenture;
+
+          for (const operacao of operacoesDebentures) {
+            await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+              status_retorno_creditsec: 'REPROVADO',
+              mensagem_retorno_creditsec:
+                'A serie vinculada a essa operacao foi reprovada',
+            });
+          }
+        }
       }
 
       return debentureSerieInvestidorAtualizado;
@@ -336,7 +361,7 @@ export class CreditSecSerieService {
   private async buscarStatusSerieCreditSec(
     numero_emissao: number,
     numero_serie: number,
-  ): Promise<BodyRetornoCriacaoSerieDto> {
+  ): Promise<EmissaoSerieRetornoDto> {
     const req = await fetch(
       `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao?numero_emissao=${numero_emissao}&numero_serie=${numero_serie}`,
       {
@@ -362,8 +387,37 @@ export class CreditSecSerieService {
       },
     });
   }
-  private async solicitarSerieCreditSec(body: SolicitarSerieType) {
+  private async solicitarSerieCreditSec(debentureSerieInvestidorId: number) {
     try {
+      const debentureSerieInvestidor =
+        await this.debentureSerieInvestidorRepositorio.encontrarPorId(
+          debentureSerieInvestidorId,
+        );
+      if (!debentureSerieInvestidor)
+        throw new ErroRequisicaoInvalida({
+          acao: 'creditSecSerieService.solicitarSerieCreditSec',
+          mensagem: 'Debenture Serie Investidor não encontrado',
+        });
+
+      const usuario =
+        debentureSerieInvestidor.fundo_investimento
+          .fundo_investimento_gestor_fundo?.[0].usuario_fundo_investimento?.[0]
+          .usuario;
+      const fundoInvestidor = debentureSerieInvestidor.fundo_investimento;
+      const cedenteSigma = await this.buscarCedenteSigma(
+        fundoInvestidor.cpf_cnpj,
+      );
+      const enderecoCedente = cedenteSigma.endereco;
+      const representanteCedente = fundoInvestidor.representante_fundo;
+
+      const body = await this.montarBodySolicitarSerie(
+        representanteCedente,
+        enderecoCedente,
+        fundoInvestidor,
+        usuario,
+        debentureSerieInvestidor,
+      );
+
       const url = `${this.baseUrlCreditSecSolicitarSerie}/serie/solicitar_emissao`;
       const req = await fetch(url, {
         method: 'POST',
@@ -404,7 +458,7 @@ export class CreditSecSerieService {
         acao: 'creditSecSerieService.solicitarSerieCreditSec',
         mensagem: 'Erro ao solicitar série no CreditSec',
         detalhes: {
-          body,
+          debentureSerieInvestidorId,
           error,
         },
       });

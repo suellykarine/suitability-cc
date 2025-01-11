@@ -1,5 +1,6 @@
 import { ContaInvestidor } from './contaInvestidor';
 import { FundoInvestimento } from './fundos';
+import { OperacaoDebentureSemVinculo } from './operacaoDebenture';
 
 export type Debenture = {
   id: number;
@@ -27,7 +28,7 @@ export type DebentureSerie = DebentureSerieSemVinculo & {
   debenture_serie_investidor?: DebentureSerieInvestidor[];
 };
 
-export type DebentureSerieInvestidor = {
+export type DebentureSerieInvestidorSemVinculo = {
   id: number;
   id_debenture_serie: number;
   id_conta_investidor: number;
@@ -40,9 +41,13 @@ export type DebentureSerieInvestidor = {
   mensagem_retorno_laqus?: string;
   status_retorno_creditsec?: string;
   mensagem_retorno_creditsec?: string;
+};
+
+export type DebentureSerieInvestidor = DebentureSerieInvestidorSemVinculo & {
   conta_investidor?: ContaInvestidor;
   debenture_serie?: DebentureSerie;
   fundo_investimento?: FundoInvestimento;
+  operacao_debenture?: OperacaoDebentureSemVinculo[];
 };
 
 export type AtualizarFundoInvestimentoAptoDebenture = {
