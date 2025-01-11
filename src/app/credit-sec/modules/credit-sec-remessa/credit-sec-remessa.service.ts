@@ -95,8 +95,8 @@ export class CreditSecRemessaService {
   async repetirSolicitacaoRemessaComErro() {
     this.logService.info({
       mensagem:
-        'Iniciando o Cronjob para re-emitir as solicitações da remessas com erro',
-      acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro',
+        'Executando o serviço para re-emitir as solicitações da remessas com erro',
+      acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro.inicio',
     });
     try {
       const operacoesComErro =
@@ -104,6 +104,8 @@ export class CreditSecRemessaService {
           'ERRO',
         );
 
+      const operacoesSolicitadasComSucesso = [];
+      const operacoesSolicitadasComErro = [];
       for (const operacao of operacoesComErro) {
         const debentureSerieInvestidor =
           await this.debentureSerieInvestidorRepositorio.encontrarPorId(
@@ -113,24 +115,37 @@ export class CreditSecRemessaService {
         const numeroSerie = debentureSerie.numero_serie;
         const numeroDebenture = debentureSerie.debenture.numero_debenture;
         try {
-          await this.solicitarRemessaCreditSec({
+          const operacaoSolicitada = await this.solicitarRemessaCreditSec({
             numeroDebenture,
             numeroSerie,
             codigoOperacao: String(operacao.codigo_operacao),
           });
+          operacoesSolicitadasComSucesso.push(operacaoSolicitada);
         } catch (erro) {
-          this.logService.erro({
-            mensagem: 'Erro ao re-emitir a solicitação da remessa com erro',
-            acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro',
-            detalhes: {
-              operacao,
-              erroMensagem: erro.mensagem ?? erro.message,
-              erro,
-            },
-          });
+          const operacaoComErroAtualizada =
+            await this.operacaoDebentureRepositorio.atualizar(
+              Number(operacao.codigo_operacao),
+              {
+                mensagem_retorno_creditsec: erro.mensagem ?? erro.message,
+              },
+            );
+          operacoesSolicitadasComErro.push(operacaoComErroAtualizada);
         }
       }
-      return { operacoesSelecionadas: operacoesComErro };
+      this.logService.info({
+        mensagem:
+          'Serviço para re-emitir as solicitações da remessas com erro finalizado',
+        acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro.fim',
+        detalhes: {
+          operacoesSolicitadasComSucesso,
+          operacoesSolicitadasComErro,
+        },
+      });
+
+      return {
+        operacoesSolicitadasComSucesso,
+        operacoesSolicitadasComErro,
+      };
     } catch (error) {
       if (error instanceof ErroAplicacao) throw error;
       throw new ErroServidorInterno({
@@ -388,17 +403,16 @@ export class CreditSecRemessaService {
         });
       }
 
-      const res = await req.json();
+      const operacaoAtualizada =
+        await this.operacaoDebentureRepositorio.atualizar(
+          Number(codigoOperacao),
+          {
+            status_retorno_creditsec: 'PENDENTE',
+            mensagem_retorno_creditsec: null,
+          },
+        );
 
-      await this.operacaoDebentureRepositorio.atualizar(
-        Number(codigoOperacao),
-        {
-          status_retorno_creditsec: 'PENDENTE',
-          mensagem_retorno_creditsec: null,
-        },
-      );
-
-      return res;
+      return operacaoAtualizada;
     } catch (error) {
       if (error instanceof ErroAplicacao) {
         const { message, acao, detalhes, ...erro } = error;
