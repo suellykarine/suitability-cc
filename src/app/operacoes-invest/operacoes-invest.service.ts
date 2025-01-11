@@ -47,8 +47,8 @@ export class OperacoesInvestService {
     } catch (error) {
       if (error instanceof ErroAplicacao) throw error;
       throw new ErroServidorInterno({
-        mensagem: 'Ocorreu um erro ao buscar as operações',
         acao: 'operacoesInvest.buscarTransacaoPorCodigoOperacao.catch',
+        mensagem: 'Ocorreu um erro ao buscar as operações',
         detalhes: { codigoOperacao },
       });
     }
@@ -97,11 +97,13 @@ export class OperacoesInvestService {
       });
 
       if (!req.ok) {
-        const resposta = await req.json();
-        throw new ErroServidorInterno({
-          mensagem: 'Ocorreu um erro ao buscar as operações',
+        await tratarErroRequisicao({
           acao: 'operacaoInvestService.buscarTodasOperacoes',
-          detalhes: { req, resposta },
+          mensagem: 'Ocorreu um erro ao buscar as operações',
+          req,
+          detalhes: {
+            identificadorCedente,
+          },
         });
       }
 
