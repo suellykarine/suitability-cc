@@ -53,9 +53,23 @@ export class PrismaOperacaoDebentureRepositorio
   async buscarOperacaoPeloCodigoOperacao(
     codigo_operacao: string,
   ): Promise<OperacaoDebenture> {
-    return await this.prisma.operacao_debenture.findFirst({
+    const operacaoEncontrada = await this.prisma.operacao_debenture.findFirst({
       where: { codigo_operacao: Number(codigo_operacao) },
+      include: {
+        debenture_serie_investidor: {
+          include: {
+            fundo_investimento: true,
+            debenture_serie: {
+              include: {
+                debenture: true,
+              },
+            },
+            conta_investidor: true,
+          },
+        },
+      },
     });
+    return converterCamposDecimais(operacaoEncontrada);
   }
 
   async buscarOperacoesPeloStatusCreditSec(

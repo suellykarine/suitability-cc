@@ -122,16 +122,10 @@ export class CreditSecRemessaService {
           });
           operacoesSolicitadasComSucesso.push(operacaoSolicitada);
         } catch (erro) {
-          console.log('erro');
-          console.log(erro);
-
           const operacaoComErroAtualizada =
-            await this.operacaoDebentureRepositorio.atualizar(
-              Number(operacao.codigo_operacao),
-              {
-                mensagem_retorno_creditsec: erro.mensagem ?? erro.message,
-              },
-            );
+            await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+              mensagem_retorno_creditsec: erro.mensagem ?? erro.message,
+            });
           operacoesSolicitadasComErro.push(operacaoComErroAtualizada);
         }
       }
@@ -152,7 +146,7 @@ export class CreditSecRemessaService {
     } catch (error) {
       if (error instanceof ErroAplicacao) throw error;
       throw new ErroServidorInterno({
-        acao: 'creditSecRemessa.buscarStatusSolicitacaoRemessa',
+        acao: 'creditSecRemessa.repetirSolicitacaoRemessaComErro',
         mensagem: `Erro ao re-emitir as solicitações da remessas com erro`,
         detalhes: {
           error,
@@ -406,14 +400,16 @@ export class CreditSecRemessaService {
         });
       }
 
-      const operacaoAtualizada =
-        await this.operacaoDebentureRepositorio.atualizar(
-          Number(codigoOperacao),
-          {
-            status_retorno_creditsec: 'PENDENTE',
-            mensagem_retorno_creditsec: null,
-          },
+      const operacao =
+        await this.operacaoDebentureRepositorio.buscarOperacaoPeloCodigoOperacao(
+          codigoOperacao,
         );
+
+      const operacaoAtualizada =
+        await this.operacaoDebentureRepositorio.atualizar(operacao.id, {
+          status_retorno_creditsec: 'PENDENTE',
+          mensagem_retorno_creditsec: null,
+        });
 
       return operacaoAtualizada;
     } catch (error) {
