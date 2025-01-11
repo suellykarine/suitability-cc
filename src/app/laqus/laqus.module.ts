@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { LaqusController } from './laqus.controller';
 import { ConfigService } from '@nestjs/config';
 import { LaqusService } from './laqus.service';
@@ -9,10 +9,11 @@ import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoIn
 import { PrismaFundoInvestimentoRepositorio } from 'src/repositorios/prisma/prismaFundoInvestimentoRepositorio';
 import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
-import { CreditSecModule } from '../credit-sec/credit-sec.module';
 import { CedenteModule } from '../cedente/cedente.module';
+import { CreditSecModule } from '../credit-sec/credit-sec.module';
 
 @Module({
+  imports: [forwardRef(() => CreditSecModule), CedenteModule],
   controllers: [LaqusController],
   providers: [
     ConfigService,
@@ -31,7 +32,6 @@ import { CedenteModule } from '../cedente/cedente.module';
       useClass: PrismaAdaptadorDb,
     },
   ],
-  imports: [CreditSecModule, CedenteModule],
   exports: [LaqusService],
 })
 export class LaqusModule {}

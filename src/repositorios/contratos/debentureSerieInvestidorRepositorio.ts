@@ -1,14 +1,13 @@
 import {
-  AtualizaDebentureSerieInvestidorCreditSec,
   DebentureSerie,
   DebentureSerieInvestidor,
+  DebentureSerieInvestidorSemVinculo,
 } from 'src/@types/entities/debenture';
 import { Repositorio } from './repositorio';
 
-export type AtualizarProps = Omit<
-  Partial<DebentureSerieInvestidor> & { id: number },
-  'fundo_investimento' | 'debenture_serie' | 'conta_investidor'
->;
+export type AtualizarProps = Partial<DebentureSerieInvestidorSemVinculo> & {
+  id: number;
+};
 
 export type EncontrarPorDesvinculoProps = {
   idDebenture: number;
@@ -21,7 +20,7 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
   ): Promise<DebentureSerieInvestidor | null>;
   abstract encontrarPorEncerramento(): Promise<DebentureSerieInvestidor | null>;
   abstract criar(
-    data: Partial<DebentureSerieInvestidor>,
+    data: Partial<DebentureSerieInvestidorSemVinculo>,
   ): Promise<DebentureSerieInvestidor>;
 
   abstract encontrarPorIdContaInvestidorDataDesvinculo(
@@ -50,10 +49,6 @@ export abstract class DebentureSerieInvestidorRepositorio extends Repositorio {
 
   abstract encontrarMaisRecentePorIdDebentureSerie(
     idDebentureSerie: number,
-  ): Promise<DebentureSerieInvestidor | null>;
-
-  abstract atualizaDebentureSerieInvestidor(
-    data: AtualizaDebentureSerieInvestidorCreditSec,
   ): Promise<DebentureSerieInvestidor | null>;
 
   abstract buscarDSIPendenteCreditSec(

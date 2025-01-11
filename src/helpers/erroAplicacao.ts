@@ -13,6 +13,7 @@ export class ErroAplicacao extends HttpException {
   public readonly detalhes?: Record<string, unknown>;
   public readonly acao: string;
   public readonly salvarEmLog: boolean;
+  public readonly mensagem: string;
 
   constructor({
     mensagem,
@@ -26,6 +27,7 @@ export class ErroAplicacao extends HttpException {
     this.acao = acao;
     this.detalhes = detalhes;
     this.salvarEmLog = salvarEmLog;
+    this.mensagem = mensagem;
   }
 }
 
