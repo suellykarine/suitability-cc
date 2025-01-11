@@ -1,16 +1,14 @@
-import {
-  Injectable,
-  HttpException,
-  HttpStatus,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { TipoUsuarioEnum } from 'src/enums/TipoUsuario';
 import { AtualizarStatusUsuarioDto } from './dto/atualizar-status.dto';
 import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
 import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
 import { StatusUsuarioRepositorio } from 'src/repositorios/contratos/statusUsuarioRepositorio';
+import {
+  ErroNaoProcessavel,
+  ErroRequisicaoInvalida,
+} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class StatusUsuarioService {
@@ -24,10 +22,18 @@ export class StatusUsuarioService {
     idUsuario: number,
     atualizarStatusUsuarioDto: AtualizarStatusUsuarioDto,
   ) {
+    const logAcao = 'statusUsuarioService.atualizarStatusUsuario';
     const usuario = await this.usuarioRepositorio.encontrarPorId(idUsuario);
 
     if (!usuario) {
-      throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
+        mensagem: 'Usuário não encontrado',
+        detalhes: {
+          idUsuario,
+          atualizarStatusUsuarioDto,
+        },
+      });
     }
 
     if (
@@ -35,7 +41,14 @@ export class StatusUsuarioService {
       usuario.status_usuario!.nome === StatusUsuario.RECUSADO ||
       usuario.status_usuario!.nome === StatusUsuario.PRIMEIRO_ACESSO_PREMIUM
     ) {
-      throw new ConflictException('Este usuário já foi analisado');
+      throw new ErroNaoProcessavel({
+        acao: logAcao,
+        mensagem: 'Este usuário já foi analisado',
+        detalhes: {
+          idUsuario,
+          atualizarStatusUsuarioDto,
+        },
+      });
     }
     let idTipoUsuario: number | null = null;
     let idStatusUsuario: number | null = null;
@@ -58,7 +71,14 @@ export class StatusUsuarioService {
     idStatusUsuario = statusUsuario?.id || null;
 
     if (!idStatusUsuario) {
-      throw new BadRequestException('Status não encontrado');
+      throw new ErroRequisicaoInvalida({
+        acao: logAcao,
+        mensagem: 'Status não encontrado',
+        detalhes: {
+          idUsuario,
+          atualizarStatusUsuarioDto,
+        },
+      });
     }
 
     const usuarioAtualizado =
