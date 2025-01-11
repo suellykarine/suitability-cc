@@ -9,7 +9,6 @@ import { EnviarEmailModule } from './app/enviar-email/enviar-email.module';
 import { DevelopmentModule } from './app/development/development.module';
 import { DebenturesModule } from './app/debentures/debentures.module';
 import { DocumentosModule } from './app/documentos/documentos.module';
-import { CreditSecModule } from './app/credit-sec/credit-sec.module';
 import { AuthModule } from './app/autenticacao/autenticacao.module';
 import { FeedbackModule } from './app/feedback/feedback.module';
 import { UsuariosModule } from './app/usuarios/usuario.module';
@@ -32,6 +31,7 @@ import { MongoModule } from './app/global/db/mongodb/mongo.module';
 import { TratamentoExcessoesFiltro } from './helpers/filtros/filtroExcessoes';
 import { LogModule } from './app/global/logs/log.module';
 import { OperacoesInvestModule } from './app/operacoes-invest/operacoes-invest.module';
+import { CreditSecModule } from './app/credit-sec/credit-sec.module';
 
 @Module({
   imports: [

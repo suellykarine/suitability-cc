@@ -5,9 +5,9 @@ export type OperacaoDebentureSemVinculo = {
   id_debenture_serie_investidor: number;
   codigo_operacao: number;
   status_retorno_creditsec: string;
-  mensagem_retorno_creditsec?: string | null;
+  mensagem_retorno_creditsec?: string;
   data_inclusao: Date;
-  data_exclusao?: Date | null;
+  data_exclusao?: Date;
 };
 
 export type OperacaoDebenture = OperacaoDebentureSemVinculo & {

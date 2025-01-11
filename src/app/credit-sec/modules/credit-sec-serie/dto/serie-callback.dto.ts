@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class BodyRetornoCriacaoSerieDto {
+export class EmissaoSerieRetornoDto {
   @ApiProperty({
     description: 'Número de emissão',
     example: 1,

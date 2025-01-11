@@ -1,6 +1,6 @@
 import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
+import { CreditSecSerieService } from '../credit-sec/modules/credit-sec-serie/credit-sec-serie.service';
 import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { CreditSecSerieService } from '../credit-sec/credit-sec-serie.service';
 import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
 import { StatusRetornoLaqusDto } from './dto/statusRetornoLaqus.dto';
 import { tratarErroRequisicao } from 'src/utils/funcoes/erros';

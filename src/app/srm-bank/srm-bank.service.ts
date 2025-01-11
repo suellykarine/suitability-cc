@@ -12,11 +12,7 @@ import {
 import { sigmaHeaders } from 'src/app/autenticacao/constants';
 import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
 import { ConfigService } from '@nestjs/config';
-import {
-  ErroAplicacao,
-  ErroNaoEncontrado,
-  ErroServidorInterno,
-} from 'src/helpers/erroAplicacao';
+import { ErroAplicacao, ErroServidorInterno } from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class SrmBankService {

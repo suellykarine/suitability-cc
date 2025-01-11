@@ -1,95 +1,14 @@
-import { Module } from '@nestjs/common';
-import { CreditSecSerieService } from './credit-sec-serie.service';
-import { CreditSecRemessaService } from './credit-sec-remessa.service';
-import { CreditSecControler } from './credit-sec.controller';
-import { DebentureSerieRepositorio } from 'src/repositorios/contratos/debenturesSerieRepositorio';
-import { PrismaDebentureSerieRepositorio } from 'src/repositorios/prisma/prismaDebentureSerieRepositorio';
-import { DebentureSerieInvestidorRepositorio } from 'src/repositorios/contratos/debentureSerieInvestidorRepositorio';
-import { PrismaDebentureSerieInvestidorRepositorio } from 'src/repositorios/prisma/prismadebentureSerieInvestidorRepositorio';
-import { FundoInvestimentoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoRepositorio';
-import { PrismaFundoInvestimentoRepositorio } from 'src/repositorios/prisma/prismaFundoInvestimentoRepositorio';
-import { FundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/contratos/fundoInvestimentoGestorFundoRepositorio';
-import { PrismaFundoInvestimentoGestorFundoRepositorio } from 'src/repositorios/prisma/prismaFundoInvestimentoGestorFundoRepositorio';
-import { UsuarioFundoInvestimentoRepositorio } from 'src/repositorios/contratos/usuarioFundoInvestimentoRepositorio';
-import { PrismaUsuarioFundoInvestimentoRepositorio } from 'src/repositorios/prisma/prismaUsuarioFundoInvestimento';
-import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
-import { PrismaUsuarioRepositorio } from 'src/repositorios/prisma/prismaUsuarioRepositorio';
-import { PrismaService } from 'prisma/prisma.service';
-import { ScheduleModule } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
-import { PrismaOperacaoDebentureRepositorio } from 'src/repositorios/prisma/prismaOperacaoDebentureRepositorio';
-import { OperacaoDebentureRepositorio } from 'src/repositorios/contratos/operacaoDebentureRepositorio';
-import { DebentureRepositorio } from 'src/repositorios/contratos/debentureRepositorio';
-import { PrismaDebentureRepositorio } from 'src/repositorios/prisma/prismaDebentureRepositorio';
-import { SigmaService } from '../sigma/sigma.service';
-import { DebentureSerieService } from '../debentures/debentures-serie.service';
-import { PagamentoOperacaoService } from '../sigma/sigma.pagamentoOperacao.service';
-import { ContaInvestidorRepositorio } from 'src/repositorios/contratos/contaInvestidorRespositorio';
-import { PrismaContaInvestidorRepositorio } from 'src/repositorios/prisma/prismaContaInvestidorRepositorio';
-import { LaqusService } from '../laqus/laqus.service';
-import { SrmBankService } from '../srm-bank/srm-bank.service';
-import { CadastroCedenteService } from '../cedente/cedenteCadastro.service';
-import { OperacoesInvestModule } from '../operacoes-invest/operacoes-invest.module';
-import { CcbService } from '../ccb/ccb.service';
-import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
-import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
+import { forwardRef, Module } from '@nestjs/common';
+import { CreditSecRemessaModule } from './modules/credit-sec-remessa/credit-sec-remessa.module';
+import { CreditSecSerieModule } from './modules/credit-sec-serie/credit-sec-serie.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), OperacoesInvestModule],
-  controllers: [CreditSecControler],
-  providers: [
-    CreditSecSerieService,
-    ConfigService,
-    CreditSecRemessaService,
-    PrismaService,
-    SigmaService,
-    DebentureSerieService,
-    LaqusService,
-    CcbService,
-    PagamentoOperacaoService,
-    SrmBankService,
-    CadastroCedenteService,
-    {
-      provide: DebentureRepositorio,
-      useClass: PrismaDebentureRepositorio,
-    },
-    {
-      provide: DebentureSerieRepositorio,
-      useClass: PrismaDebentureSerieRepositorio,
-    },
-    {
-      provide: DebentureSerieInvestidorRepositorio,
-      useClass: PrismaDebentureSerieInvestidorRepositorio,
-    },
-    {
-      provide: FundoInvestimentoRepositorio,
-      useClass: PrismaFundoInvestimentoRepositorio,
-    },
-    {
-      provide: FundoInvestimentoGestorFundoRepositorio,
-      useClass: PrismaFundoInvestimentoGestorFundoRepositorio,
-    },
-    {
-      provide: UsuarioFundoInvestimentoRepositorio,
-      useClass: PrismaUsuarioFundoInvestimentoRepositorio,
-    },
-    {
-      provide: UsuarioRepositorio,
-      useClass: PrismaUsuarioRepositorio,
-    },
-    {
-      provide: OperacaoDebentureRepositorio,
-      useClass: PrismaOperacaoDebentureRepositorio,
-    },
-    {
-      provide: ContaInvestidorRepositorio,
-      useClass: PrismaContaInvestidorRepositorio,
-    },
-    {
-      provide: AdaptadorDb,
-      useClass: PrismaAdaptadorDb,
-    },
+  imports: [
+    forwardRef(() => CreditSecRemessaModule),
+    forwardRef(() => CreditSecSerieModule),
   ],
-  exports: [CreditSecSerieService, CreditSecRemessaService],
+  controllers: [],
+  providers: [],
+  exports: [CreditSecRemessaModule, CreditSecSerieModule],
 })
 export class CreditSecModule {}

@@ -18,7 +18,7 @@ type TitulosRejeitados = {
   motivo_rejeicao: string;
 };
 
-export class BodyRetornoRemessaDto {
+export class EmissaoRemessaRetornoDto {
   @ApiProperty({
     description: 'Número remessa',
     example: '321',
@@ -49,7 +49,7 @@ export class BodyRetornoRemessaDto {
   @IsArray()
   titulos_rejeitados: TitulosRejeitados[];
 }
-export class BodyCriacaoRemessaDto {
+export class EmissaoRemessaDto {
   @ApiProperty({
     description: 'Número debênture',
     example: 1,
