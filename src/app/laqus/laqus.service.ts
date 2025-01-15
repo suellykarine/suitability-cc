@@ -19,10 +19,12 @@ import {
   TipoPessoa,
 } from './dto/criarInvestidorLaqus.dto';
 import {
+  ErroAplicacao,
   ErroNaoEncontrado,
   ErroRequisicaoInvalida,
   ErroServidorInterno,
 } from 'src/helpers/erroAplicacao';
+import { RepresentanteFundoRepositorio } from 'src/repositorios/contratos/representanteFundoRepositorio';
 
 @Injectable()
 export class LaqusService {
@@ -36,6 +38,7 @@ export class LaqusService {
     private readonly configService: ConfigService,
     private readonly adaptadorDb: AdaptadorDb,
     private readonly logService: LogService,
+    private readonly representanteFundoRepositorio: RepresentanteFundoRepositorio,
   ) {
     this.token = this.configService.get<string>('LAQUS_TOKEN_API');
     this.laqusApi = this.configService.get<string>('LAQUS_API');
@@ -151,12 +154,30 @@ export class LaqusService {
     const { endereco, ramoAtividade } =
       await this.cadastroCedenteService.buscarDadosPJ(fundo.cpf_cnpj);
 
+    const representanteFundo =
+      await this.representanteFundoRepositorio.encontrarPorId(
+        fundo.id_representante_fundo,
+      );
+    if (!representanteFundo) {
+      throw new ErroNaoEncontrado({
+        mensagem: 'Representante não encontrado',
+        acao: 'cadastrarInvestidor',
+        detalhes: {
+          id_fundo_investimento: fundo.id,
+          id_representante_fundo: fundo.id_representante_fundo,
+        },
+      });
+    }
+
     const atividadePrincipal =
       fundo.atividade_principal || ramoAtividade?.descricao || '';
     const dadosCedente = {
       tipoDeEmpresa: TipoDeEmpresa.Limitada,
       tipoPessoa: TipoPessoa.Juridica,
       funcao: Funcao.Investidor,
+      cpfRepresentante: representanteFundo.cpf,
+      emailRepresentante: representanteFundo.email,
+      nomeRepresentante: representanteFundo.nome,
       email:
         fundo.fundo_investimento_gestor_fundo?.[0]
           .usuario_fundo_investimento?.[0].usuario?.email ?? '',

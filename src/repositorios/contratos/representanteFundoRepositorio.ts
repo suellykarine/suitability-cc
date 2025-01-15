@@ -21,4 +21,6 @@ export abstract class RepresentanteFundoRepositorio extends Repositorio {
   ): Promise<RepresentanteFundo>;
 
   abstract remover(id: number): Promise<void>;
+
+  abstract encontrarPorId(id: number): Promise<RepresentanteFundo | null>;
 }
