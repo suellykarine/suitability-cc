@@ -11,6 +11,8 @@ import { AdaptadorDb } from 'src/adaptadores/db/adaptadorDb';
 import { PrismaAdaptadorDb } from 'src/adaptadores/db/prismaAdaptadorDb';
 import { CedenteModule } from '../cedente/cedente.module';
 import { CreditSecModule } from '../credit-sec/credit-sec.module';
+import { RepresentanteFundoRepositorio } from 'src/repositorios/contratos/representanteFundoRepositorio';
+import { PrismaRepresentanteFundoRepositorio } from 'src/repositorios/prisma/prismaRepresentanteFundoRepositorio';
 
 @Module({
   imports: [forwardRef(() => CreditSecModule), CedenteModule],
@@ -30,6 +32,10 @@ import { CreditSecModule } from '../credit-sec/credit-sec.module';
     {
       provide: AdaptadorDb,
       useClass: PrismaAdaptadorDb,
+    },
+    {
+      provide: RepresentanteFundoRepositorio,
+      useClass: PrismaRepresentanteFundoRepositorio,
     },
   ],
   exports: [LaqusService],

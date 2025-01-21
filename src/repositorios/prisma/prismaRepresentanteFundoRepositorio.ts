@@ -38,6 +38,14 @@ export class PrismaRepresentanteFundoRepositorio
     });
   }
 
+  async encontrarPorId(id: number): Promise<RepresentanteFundo> {
+    return this.prisma.representante_fundo.findFirst({
+      where: {
+        id,
+      },
+    });
+  }
+
   async criarRepresentante(
     data: Omit<RepresentanteFundoSemVinculo, 'id'>,
   ): Promise<RepresentanteFundo> {
