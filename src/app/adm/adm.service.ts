@@ -6,6 +6,7 @@ import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import {
+  ErroAplicacao,
   ErroNaoEncontrado,
   ErroRequisicaoInvalida,
   ErroServidorInterno,
@@ -50,7 +51,7 @@ export class AdmService {
             'Já existe um registro com um dos campos únicos. Verifique os dados fornecidos.',
         });
       }
-      if (erro instanceof erro) throw erro;
+      if (erro instanceof ErroAplicacao) throw erro;
 
       throw new ErroServidorInterno({
         acao: 'admService.criarUsuario',
