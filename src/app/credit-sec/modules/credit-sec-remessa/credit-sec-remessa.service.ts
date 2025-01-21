@@ -37,7 +37,7 @@ import {
 } from '../../interface/interface';
 import { statusRetornoCreditSecDicionario } from '../../const';
 import { tratarErroRequisicao } from 'src/utils/funcoes/erros';
-import { OperacaoInvest } from 'src/@types/entities/operacao';
+import { AtivoInvest, OperacaoInvest } from 'src/@types/entities/operacao';
 
 @Injectable()
 export class CreditSecRemessaService {
@@ -472,8 +472,7 @@ export class CreditSecRemessaService {
 
     return res;
   }
-
-  private async encontrarOperacoesCedenteSigma(
+  async encontrarOperacoesCedenteSigma(
     codigoOperacao: string,
   ): Promise<OperacaoInvest> {
     const req = await fetch(
@@ -502,7 +501,18 @@ export class CreditSecRemessaService {
     }
 
     const res = await req.json();
-    return res;
+    const novosAtivosInvest = res.ativosInvest.map((ativo: AtivoInvest) => {
+      if (ativo.tipoAtivo === 'CTF') {
+        return { ...ativo, tipoAtivo: 'CCB' };
+      }
+      return { ...ativo };
+    });
+    const novaOperacaoCedente = {
+      ...res,
+      ativosInvest: novosAtivosInvest,
+    };
+    console.log(novaOperacaoCedente);
+    return novaOperacaoCedente;
   }
 
   private async criarRegistroDeOperacaoSigma(
