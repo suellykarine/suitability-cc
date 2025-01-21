@@ -1,47 +1,62 @@
+import { StatusUsuarioRepositorio } from 'src/repositorios/contratos/statusUsuarioRepositorio';
+import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
+import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
+import { CreateUsuarioDto } from '../usuarios/dto/criar-usuario.dto';
+import { StatusUsuario } from 'src/enums/StatusUsuario';
 import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import {
+  ErroNaoEncontrado,
+  ErroRequisicaoInvalida,
+  ErroServidorInterno,
+} from 'src/helpers/erroAplicacao';
 import {
   AtualizarSenhaMasterDto,
   AtualizarUsuarioDto,
 } from './dto/update-adm.dto';
-import * as bcrypt from 'bcrypt';
-import { StatusUsuario } from 'src/enums/StatusUsuario';
-import { CreateUsuarioDto } from '../usuarios/dto/criar-usuario.dto';
-import { UsuarioRepositorio } from 'src/repositorios/contratos/usuarioRepositorio';
-import { StatusUsuarioRepositorio } from 'src/repositorios/contratos/statusUsuarioRepositorio';
-import { TipoUsuarioRepositorio } from 'src/repositorios/contratos/tipoUsuarioRepositorio';
-import {
-  ErroNaoEncontrado,
-  ErroRequisicaoInvalida,
-} from 'src/helpers/erroAplicacao';
 
 @Injectable()
 export class AdmService {
   constructor(
-    private readonly usuarioRepositorio: UsuarioRepositorio,
     private readonly statusUsuarioRepositorio: StatusUsuarioRepositorio,
     private readonly tipoUsuarioRepositorio: TipoUsuarioRepositorio,
+    private readonly usuarioRepositorio: UsuarioRepositorio,
   ) {}
 
   async criarUsuario(createAdmDto: CreateUsuarioDto) {
     const statusUsuario = await this.obterStatusUsuario(StatusUsuario.APROVADO);
     const tipoUsuario = await this.obterTipoUsuario(createAdmDto.tipo_usuario);
-
     const senhaHash = await bcrypt.hash(createAdmDto.senha, 10);
 
-    const usuario = await this.usuarioRepositorio.criar({
-      nome: createAdmDto.nome,
-      email: createAdmDto.email,
-      telefone: createAdmDto.telefone,
-      senha: senhaHash,
-      cpf: createAdmDto.cpf || null,
-      id_tipo_usuario: tipoUsuario.id,
-      id_status_usuario: statusUsuario.id,
-    });
+    try {
+      const usuario = await this.usuarioRepositorio.criar({
+        nome: createAdmDto.nome,
+        email: createAdmDto.email,
+        telefone: createAdmDto.telefone,
+        senha: senhaHash,
+        cpf: createAdmDto.cpf || null,
+        id_tipo_usuario: tipoUsuario.id,
+        id_status_usuario: statusUsuario.id,
+      });
+      return {
+        mensagem: 'Usuário criado com sucesso',
+        usuario,
+      };
+    } catch (erro) {
+      if (erro.message && erro.message.includes('Unique constraint failed')) {
+        throw new ErroRequisicaoInvalida({
+          acao: 'admService.criarUsuario',
+          mensagem:
+            'Já existe um registro com um dos campos únicos. Verifique os dados fornecidos.',
+        });
+      }
+      if (erro instanceof erro) throw erro;
 
-    return {
-      mensagem: 'Usuário criado com sucesso',
-      usuario,
-    };
+      throw new ErroServidorInterno({
+        acao: 'admService.criarUsuario',
+        mensagem: 'Não foi possível concluir o cadastro',
+      });
+    }
   }
 
   async buscarUsuarios(
